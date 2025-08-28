@@ -39,7 +39,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', env: process.env.NODE_ENV || 'development' });
 });
 
-app.use('/api/v1', apiRouter);
+app.use('/api', apiRouter);
 
 // Global error handler
 // eslint-disable-next-line no-unused-vars

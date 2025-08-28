@@ -2,7 +2,7 @@ const Service = require('../models/Service');
 
 async function list(req, res) {
   try {
-    const { type, category, featured } = req.query;
+    const { type, department, featured } = req.query;
     let query = { status: 'active' };
 
     if (type === 'main') {
@@ -12,8 +12,8 @@ async function list(req, res) {
       query.parentService = { $exists: true, $ne: null };
     }
 
-    if (category) {
-      query.category = category;
+    if (department) {
+      query.department = department;
     }
 
     if (featured === 'true') {
@@ -21,9 +21,9 @@ async function list(req, res) {
     }
 
     const services = await Service.find(query)
-      .populate('category')
+      .populate('department', 'name color')
       .populate('parentService', 'title slug')
-      .populate('subServices', 'title slug shortDescription heroImage')
+      .populate('subServices', 'title slug shortDescription heroImage status')
       .sort({ order: 1, createdAt: -1 });
 
     res.json(services);
@@ -38,6 +38,7 @@ async function getMainServices(req, res) {
       isMainService: true, 
       status: 'active' 
     })
+    .populate('department', 'name color')
     .populate('subServices', 'title slug shortDescription heroImage status')
     .sort({ order: 1 });
 
@@ -54,6 +55,7 @@ async function getSubServices(req, res) {
       parentService: parentId, 
       status: 'active' 
     })
+    .populate('department', 'name color')
     .populate('parentService', 'title slug')
     .sort({ order: 1 });
 
@@ -63,11 +65,28 @@ async function getSubServices(req, res) {
   }
 }
 
+async function getAllSubServices(req, res) {
+  try {
+    const subServices = await Service.find({ 
+      isMainService: false,
+      parentService: { $exists: true, $ne: null },
+      status: 'active' 
+    })
+    .populate('department', 'name color')
+    .populate('parentService', 'title slug')
+    .sort({ order: 1 });
+
+    res.json(subServices);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching all sub services', error: error.message });
+  }
+}
+
 async function getBySlug(req, res) {
   try {
     const { slug } = req.params;
     const service = await Service.findOne({ slug, status: 'active' })
-      .populate('category')
+      .populate('department', 'name color')
       .populate('parentService', 'title slug')
       .populate('subServices', 'title slug shortDescription heroImage status');
 
@@ -83,30 +102,70 @@ async function getBySlug(req, res) {
 
 async function create(req, res) {
   try {
+    console.log('Creating service with data:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    // Validate required fields
+    const { title, slug } = req.body;
+    console.log('Extracted fields:', { title, slug });
+    
+    if (!title || !slug) {
+      console.log('Missing required fields:', { title, slug });
+      return res.status(400).json({ 
+        message: 'Missing required fields', 
+        required: ['title', 'slug'],
+        received: { title, slug }
+      });
+    }
+
+    // Check if slug already exists
+    console.log('Checking for existing slug:', slug);
+    const existingService = await Service.findOne({ slug });
+    if (existingService) {
+      console.log('Slug already exists:', slug);
+      return res.status(400).json({ 
+        message: 'Service with this slug already exists',
+        slug 
+      });
+    }
+    console.log('Slug is unique:', slug);
+
+    console.log('Creating service in database with data:', req.body);
     const service = await Service.create(req.body);
+    console.log('Service created with ID:', service._id);
     
     // If this is a sub-service, update the parent service's subServices array
     if (service.parentService) {
+      console.log('Updating parent service:', service.parentService);
       await Service.findByIdAndUpdate(
         service.parentService,
         { $push: { subServices: service._id } }
       );
+      console.log('Parent service updated');
     }
 
     const populatedService = await Service.findById(service._id)
-      .populate('category')
+      .populate('department', 'name color')
       .populate('parentService', 'title slug')
       .populate('subServices', 'title slug shortDescription heroImage');
 
+    console.log('Service created successfully:', populatedService._id);
     res.status(201).json(populatedService);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating service', error: error.message });
+    console.error('Error creating service:', error);
+    res.status(500).json({ 
+      message: 'Error creating service', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
 async function update(req, res) {
   try {
     const { id } = req.params;
+    console.log('Updating service:', id, 'with data:', req.body);
+    
     const oldService = await Service.findById(id);
     
     if (!oldService) {
@@ -114,7 +173,7 @@ async function update(req, res) {
     }
 
     const service = await Service.findByIdAndUpdate(id, req.body, { new: true })
-      .populate('category')
+      .populate('department', 'name color')
       .populate('parentService', 'title slug')
       .populate('subServices', 'title slug shortDescription heroImage');
 
@@ -135,9 +194,15 @@ async function update(req, res) {
       );
     }
 
+    console.log('Service updated successfully:', service._id);
     res.json(service);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating service', error: error.message });
+    console.error('Error updating service:', error);
+    res.status(500).json({ 
+      message: 'Error updating service', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
@@ -176,7 +241,7 @@ async function getFeatured(req, res) {
       isFeatured: true, 
       status: 'active' 
     })
-    .populate('category')
+    .populate('department', 'name color')
     .populate('parentService', 'title slug')
     .sort({ order: 1 })
     .limit(6);
@@ -191,6 +256,7 @@ module.exports = {
   list, 
   getMainServices, 
   getSubServices, 
+  getAllSubServices,
   getBySlug, 
   create, 
   update, 

@@ -1,18 +1,22 @@
 const express = require('express');
 const { requireAdmin } = require('../middleware/auth');
 const {
-  getVisitorStats,
+  trackVisitor,
+  getAnalytics,
   getRecentVisitors,
   getVisitorDetails
 } = require('../controllers/visitorController');
 
 const router = express.Router();
 
-// All routes require authentication
+// Track visitor (public endpoint - no auth required)
+router.post('/track', trackVisitor);
+
+// All routes below require authentication
 router.use(requireAdmin);
 
-// Get visitor statistics
-router.get('/stats', getVisitorStats);
+// Get comprehensive analytics data
+router.get('/analytics', getAnalytics);
 
 // Get recent visitors with pagination
 router.get('/recent', getRecentVisitors);

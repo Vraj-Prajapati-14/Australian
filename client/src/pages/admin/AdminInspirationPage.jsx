@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Table, 
   Button, 
@@ -7,16 +7,20 @@ import {
   Form, 
   Input, 
   Select, 
-  message, 
   Card, 
   Typography,
   Tag,
   Popconfirm,
   Image,
   Row,
-  Col
+  Col,
+  Spin,
+  App
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, PictureOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../lib/api';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -25,47 +29,122 @@ const { Option } = Select;
 export default function AdminInspirationPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
 
-  const [inspirationItems, setInspirationItems] = useState([
-    {
-      id: 1,
-      title: "Modinex Ute with HIDRIVE Canopy",
-      category: "ute",
-      description: "Premium ute canopy with integrated storage solutions for sales team operations.",
-      image: "/modinex-ute.jpg",
-      tags: ["Ute", "Canopy", "Sales", "Premium"],
-      status: "published",
-      isFeatured: true
-    },
-    {
-      id: 2,
-      title: "EMS Field Mechanic Fleet",
-      category: "fleet",
-      description: "Complete fleet of ute and truck service bodies for mechanical services.",
-      image: "/ems-fleet.jpg",
-      tags: ["Fleet", "Mechanical", "Ute", "Truck"],
-      status: "published",
-      isFeatured: true
-    },
-    {
-      id: 3,
-      title: "Gecko Cleantech Spills Trailer",
-      category: "trailer",
-      description: "Specialized spills cleanup trailer for airport runway safety.",
-      image: "/gecko-trailer.jpg",
-      tags: ["Trailer", "Specialized", "Airport", "Safety"],
-      status: "published",
-      isFeatured: false
+  // Validate image field when uploadedImage changes
+  useEffect(() => {
+    if (isModalVisible) {
+      form.validateFields(['image']);
     }
-  ]);
+  }, [uploadedImage, isModalVisible, form]);
+
+  // Fetch inspiration data
+  const { data: inspirationItems = [], isLoading } = useQuery({
+    queryKey: ['inspiration'],
+    queryFn: async () => {
+      const response = await api.get('/inspiration');
+      return response.data?.data || [];
+    }
+  });
+
+  // Fetch services for dropdown
+  const { data: services = [], error: servicesError } = useQuery({ 
+    queryKey: ['services'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+    }
+  });
+
+  // Fetch departments for dropdown
+  const { data: departments = [], error: departmentsError } = useQuery({ 
+    queryKey: ['departments'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/departments');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+      }
+    }
+  });
+
+  // Create inspiration mutation
+  const createMutation = useMutation({
+    mutationFn: async (formData) => {
+      const response = await api.post('/inspiration', formData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['inspiration']);
+      message.success('Inspiration item created successfully');
+      handleCancel();
+    },
+    onError: (error) => {
+      message.error('Failed to create inspiration item');
+      console.error('Create error:', error);
+    }
+  });
+
+  // Update inspiration mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, formData }) => {
+      const response = await api.put(`/inspiration/${id}`, formData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['inspiration']);
+      message.success('Inspiration item updated successfully');
+      handleCancel();
+    },
+    onError: (error) => {
+      message.error('Failed to update inspiration item');
+      console.error('Update error:', error);
+    }
+  });
+
+  // Delete inspiration mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/inspiration/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['inspiration']);
+      message.success('Inspiration item deleted successfully');
+    },
+    onError: (error) => {
+      message.error('Failed to delete inspiration item');
+      console.error('Delete error:', error);
+    }
+  });
 
   const showModal = (item = null) => {
     setEditingItem(item);
     if (item) {
-      form.setFieldsValue(item);
+      form.setFieldsValue({
+        title: item.title,
+        service: item.service?._id,
+        department: item.department?._id,
+        description: item.description,
+        tags: item.tags,
+        status: item.status,
+        isFeatured: item.isFeatured,
+        order: item.order,
+        image: item.image || null
+      });
+      setUploadedImage(item.image || null);
     } else {
       form.resetFields();
+      setUploadedImage(null);
     }
     setIsModalVisible(true);
   };
@@ -73,61 +152,75 @@ export default function AdminInspirationPage() {
   const handleCancel = () => {
     setIsModalVisible(false);
     setEditingItem(null);
+    setUploadedImage(null);
     form.resetFields();
   };
 
   const handleSubmit = async (values) => {
     try {
-      if (editingItem) {
-        // Update existing item
-        setInspirationItems(prev => 
-          prev.map(i => 
-            i.id === editingItem.id 
-              ? { ...i, ...values }
-              : i
-          )
-        );
-        message.success('Inspiration item updated successfully');
-      } else {
-        // Create new item
-        const newItem = {
-          id: Date.now(),
-          ...values,
-          status: 'draft'
-        };
-        setInspirationItems(prev => [...prev, newItem]);
-        message.success('Inspiration item created successfully');
+      console.log('Form values:', values);
+      console.log('Uploaded image:', uploadedImage);
+      console.log('Editing item image:', editingItem?.image);
+
+      // Check if we have an image - check all possible sources
+      const imageData = uploadedImage || editingItem?.image || values.image;
+      console.log('Final image data:', imageData);
+      
+      if (!imageData) {
+        message.error('Please upload an image before submitting');
+        return;
       }
-      handleCancel();
+
+      // Validate image data structure
+      if (typeof imageData === 'object' && (!imageData.url || !imageData.publicId)) {
+        message.error('Invalid image data. Please upload an image again.');
+        return;
+      }
+
+      // If imageData is a string (URL), convert it to proper format
+      let finalImageData = imageData;
+      if (typeof imageData === 'string') {
+        finalImageData = {
+          url: imageData,
+          publicId: `inspiration_${Date.now()}`,
+          alt: values.title || 'Inspiration image'
+        };
+      }
+
+      // Prepare the data object
+      const formData = {
+        title: values.title,
+        service: values.service,
+        department: values.department,
+        description: values.description,
+        status: values.status || 'draft',
+        isFeatured: values.isFeatured || false,
+        order: values.order || 0,
+        tags: values.tags || [],
+        image: finalImageData
+      };
+      
+      console.log('Submitting form data:', formData);
+      
+      if (editingItem) {
+        updateMutation.mutate({ id: editingItem._id, formData });
+      } else {
+        createMutation.mutate(formData);
+      }
     } catch (error) {
+      console.error('Submit error:', error);
       message.error('An error occurred');
     }
   };
 
   const handleDelete = (id) => {
-    setInspirationItems(prev => prev.filter(i => i.id !== id));
-    message.success('Inspiration item deleted successfully');
+    deleteMutation.mutate(id);
   };
 
   const handleStatusChange = (id, status) => {
-    setInspirationItems(prev => 
-      prev.map(i => 
-        i.id === id 
-          ? { ...i, status }
-          : i
-      )
-    );
-    message.success(`Inspiration item ${status}`);
+    const formData = { status };
+    updateMutation.mutate({ id, formData });
   };
-
-  const categories = [
-    { value: 'ute', label: 'Ute' },
-    { value: 'trailer', label: 'Trailer' },
-    { value: 'truck', label: 'Truck' },
-    { value: 'fleet', label: 'Fleet' },
-    { value: 'government', label: 'Government' },
-    { value: 'emergency', label: 'Emergency' }
-  ];
 
   const columns = [
     {
@@ -138,32 +231,48 @@ export default function AdminInspirationPage() {
         <div style={{ 
           width: 80, 
           height: 60, 
-          background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
           borderRadius: 8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: 24
+          overflow: 'hidden',
+          border: '1px solid #d9d9d9'
         }}>
-          {record.category === 'ute' && '🚗'}
-          {record.category === 'trailer' && '🚛'}
-          {record.category === 'truck' && '🚚'}
-          {record.category === 'fleet' && '🏢'}
-          {record.category === 'government' && '🏛️'}
-          {record.category === 'emergency' && '🚨'}
+          {image && image.url ? (
+            <Image
+              src={image.url}
+              alt={image.alt || record.title}
+              width="100%"
+              height="100%"
+              style={{ objectFit: 'cover' }}
+              preview={false}
+            />
+          ) : (
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: 24
+            }}>
+              🎨
+            </div>
+          )}
         </div>
       )
     },
     {
-      title: 'Title & Category',
+      title: 'Title & Service',
       dataIndex: 'title',
       key: 'title',
       render: (text, record) => (
         <div>
           <div style={{ fontWeight: 600 }}>{text}</div>
           <div style={{ fontSize: 12, color: '#666' }}>
-            Category: {record.category.charAt(0).toUpperCase() + record.category.slice(1)}
+            Service: {record.service?.title || 'N/A'}
+          </div>
+          <div style={{ fontSize: 12, color: '#666' }}>
+            Department: {record.department?.name || 'N/A'}
           </div>
         </div>
       )
@@ -186,12 +295,12 @@ export default function AdminInspirationPage() {
       key: 'tags',
       render: (tags) => (
         <div>
-          {tags.slice(0, 3).map((tag, index) => (
+          {tags && tags.slice(0, 3).map((tag, index) => (
             <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
               {tag}
             </Tag>
           ))}
-          {tags.length > 3 && <Tag>+{tags.length - 3}</Tag>}
+          {tags && tags.length > 3 && <Tag>+{tags.length - 3}</Tag>}
         </div>
       )
     },
@@ -202,7 +311,7 @@ export default function AdminInspirationPage() {
       render: (status, record) => (
         <Select
           value={status}
-          onChange={(value) => handleStatusChange(record.id, value)}
+          onChange={(value) => handleStatusChange(record._id, value)}
           style={{ width: 120 }}
         >
           <Option value="draft">Draft</Option>
@@ -219,13 +328,8 @@ export default function AdminInspirationPage() {
         <Select
           value={isFeatured}
           onChange={(value) => {
-            setInspirationItems(prev => 
-              prev.map(i => 
-                i.id === record.id 
-                  ? { ...i, isFeatured: value }
-                  : i
-              )
-            );
+            const formData = { isFeatured: value };
+            updateMutation.mutate({ id: record._id, formData });
           }}
           style={{ width: 100 }}
         >
@@ -253,7 +357,7 @@ export default function AdminInspirationPage() {
           />
           <Popconfirm
             title="Are you sure you want to delete this inspiration item?"
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(record._id)}
             okText="Yes"
             cancelText="No"
           >
@@ -290,7 +394,8 @@ export default function AdminInspirationPage() {
         <Table 
           columns={columns} 
           dataSource={inspirationItems}
-          rowKey="id"
+          rowKey="_id"
+          loading={isLoading}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -325,17 +430,36 @@ export default function AdminInspirationPage() {
             <Input placeholder="Enter inspiration item title" />
           </Form.Item>
 
-          <Form.Item
-            name="category"
-            label="Category"
-            rules={[{ required: true, message: 'Please select a category' }]}
-          >
-            <Select placeholder="Select category">
-              {categories.map(cat => (
-                <Option key={cat.value} value={cat.value}>{cat.label}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="service"
+                label="Service"
+              >
+                <Select placeholder="Select service" allowClear>
+                  {services.map(service => (
+                    <Option key={service._id} value={service._id}>
+                      {service.title}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="department"
+                label="Department"
+              >
+                <Select placeholder="Select department" allowClear>
+                  {departments.map(dept => (
+                    <Option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="description"
@@ -362,10 +486,33 @@ export default function AdminInspirationPage() {
 
           <Form.Item
             name="image"
-            label="Image URL"
-            rules={[{ required: true, message: 'Please enter the image URL' }]}
+            label="Image"
+            rules={[
+              {
+                validator: (_, value) => {
+                  const hasImage = uploadedImage || editingItem?.image || value;
+                  if (!hasImage) {
+                    return Promise.reject(new Error('Please upload an image'));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
-            <Input placeholder="Enter image URL" />
+            <SimpleImageUpload 
+              value={uploadedImage}
+              onChange={(image) => {
+                console.log('ImageUpload onChange called with:', image);
+                setUploadedImage(image);
+                // Also set the form field value
+                form.setFieldsValue({ image: image });
+                // Trigger form validation
+                form.validateFields(['image']);
+              }}
+              folder="inspiration"
+              maxSize={5}
+              required={true}
+            />
           </Form.Item>
 
           <Row gutter={16}>
@@ -373,7 +520,6 @@ export default function AdminInspirationPage() {
               <Form.Item
                 name="isFeatured"
                 label="Featured"
-                valuePropName="checked"
               >
                 <Select>
                   <Option value={true}>Yes</Option>

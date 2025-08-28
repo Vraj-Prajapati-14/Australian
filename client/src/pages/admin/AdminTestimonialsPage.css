@@ -1,0 +1,395 @@
+.admin-testimonials-page {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.admin-testimonials-page .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e8e8;
+}
+
+.admin-testimonials-page .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.admin-testimonials-page .ant-card-body {
+  padding: 24px;
+}
+
+/* Statistics Cards */
+.stats-grid {
+  margin-bottom: 24px;
+}
+
+.stats-card {
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card .ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.stats-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.stats-card .ant-statistic-content-value {
+  color: #1890ff;
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-bottom: 24px;
+}
+
+.action-buttons .ant-btn {
+  margin-right: 12px;
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.action-buttons .ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.action-buttons .ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Table Styling */
+.testimonials-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.testimonials-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #262626;
+  padding: 16px;
+}
+
+.testimonials-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.testimonials-table .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+/* Avatar Styling */
+.testimonial-avatar {
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
+}
+
+/* Rating Stars */
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-stars .ant-rate {
+  font-size: 12px;
+}
+
+.rating-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Status Tags */
+.status-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+.status-pending {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.status-approved {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-rejected {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+
+/* Featured Tag */
+.featured-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+.featured-yes {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.featured-no {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #d9d9d9;
+}
+
+/* Modal Styling */
+.testimonial-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.testimonial-modal .ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.testimonial-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.testimonial-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.testimonial-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.testimonial-modal .ant-input,
+.testimonial-modal .ant-input-number,
+.testimonial-modal .ant-select-selector {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.testimonial-modal .ant-input:focus,
+.testimonial-modal .ant-input-number:focus,
+.testimonial-modal .ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Upload Component */
+.avatar-upload {
+  text-align: center;
+}
+
+.avatar-upload .ant-upload {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.avatar-upload .ant-upload:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+.avatar-upload .ant-upload-text {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Debug Info Card */
+.debug-info {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.debug-info strong {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.debug-info pre {
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-testimonials-page {
+    padding: 16px;
+  }
+  
+  .stats-grid .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .action-buttons .ant-btn {
+    margin-bottom: 8px;
+    width: 100%;
+  }
+  
+  .testimonials-table {
+    overflow-x: auto;
+  }
+  
+  .testimonials-table .ant-table {
+    min-width: 800px;
+  }
+}
+
+/* Loading States */
+.loading-overlay {
+  position: relative;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #666;
+}
+
+.empty-state .ant-empty-description {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Selection Info */
+.selection-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Error Display */
+.error-alert {
+  margin-bottom: 16px;
+}
+
+.error-alert .ant-alert-message {
+  font-weight: 500;
+}
+
+/* Success Messages */
+.success-message {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+/* Filter Section */
+.filter-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e8e8e8;
+}
+
+.filter-section .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.filter-section .ant-select {
+  width: 100%;
+}
+
+/* Pagination */
+.pagination-info {
+  text-align: right;
+  color: #666;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+/* Action Icons */
+.action-icons .ant-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.action-icons .ant-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Content Ellipsis */
+.content-ellipsis {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Company Info */
+.company-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.company-info .company-name {
+  font-weight: 500;
+  color: #262626;
+}
+
+.company-info .position {
+  color: #666;
+  font-size: 12px;
+}
+
+.company-info .company {
+  color: #666;
+  font-size: 12px;
+}

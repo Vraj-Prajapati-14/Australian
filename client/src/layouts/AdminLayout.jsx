@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
-import { FiMenu } from 'react-icons/fi';
+import { MenuOutlined, CloseOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Button, Drawer, Spin, Avatar, Dropdown } from 'antd';
 import AdminSidebar from '../components/AdminSidebar';
-import { getToken } from '../lib/auth';
+import { getToken, removeToken } from '../lib/auth';
 
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,16 +13,26 @@ const AdminLayout = () => {
   useEffect(() => {
     const token = getToken();
     if (token) {
-      // You can add token validation here
       setIsAuthenticated(true);
     }
     setIsLoading(false);
   }, []);
 
+  const handleLogout = () => {
+    removeToken();
+    window.location.href = '/admin/login';
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <Spin size="large" style={{ color: '#ffffff' }} />
       </div>
     );
   }
@@ -30,32 +41,71 @@ const AdminLayout = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
+  const userMenuItems = [
+    {
+      key: 'profile',
+      label: 'Profile',
+      icon: <Avatar size="small" style={{ backgroundColor: '#1677ff' }}>A</Avatar>
+    },
+    {
+      key: 'logout',
+      label: 'Logout',
+      icon: <LogoutOutlined />,
+      onClick: handleLogout
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile header */}
-      <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
-        <button
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f5f5' }}>
+      {/* Desktop Sidebar - Always visible on desktop */}
+      <div className="admin-sidebar-desktop">
+        <AdminSidebar />
+      </div>
+
+      {/* Mobile Header */}
+      <div className="admin-mobile-header">
+        <Button
+          type="text"
+          icon={<MenuOutlined />}
           onClick={() => setIsSidebarOpen(true)}
-          className="p-2 rounded-md hover:bg-gray-100"
-        >
-          <FiMenu className="w-6 h-6 text-gray-600" />
-        </button>
-      </div>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <AdminSidebar 
-          isOpen={isSidebarOpen} 
-          onToggle={() => setIsSidebarOpen(false)} 
+          className="mobile-menu-button"
         />
-
-        {/* Main content */}
-        <main className="flex-1 lg:ml-0">
-          <div className="p-6">
-            <Outlet />
-          </div>
-        </main>
+        <h1 className="mobile-title">HIDRIVE Admin</h1>
+        <Dropdown
+          menu={{ items: userMenuItems }}
+          placement="bottomRight"
+          trigger={['click']}
+        >
+          <Avatar 
+            size={32} 
+            style={{ backgroundColor: '#1677ff', cursor: 'pointer' }}
+          >
+            A
+          </Avatar>
+        </Dropdown>
       </div>
+
+      {/* Mobile Sidebar Drawer */}
+      <Drawer
+        title={
+          <div className="drawer-title">
+            HIDRIVE Admin
+          </div>
+        }
+        placement="left"
+        onClose={() => setIsSidebarOpen(false)}
+        open={isSidebarOpen}
+        width={280}
+        className="admin-drawer"
+        closeIcon={<CloseOutlined className="drawer-close-icon" />}
+      >
+        <AdminSidebar isMobile={true} onClose={() => setIsSidebarOpen(false)} />
+      </Drawer>
+
+      {/* Main Content */}
+      <main className="admin-main-content">
+        <Outlet />
+      </main>
     </div>
   );
 };

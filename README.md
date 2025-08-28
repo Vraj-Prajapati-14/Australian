@@ -58,10 +58,7 @@ server/src/
 ├── controllers/        # API controllers
 │   ├── serviceController.js  # Nested service management
 │   └── ...
-├── routes/             # API routes
-└── seed/               # Database seeding
-    ├── services.js     # Initial service data
-    └── admin.js        # Admin seeding
+└── routes/             # API routes
 ```
 
 ## 🎨 Design Features

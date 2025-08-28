@@ -23,209 +23,24 @@ export default function ServicesPage() {
     queryFn: async () => (await api.get('/sub-services')).data || []
   });
 
-  // Mock data for now - replace with actual API calls
-  const mockServices = [
-    {
-      _id: '1',
-      name: 'Ute Canopies',
-      slug: 'ute-canopies',
-      description: 'Professional ute canopy solutions for all vehicle types',
-      shortDescription: 'Lightweight, strong canopies for utes',
-      category: 'ute',
-      image: 'https://via.placeholder.com/400x300',
-      featured: true,
-      status: 'active',
-      order: 1
-    },
-    {
-      _id: '2',
-      name: 'Trailer Service Bodies',
-      slug: 'trailer-service-bodies',
-      description: 'Versatile trailer solutions for mobile operations',
-      shortDescription: 'Mobile service solutions on trailers',
-      category: 'trailer',
-      image: 'https://via.placeholder.com/400x300',
-      featured: true,
-      status: 'active',
-      order: 2
-    },
-    {
-      _id: '3',
-      name: 'Truck Service Bodies',
-      slug: 'truck-service-bodies',
-      description: 'Heavy-duty truck solutions for industrial applications',
-      shortDescription: 'Heavy-duty industrial solutions',
-      category: 'truck',
-      image: 'https://via.placeholder.com/400x300',
-      featured: true,
-      status: 'active',
-      order: 3
-    },
-    {
-      _id: '4',
-      name: 'Accessories & Parts',
-      slug: 'accessories-parts',
-      description: 'Essential accessories and replacement parts for all vehicle types',
-      shortDescription: 'Quality accessories and parts',
-      category: 'accessories',
-      image: 'https://via.placeholder.com/400x300',
-      featured: false,
-      status: 'active',
-      order: 4
-    }
-  ];
+  // Fetch categories for filtering
+  const { data: categories = [] } = useQuery({ 
+    queryKey: ['service-categories'], 
+    queryFn: async () => (await api.get('/service-categories')).data || []
+  });
 
-  const mockSubServices = [
-    {
-      _id: '1',
-      name: 'Aluminium Canopy',
-      slug: 'aluminium-canopy',
-      description: 'Lightweight aluminium canopy with integrated storage',
-      shortDescription: 'Lightweight aluminium construction',
-      parentService: '1',
-      parentServiceName: 'Ute Canopies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Lightweight', 'Strong', 'Customizable'],
-      specifications: {
-        material: 'Aluminium',
-        weight: '45kg',
-        installation: '2-3 hours'
-      },
-      pricing: {
-        base: 2500,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 1
-    },
-    {
-      _id: '2',
-      name: 'Steel Canopy',
-      slug: 'steel-canopy',
-      description: 'Heavy-duty steel canopy for maximum security',
-      shortDescription: 'Maximum security steel construction',
-      parentService: '1',
-      parentServiceName: 'Ute Canopies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Maximum Security', 'Durable', 'Heavy-duty'],
-      specifications: {
-        material: 'Steel',
-        weight: '85kg',
-        installation: '3-4 hours'
-      },
-      pricing: {
-        base: 3200,
-        currency: 'AUD'
-      },
-      featured: false,
-      status: 'active',
-      order: 2
-    },
-    {
-      _id: '3',
-      name: 'Service Body Trailer',
-      slug: 'service-body-trailer',
-      description: 'Professional-grade trailer with integrated storage and workspace',
-      shortDescription: 'Mobile workshop on wheels',
-      parentService: '2',
-      parentServiceName: 'Trailer Service Bodies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Mobile Workshop', 'Integrated Storage', 'Professional Grade'],
-      specifications: {
-        material: 'Aluminium/Steel',
-        weight: '200kg',
-        installation: '1-2 days'
-      },
-      pricing: {
-        base: 8500,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 1
-    },
-    {
-      _id: '4',
-      name: 'Trailer Pack',
-      slug: 'trailer-pack',
-      description: 'Complete trailer solution with pre-configured equipment',
-      shortDescription: 'Ready-to-work trailer solution',
-      parentService: '2',
-      parentServiceName: 'Trailer Service Bodies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Pre-configured', 'Ready to Work', 'Complete Solution'],
-      specifications: {
-        material: 'Aluminium/Steel',
-        weight: '250kg',
-        installation: '1-2 days'
-      },
-      pricing: {
-        base: 12000,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 2
-    },
-    {
-      _id: '5',
-      name: 'Service Body Truck',
-      slug: 'service-body-truck',
-      description: 'Heavy-duty service body for industrial truck applications',
-      shortDescription: 'Industrial strength truck solution',
-      parentService: '3',
-      parentServiceName: 'Truck Service Bodies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Heavy-Duty', 'Industrial Grade', 'Maximum Payload'],
-      specifications: {
-        material: 'Aluminium/Steel',
-        weight: '400kg',
-        installation: '2-3 days'
-      },
-      pricing: {
-        base: 18000,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 1
-    },
-    {
-      _id: '6',
-      name: 'Crane Mounted Truck',
-      slug: 'crane-mounted-truck',
-      description: 'Truck service body with integrated crane system',
-      shortDescription: 'Crane-equipped truck solution',
-      parentService: '3',
-      parentServiceName: 'Truck Service Bodies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Integrated Crane', 'Heavy Lifting', 'Professional Grade'],
-      specifications: {
-        material: 'Aluminium/Steel',
-        weight: '600kg',
-        installation: '3-4 days'
-      },
-      pricing: {
-        base: 25000,
-        currency: 'AUD'
-      },
-      featured: false,
-      status: 'active',
-      order: 2
-    }
-  ];
+  // Use API data instead of mock data
+  const activeServices = services.filter(s => s.status === 'active') || [];
+  const activeSubServices = subServices.filter(s => s.status === 'active') || [];
 
-  // Use mock data for now, replace with actual data when API is ready
-  const activeServices = mockServices.filter(s => s.status === 'active');
-  const activeSubServices = mockSubServices.filter(s => s.status === 'active');
-
-  const categories = [
+  // Create category filter options from fetched categories
+  const categoryOptions = [
     { key: 'all', name: 'All Services', count: activeServices.length },
-    { key: 'ute', name: 'Ute', count: activeServices.filter(s => s.category === 'ute').length },
-    { key: 'trailer', name: 'Trailer', count: activeServices.filter(s => s.category === 'trailer').length },
-    { key: 'truck', name: 'Truck', count: activeServices.filter(s => s.category === 'truck').length },
-    { key: 'accessories', name: 'Accessories', count: activeServices.filter(s => s.category === 'accessories').length }
+    ...categories.map(category => ({
+      key: category.slug,
+      name: category.name,
+      count: activeServices.filter(s => s.category === category.slug).length
+    }))
   ];
 
   const filteredServices = selectedCategory === 'all' 
@@ -249,8 +64,8 @@ export default function ServicesPage() {
       {/* Category Filter */}
       <Section title="" subtitle="">
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <Space size="large" wrap>
-            {categories.map(category => (
+                     <Space size="large" wrap>
+             {categoryOptions.map(category => (
               <Button
                 key={category.key}
                 type={selectedCategory === category.key ? 'primary' : 'default'}

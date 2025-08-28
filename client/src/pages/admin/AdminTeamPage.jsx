@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Table, 
   Button, 
@@ -14,281 +14,340 @@ import {
   Typography, 
   Tag, 
   Popconfirm,
-  message,
   Image,
-  Upload,
   Avatar,
-  Divider
+  Divider,
+  App,
+  Tooltip,
+  Badge,
+  InputNumber,
+  Alert
 } from 'antd';
 import { 
   PlusOutlined, 
   EditOutlined, 
   DeleteOutlined, 
   UserOutlined,
-  UploadOutlined,
   LinkedinOutlined,
   TwitterOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  MailOutlined,
+  SettingOutlined,
+  FileOutlined
 } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import ImageUpload from '../../components/ImageUpload';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
 export default function AdminTeamPage() {
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
 
-  // Fetch team data
-  const { data: teamData = [] } = useQuery({ 
+  // Fetch team data (expects raw array)
+  const { data: teamMembers = [], isLoading: loading, error: teamError } = useQuery({ 
     queryKey: ['team'], 
-    queryFn: async () => (await api.get('/team')).data || []
+    queryFn: async () => {
+      try {
+        const response = await api.get('/team');
+        console.log('Team API response:', response);
+        console.log('Team data:', response.data);
+        console.log('Team data type:', typeof response.data);
+        console.log('Team data length:', Array.isArray(response.data) ? response.data.length : 'Not an array');
+        
+        // Return raw array for antd Table
+        const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        console.log('Processed team data:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching team data:', error);
+        throw error;
+      }
+    }
   });
 
-  // Mock data for now - replace with actual API calls
-  const mockTeamMembers = [
-    {
-      _id: '1',
-      name: 'John Smith',
-      position: 'CEO & Founder',
-      department: 'Executive',
-      email: 'john.smith@hidrive.com.au',
-      phone: '+61 2 1234 5678',
-      bio: 'John has over 20 years of experience in the automotive industry, specializing in vehicle modifications and service body solutions.',
-      shortBio: 'CEO with 20+ years automotive experience',
-      image: 'https://via.placeholder.com/200x200',
-      linkedin: 'https://linkedin.com/in/johnsmith',
-      twitter: 'https://twitter.com/johnsmith',
-      website: 'https://johnsmith.com',
-      expertise: ['Strategic Planning', 'Business Development', 'Industry Relations'],
-      experience: '20+ years',
-      education: 'Bachelor of Engineering, University of Sydney',
-      featured: true,
-      status: 'active',
-      order: 1,
-      createdAt: '2024-01-15'
-    },
-    {
-      _id: '2',
-      name: 'Sarah Johnson',
-      position: 'Head of Engineering',
-      department: 'Engineering',
-      email: 'sarah.johnson@hidrive.com.au',
-      phone: '+61 2 1234 5679',
-      bio: 'Sarah leads our engineering team with expertise in mechanical design, materials science, and innovative vehicle solutions.',
-      shortBio: 'Engineering leader with mechanical expertise',
-      image: 'https://via.placeholder.com/200x200',
-      linkedin: 'https://linkedin.com/in/sarahjohnson',
-      twitter: '',
-      website: '',
-      expertise: ['Mechanical Design', 'Materials Science', 'Product Development'],
-      experience: '15+ years',
-      education: 'Master of Engineering, University of Melbourne',
-      featured: true,
-      status: 'active',
-      order: 2,
-      createdAt: '2024-01-15'
-    },
-    {
-      _id: '3',
-      name: 'Mike Davis',
-      position: 'Sales Director',
-      department: 'Sales',
-      email: 'mike.davis@hidrive.com.au',
-      phone: '+61 2 1234 5680',
-      bio: 'Mike drives our sales strategy and customer relationships, ensuring we deliver solutions that exceed client expectations.',
-      shortBio: 'Sales leader focused on customer success',
-      image: 'https://via.placeholder.com/200x200',
-      linkedin: 'https://linkedin.com/in/mikedavis',
-      twitter: 'https://twitter.com/mikedavis',
-      website: '',
-      expertise: ['Sales Strategy', 'Customer Relations', 'Market Analysis'],
-      experience: '12+ years',
-      education: 'Bachelor of Business, RMIT University',
-      featured: false,
-      status: 'active',
-      order: 3,
-      createdAt: '2024-01-15'
-    },
-    {
-      _id: '4',
-      name: 'Lisa Chen',
-      position: 'Production Manager',
-      department: 'Operations',
-      email: 'lisa.chen@hidrive.com.au',
-      phone: '+61 2 1234 5681',
-      bio: 'Lisa oversees our production processes, ensuring quality control and efficient manufacturing of all HIDRIVE products.',
-      shortBio: 'Operations expert with quality focus',
-      image: 'https://via.placeholder.com/200x200',
-      linkedin: 'https://linkedin.com/in/lisachen',
-      twitter: '',
-      website: '',
-      expertise: ['Production Management', 'Quality Control', 'Process Optimization'],
-      experience: '10+ years',
-      education: 'Bachelor of Manufacturing Engineering, University of Queensland',
-      featured: false,
-      status: 'active',
-      order: 4,
-      createdAt: '2024-01-15'
+  // Fetch departments for dropdown
+  const { data: departments = [] } = useQuery({ 
+    queryKey: ['departments'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/departments');
+        console.log('Departments API response:', response);
+        return Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+      }
     }
-  ];
+  });
 
-  useEffect(() => {
-    setTeamMembers(mockTeamMembers);
-  }, []);
+  // Mutations
+  const createMemberMutation = useMutation({
+    mutationFn: (data) => api.post('/team', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['team']);
+      message.success('Team member added successfully');
+      setModalVisible(false);
+      form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Create team member error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error creating team member. Please try again.');
+      }
+    }
+  });
+
+  const updateMemberMutation = useMutation({
+    mutationFn: ({ id, data }) => api.put(`/team/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['team']);
+      message.success('Team member updated successfully');
+      setModalVisible(false);
+      setEditingMember(null);
+      form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Update team member error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error updating team member. Please try again.');
+      }
+    }
+  });
+
+  const deleteMemberMutation = useMutation({
+    mutationFn: (id) => api.delete(`/team/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['team']);
+      message.success('Team member deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Delete team member error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        message.error('Error deleting team member. Please try again.');
+      }
+    }
+  });
 
   const handleAddMember = () => {
     setEditingMember(null);
     form.resetFields();
+    form.setFieldsValue({ 
+      status: 'active',
+      isFeatured: false,
+      order: 0
+    });
     setModalVisible(true);
   };
 
   const handleEditMember = (member) => {
     setEditingMember(member);
-    form.setFieldsValue(member);
+    form.setFieldsValue({
+      ...member,
+      department: member.department?._id
+    });
     setModalVisible(true);
+  };
+
+  const handleDeleteMember = async (memberId) => {
+    try {
+      await deleteMemberMutation.mutateAsync(memberId);
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+    }
+  };
+
+  const handleStatusChange = async (memberId, status) => {
+    try {
+      const member = Array.isArray(teamMembers) ? teamMembers.find(m => m._id === memberId) : null;
+      if (member) {
+        await updateMemberMutation.mutateAsync({ id: memberId, data: { status } });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   const handleSubmit = async (values) => {
     try {
-      if (editingMember) {
-        // Update existing member
-        const updatedMembers = teamMembers.map(m => 
-          m._id === editingMember._id ? { ...m, ...values } : m
-        );
-        setTeamMembers(updatedMembers);
-        message.success('Team member updated successfully');
-      } else {
-        // Add new member
-        const newMember = {
-          _id: Date.now().toString(),
-          ...values,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setTeamMembers([...teamMembers, newMember]);
-        message.success('Team member added successfully');
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        message.error('Please log in to continue');
+        return;
       }
-      setModalVisible(false);
+
+      console.log('Submitting team member data:', values);
+      
+      if (editingMember) {
+        await updateMemberMutation.mutateAsync({ id: editingMember._id, data: values });
+      } else {
+        await createMemberMutation.mutateAsync(values);
+      }
     } catch (error) {
-      message.error('Error saving team member');
+      console.error('Error saving team member:', error);
     }
-  };
-
-  const handleDeleteMember = (memberId) => {
-    setTeamMembers(teamMembers.filter(m => m._id !== memberId));
-    message.success('Team member deleted successfully');
-  };
-
-  const handleStatusChange = (memberId, status) => {
-    setTeamMembers(teamMembers.map(m => 
-      m._id === memberId ? { ...m, status } : m
-    ));
-    message.success(`Team member ${status === 'active' ? 'activated' : 'deactivated'}`);
-  };
-
-  const handleFeaturedChange = (memberId, featured) => {
-    setTeamMembers(teamMembers.map(m => 
-      m._id === memberId ? { ...m, featured } : m
-    ));
-    message.success(`Team member ${featured ? 'featured' : 'unfeatured'}`);
   };
 
   const columns = [
     {
-      title: 'Photo',
-      dataIndex: 'image',
-      key: 'image',
-      width: 80,
-      render: (image, record) => (
-        <Avatar
-          size={60}
-          src={image}
-          icon={<UserOutlined />}
-          style={{ objectFit: 'cover' }}
+      title: 'Team Member',
+      key: 'member',
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.avatar?.url ? (
+            <Avatar 
+              size={60} 
+              src={record.avatar.url}
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <Avatar 
+              size={60} 
+              icon={<UserOutlined />}
+              style={{ backgroundColor: '#f0f0f0', color: '#999' }}
+            />
+          )}
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.name}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.role}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>
+              {record.department?.name || 'No Department'}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
+      render: (department) => (
+        <Tag color="blue">
+          {department?.name || 'N/A'}
+        </Tag>
+      )
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Badge 
+          status={status === 'active' ? 'success' : 'default'} 
+          text={(status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown')} 
         />
       )
     },
     {
-      title: 'Member',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{text}</div>
-          <Text type="secondary" style={{ fontSize: '14px' }}>{record.position}</Text>
-          <div style={{ marginTop: 4 }}>
-            <Tag color="blue">{record.department}</Tag>
-            {record.featured && <Tag color="gold">Featured</Tag>}
-          </div>
-        </div>
+      title: 'Featured',
+      dataIndex: 'isFeatured',
+      key: 'isFeatured',
+      render: (isFeatured) => (
+        <Tag color={isFeatured ? 'gold' : 'default'}>
+          {isFeatured ? 'Featured' : 'Regular'}
+        </Tag>
       )
     },
     {
       title: 'Contact',
       key: 'contact',
       render: (_, record) => (
-        <div>
-          <div style={{ fontSize: '12px', color: '#666' }}>{record.email}</div>
-          <div style={{ fontSize: '12px', color: '#666' }}>{record.phone}</div>
+        <div style={{ fontSize: 12 }}>
+          <div>{record.email || 'N/A'}</div>
+          <div>{record.phone || 'N/A'}</div>
         </div>
       )
     },
     {
-      title: 'Experience',
-      dataIndex: 'experience',
-      key: 'experience',
-      render: (experience) => <Tag color="green">{experience}</Tag>
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status, record) => (
-        <Switch
-          checked={status === 'active'}
-          onChange={(checked) => handleStatusChange(record._id, checked ? 'active' : 'inactive')}
-          checkedChildren="Active"
-          unCheckedChildren="Inactive"
-        />
+      title: 'Social',
+      key: 'social',
+      render: (_, record) => (
+        <Space size="small">
+          {record.linkedin && (
+            <Tooltip title="LinkedIn">
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<LinkedinOutlined />} 
+                onClick={() => window.open(record.linkedin, '_blank')}
+              />
+            </Tooltip>
+          )}
+          {record.twitter && (
+            <Tooltip title="Twitter">
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<TwitterOutlined />} 
+                onClick={() => window.open(record.twitter, '_blank')}
+              />
+            </Tooltip>
+          )}
+          {record.website && (
+            <Tooltip title="Website">
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<GlobalOutlined />} 
+                onClick={() => window.open(record.website, '_blank')}
+              />
+            </Tooltip>
+          )}
+        </Space>
       )
-    },
-    {
-      title: 'Order',
-      dataIndex: 'order',
-      key: 'order',
-      width: 80
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 200,
       render: (_, record) => (
         <Space>
-          <Button 
-            icon={<EditOutlined />} 
-            size="small" 
-            onClick={() => handleEditMember(record)}
-          >
-            Edit
-          </Button>
+          <Tooltip title="Edit Team Member">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => handleEditMember(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Toggle Status">
+            <Button 
+              type="text" 
+              icon={<SettingOutlined />} 
+              onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
+            />
+          </Tooltip>
           <Popconfirm
-            title="Are you sure you want to delete this team member?"
+            title="Delete this team member?"
+            description="This action cannot be undone."
             onConfirm={() => handleDeleteMember(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button 
-              icon={<DeleteOutlined />} 
-              size="small" 
-              danger
-            >
-              Delete
-            </Button>
+            <Tooltip title="Delete Team Member">
+              <Button 
+                type="text" 
+                danger 
+                icon={<DeleteOutlined />} 
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       )
@@ -296,17 +355,31 @@ export default function AdminTeamPage() {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
       <Title level={2}>Team Management</Title>
       
+      {teamError && (
+        <Alert
+          message="Error Loading Team Data"
+          description={teamError.message || 'There was an error loading the team data. Please try refreshing the page.'}
+          type="error"
+          showIcon
+          style={{ marginBottom: '16px' }}
+          action={
+            <Button size="small" danger onClick={() => window.location.reload()}>
+              Refresh
+            </Button>
+          }
+        />
+      )}
+      
       <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4}>Team Members</Title>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <Title level={4}>Team Members ({Array.isArray(teamMembers) ? teamMembers.length : 0})</Title>
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
             onClick={handleAddMember}
-            size="large"
           >
             Add Team Member
           </Button>
@@ -314,30 +387,37 @@ export default function AdminTeamPage() {
         
         <Table
           columns={columns}
-          dataSource={teamMembers}
+          dataSource={Array.isArray(teamMembers) ? teamMembers : []}
           rowKey="_id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+          }}
           scroll={{ x: 1200 }}
         />
       </Card>
 
-      {/* Add/Edit Team Member Modal */}
+      {/* Team Member Modal */}
       <Modal
         title={editingMember ? 'Edit Team Member' : 'Add New Team Member'}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
-        width={800}
+        width={900}
         style={{ top: 20 }}
+        className="admin-modal"
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          className="admin-form"
         >
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
                 name="name"
                 label="Full Name"
@@ -346,164 +426,68 @@ export default function AdminTeamPage() {
                 <Input placeholder="e.g., John Smith" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
-                name="position"
-                label="Position/Title"
-                rules={[{ required: true, message: 'Please enter position' }]}
+                name="role"
+                label="Role/Position"
+                rules={[{ required: true, message: 'Please enter role/position' }]}
               >
-                <Input placeholder="e.g., CEO & Founder" />
+                <Input placeholder="e.g., Senior Installer" />
               </Form.Item>
             </Col>
           </Row>
-
+          
           <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="department"
-                label="Department"
-                rules={[{ required: true, message: 'Please select department' }]}
-              >
-                <Select placeholder="Select department">
-                  <Option value="Executive">Executive</Option>
-                  <Option value="Engineering">Engineering</Option>
-                  <Option value="Sales">Sales</Option>
-                  <Option value="Marketing">Marketing</Option>
-                  <Option value="Operations">Operations</Option>
-                  <Option value="Finance">Finance</Option>
-                  <Option value="HR">Human Resources</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="experience"
-                label="Years of Experience"
-                rules={[{ required: true, message: 'Please enter experience' }]}
-              >
-                <Input placeholder="e.g., 20+ years" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
                 name="email"
                 label="Email"
                 rules={[
                   { required: true, message: 'Please enter email' },
-                  { type: 'email', message: 'Please enter valid email' }
+                  { type: 'email', message: 'Please enter a valid email' }
                 ]}
               >
-                <Input placeholder="john.smith@hidrive.com.au" />
+                <Input placeholder="e.g., john.smith@company.com" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
                 name="phone"
                 label="Phone"
-                rules={[{ required: true, message: 'Please enter phone number' }]}
               >
-                <Input placeholder="+61 2 1234 5678" />
+                <Input placeholder="e.g., +61 400 123 456" />
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item
-            name="shortBio"
-            label="Short Bio"
-            rules={[{ required: true, message: 'Please enter short bio' }]}
-          >
-            <Input placeholder="Brief professional summary" />
-          </Form.Item>
-
-          <Form.Item
-            name="bio"
-            label="Full Bio"
-            rules={[{ required: true, message: 'Please enter full bio' }]}
-          >
-            <TextArea rows={4} placeholder="Detailed professional background and achievements..." />
-          </Form.Item>
-
+          
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
-                name="education"
-                label="Education"
+                name="department"
+                label="Department"
               >
-                <Input placeholder="e.g., Bachelor of Engineering, University of Sydney" />
+                <Select placeholder="Select department">
+                  {Array.isArray(departments) ? departments.map(dept => (
+                    <Option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </Option>
+                  )) : null}
+                </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="image"
-                label="Profile Photo URL"
-                rules={[{ required: true, message: 'Please enter image URL' }]}
-              >
-                <Input placeholder="https://example.com/photo.jpg" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="expertise"
-            label="Areas of Expertise (comma separated)"
-          >
-            <Input placeholder="Strategic Planning, Business Development, Industry Relations" />
-          </Form.Item>
-
-          <Divider>Social Media & Links</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="linkedin"
-                label="LinkedIn Profile"
-              >
-                <Input placeholder="https://linkedin.com/in/username" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="twitter"
-                label="Twitter Profile"
-              >
-                <Input placeholder="https://twitter.com/username" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="website"
-                label="Personal Website"
-              >
-                <Input placeholder="https://example.com" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider>Display Settings</Divider>
-
-          <Row gutter={16}>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name="featured"
-                label="Featured Member"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
+            <Col span={12}>
               <Form.Item
                 name="order"
                 label="Display Order"
-                rules={[{ required: true, message: 'Please enter display order' }]}
+                initialValue={0}
               >
-                <Input type="number" placeholder="1" />
+                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col span={8}>
               <Form.Item
                 name="status"
                 label="Status"
@@ -515,15 +499,115 @@ export default function AdminTeamPage() {
                 </Select>
               </Form.Item>
             </Col>
+            <Col span={8}>
+              <Form.Item
+                name="isFeatured"
+                label="Featured Member"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="showContact"
+                label="Show Contact Info"
+                valuePropName="checked"
+                initialValue={true}
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
           </Row>
-
+          
+          <Form.Item
+            name="avatar"
+            label="Profile Photo"
+          >
+            <ImageUpload folder="team/avatars" />
+          </Form.Item>
+          
+          <Form.Item
+            name="bio"
+            label="Bio"
+          >
+            <TextArea 
+              rows={4} 
+              placeholder="Tell us about this team member's experience, skills, and background..."
+            />
+          </Form.Item>
+          
+          <Divider>Social Media & Links</Divider>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="linkedin"
+                label="LinkedIn Profile"
+              >
+                <Input placeholder="https://linkedin.com/in/username" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="twitter"
+                label="Twitter Profile"
+              >
+                <Input placeholder="https://twitter.com/username" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Form.Item
+            name="website"
+            label="Personal Website"
+          >
+            <Input placeholder="https://example.com" />
+          </Form.Item>
+          
+          <Divider>Skills & Expertise</Divider>
+          
+          <Form.Item
+            name="skills"
+            label="Skills"
+          >
+            <Select
+              mode="tags"
+              placeholder="Add skills (e.g., Ute Canopies, Trailer Modifications, Customer Service)"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="certifications"
+            label="Certifications"
+          >
+            <Select
+              mode="tags"
+              placeholder="Add certifications"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="experience"
+            label="Years of Experience"
+          >
+            <InputNumber 
+              min={0} 
+              max={50} 
+              placeholder="5" 
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
           <div style={{ textAlign: 'right', marginTop: 24 }}>
             <Space>
               <Button onClick={() => setModalVisible(false)}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit">
-                {editingMember ? 'Update Member' : 'Add Member'}
+              <Button type="primary" htmlType="submit" loading={createMemberMutation.isPending || updateMemberMutation.isPending}>
+                {editingMember ? 'Update Team Member' : 'Add Team Member'}
               </Button>
             </Space>
           </div>

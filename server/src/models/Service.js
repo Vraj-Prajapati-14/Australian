@@ -39,22 +39,29 @@ const serviceSchema = new mongoose.Schema(
     order: { type: Number, default: 0 },
     seoTitle: String,
     seoDescription: String,
-    category: { type: mongoose.Schema.Types.ObjectId, ref: 'ServiceCategory' },
-    // New fields for nested services
-    isMainService: { type: Boolean, default: false }, // Main service like "Ute", "Trailer", "Truck"
+    
+    // Service hierarchy - main service or sub-service
+    isMainService: { type: Boolean, default: true }, // Main service like "Ute", "Trailer", "Truck"
     parentService: { type: mongoose.Schema.Types.ObjectId, ref: 'Service', default: null }, // For sub-services
     subServices: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }], // For main services
+    
+    // Department association
+    department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
+    
     // Enhanced fields
     shortDescription: String,
     features: [String],
     specifications: specificationSchema,
     pricing: pricingSchema,
     status: { type: String, enum: ['active', 'inactive', 'draft'], default: 'active' },
+    
     // Vehicle compatibility
     compatibleVehicles: [String],
+    
     // Installation info
     installationTime: String,
     installationLocations: [String],
+    
     // Additional fields
     brochureUrl: String,
     videoUrl: String,
@@ -68,10 +75,22 @@ const serviceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Pre-save hook to generate slug if not provided
+serviceSchema.pre('save', function(next) {
+  if (!this.slug && this.title) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+  
+  next();
+});
+
 // Index for better query performance
 serviceSchema.index({ isMainService: 1, status: 1 });
 serviceSchema.index({ parentService: 1, status: 1 });
-serviceSchema.index({ category: 1, status: 1 });
+serviceSchema.index({ department: 1, status: 1 });
 
 const Service = mongoose.model('Service', serviceSchema);
 module.exports = Service;

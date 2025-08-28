@@ -1,4 +1,4 @@
-import { Row, Col, Card, Button, Typography, Space, Divider, Image, Tag } from 'antd';
+import { Row, Col, Card, Button, Typography, Space, Divider, Image as AntdImage, Tag } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import Hero from '../components/Hero';

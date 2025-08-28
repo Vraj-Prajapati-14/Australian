@@ -2,194 +2,302 @@ import { useState } from 'react';
 import { 
   Table, 
   Button, 
-  Space, 
   Modal, 
   Form, 
   Input, 
   Select, 
-  message, 
+  Switch, 
+  Space, 
   Card, 
-  Typography,
-  Tag,
+  Row, 
+  Col, 
+  Typography, 
+  Tag, 
   Popconfirm,
-  Image,
-  Row,
-  Col
+  App,
+  Tooltip,
+  Badge,
+  Image as AntdImage,
+  DatePicker,
+  InputNumber,
+  Divider
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  SettingOutlined,
+  FileOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../lib/api';
+import ImageUpload from '../../components/ImageUpload';
+import dayjs from 'dayjs';
 
-const { Title, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
 export default function AdminCaseStudiesPage() {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [editingCaseStudy, setEditingCaseStudy] = useState(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
 
-  const [caseStudies, setCaseStudies] = useState([
-    {
-      id: 1,
-      title: "EMS Field Mechanic Fleet",
-      company: "Elphinstone Mechanical Services",
-      description: "EMS collaborated with HIDRIVE to design and manufacture our fleet of fit-for-purpose ute and truck service bodies, making life easier and more productive for our mechanical services team every day.",
-      testimonial: "One of the reasons why mechanics join and stay at EMS is the gear we get to use, especially the vehicles. We couldn't be any happier with the HIDRIVE service bodies on our trucks and utes, they're so much easier and safer to work with.",
-      author: "Alex",
-      role: "Mechanic",
-      image: "/ems-case-study.jpg",
-      tags: ["Fleet", "Mechanical", "Ute", "Truck"],
-      isFeatured: true,
-      status: "published"
-    },
-    {
-      id: 2,
-      title: "Modinex Ute Fleet",
-      company: "Modinex",
-      description: "Modinex trusted HIDRIVE to design and manufacture a fleet of premium, fit-for-purpose ute service bodies for the sales team.",
-      testimonial: "We chose HIDRIVE because we're a premium Australian-made brand in our market – just like HIDRIVE. People see our utes before they see our samples and our staff, so our fleet has to look the part, inside and out.",
-      author: "Leroy Parker",
-      role: "Sales Director",
-      image: "/modinex-case-study.jpg",
-      tags: ["Fleet", "Sales", "Ute", "Premium"],
-      isFeatured: true,
-      status: "published"
+  // Fetch case studies data
+  const { data: caseStudies = [], isLoading: loading, error: caseStudiesError } = useQuery({ 
+    queryKey: ['case-studies'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/case-studies');
+        console.log('Case studies API response:', response);
+        // The API returns { data: [...] }, so we need to access response.data.data
+        return response.data?.data || [];
+      } catch (error) {
+        console.error('Error fetching case studies:', error);
+        return [];
+      }
     }
-  ]);
+  });
 
-  const showModal = (caseStudy = null) => {
-    setEditingCaseStudy(caseStudy);
-    if (caseStudy) {
-      form.setFieldsValue(caseStudy);
-    } else {
+  // Fetch services for dropdown
+  const { data: services = [], error: servicesError } = useQuery({ 
+    queryKey: ['services'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services');
+        console.log('Services API response:', response);
+        // The API returns the data directly, so we access response.data
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+    }
+  });
+
+  // Fetch departments for dropdown
+  const { data: departments = [], error: departmentsError } = useQuery({ 
+    queryKey: ['departments'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/departments');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+      }
+    }
+  });
+
+  // Mutations
+  const createCaseStudyMutation = useMutation({
+    mutationFn: (data) => api.post('/case-studies', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['case-studies']);
+      message.success('Case study created successfully');
+      setModalVisible(false);
       form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Create case study error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error creating case study. Please try again.');
+      }
     }
-    setIsModalVisible(true);
-  };
+  });
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  const updateCaseStudyMutation = useMutation({
+    mutationFn: ({ id, data }) => api.put(`/case-studies/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['case-studies']);
+      message.success('Case study updated successfully');
+      setModalVisible(false);
+      setEditingCaseStudy(null);
+      form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Update case study error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error updating case study. Please try again.');
+      }
+    }
+  });
+
+  const deleteCaseStudyMutation = useMutation({
+    mutationFn: (id) => api.delete(`/case-studies/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['case-studies']);
+      message.success('Case study deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Delete case study error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        message.error('Error deleting case study. Please try again.');
+      }
+    }
+  });
+
+  const handleAddCaseStudy = () => {
     setEditingCaseStudy(null);
     form.resetFields();
+    form.setFieldsValue({ 
+      status: 'active',
+      isFeatured: false,
+      order: 0
+    });
+    setModalVisible(true);
+  };
+
+  const handleEditCaseStudy = (caseStudy) => {
+    setEditingCaseStudy(caseStudy);
+    form.setFieldsValue({
+      ...caseStudy,
+      service: caseStudy.service?._id,
+      department: caseStudy.department?._id,
+      completionDate: caseStudy.completionDate ? dayjs(caseStudy.completionDate) : null
+    });
+    setModalVisible(true);
+  };
+
+  const handleDeleteCaseStudy = async (caseStudyId) => {
+    try {
+      await deleteCaseStudyMutation.mutateAsync(caseStudyId);
+    } catch (error) {
+      console.error('Error deleting case study:', error);
+    }
+  };
+
+  const handleStatusChange = async (caseStudyId, status) => {
+    try {
+      const caseStudy = caseStudies.find(c => c._id === caseStudyId);
+      if (caseStudy) {
+        await updateCaseStudyMutation.mutateAsync({ id: caseStudyId, data: { status } });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   const handleSubmit = async (values) => {
     try {
-      if (editingCaseStudy) {
-        // Update existing case study
-        setCaseStudies(prev => 
-          prev.map(cs => 
-            cs.id === editingCaseStudy.id 
-              ? { ...cs, ...values }
-              : cs
-          )
-        );
-        message.success('Case study updated successfully');
-      } else {
-        // Create new case study
-        const newCaseStudy = {
-          id: Date.now(),
-          ...values,
-          status: 'draft'
-        };
-        setCaseStudies(prev => [...prev, newCaseStudy]);
-        message.success('Case study created successfully');
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        message.error('Please log in to continue');
+        return;
       }
-      handleCancel();
+
+      // Convert dayjs to ISO string if present
+      if (values.completionDate && values.completionDate.isValid()) {
+        values.completionDate = values.completionDate.toISOString();
+      }
+
+      console.log('Submitting case study data:', values);
+      
+      if (editingCaseStudy) {
+        await updateCaseStudyMutation.mutateAsync({ id: editingCaseStudy._id, data: values });
+      } else {
+        await createCaseStudyMutation.mutateAsync(values);
+      }
     } catch (error) {
-      message.error('An error occurred');
+      console.error('Error saving case study:', error);
     }
-  };
-
-  const handleDelete = (id) => {
-    setCaseStudies(prev => prev.filter(cs => cs.id !== id));
-    message.success('Case study deleted successfully');
-  };
-
-  const handleStatusChange = (id, status) => {
-    setCaseStudies(prev => 
-      prev.map(cs => 
-        cs.id === id 
-          ? { ...cs, status }
-          : cs
-      )
-    );
-    message.success(`Case study ${status}`);
   };
 
   const columns = [
     {
-      title: 'Title',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{text}</div>
-          <div style={{ fontSize: 12, color: '#666' }}>{record.company}</div>
+      title: 'Case Study',
+      key: 'caseStudy',
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.heroImage?.url ? (
+            <AntdImage
+              src={record.heroImage.url}
+              alt={record.title}
+              width={80}
+              height={60}
+              style={{ objectFit: 'cover', borderRadius: 4 }}
+              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+            />
+          ) : (
+            <div style={{ width: 80, height: 60, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileOutlined style={{ color: '#999' }} />
+            </div>
+          )}
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.title}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.shortDescription}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>
+              Client: {record.clientName || 'N/A'}
+            </div>
+          </div>
         </div>
       )
     },
     {
-      title: 'Author',
-      dataIndex: 'author',
-      key: 'author',
-      render: (text, record) => (
-        <div>
-          <div>{text}</div>
-          <div style={{ fontSize: 12, color: '#666' }}>{record.role}</div>
-        </div>
+      title: 'Service',
+      dataIndex: 'service',
+      key: 'service',
+      render: (service) => (
+        <Tag color="blue">
+          {service?.title || 'N/A'}
+        </Tag>
       )
     },
     {
-      title: 'Tags',
-      dataIndex: 'tags',
-      key: 'tags',
-      render: (tags) => (
-        <div>
-          {tags.map((tag, index) => (
-            <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
-              {tag}
-            </Tag>
-          ))}
-        </div>
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
+      render: (department) => (
+        <Tag color="green">
+          {department?.name || 'N/A'}
+        </Tag>
       )
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status, record) => (
-        <Select
-          value={status}
-          onChange={(value) => handleStatusChange(record.id, value)}
-          style={{ width: 120 }}
-        >
-          <Option value="draft">Draft</Option>
-          <Option value="published">Published</Option>
-          <Option value="archived">Archived</Option>
-        </Select>
+      render: (status) => (
+        <Badge 
+          status={status === 'active' ? 'success' : 'default'} 
+          text={status.charAt(0).toUpperCase() + status.slice(1)} 
+        />
       )
     },
     {
       title: 'Featured',
       dataIndex: 'isFeatured',
       key: 'isFeatured',
-      render: (isFeatured, record) => (
-        <Select
-          value={isFeatured}
-          onChange={(value) => {
-            setCaseStudies(prev => 
-              prev.map(cs => 
-                cs.id === record.id 
-                  ? { ...cs, isFeatured: value }
-                  : cs
-              )
-            );
-          }}
-          style={{ width: 100 }}
-        >
-          <Option value={true}>Yes</Option>
-          <Option value={false}>No</Option>
-        </Select>
+      render: (isFeatured) => (
+        <Tag color={isFeatured ? 'gold' : 'default'}>
+          {isFeatured ? 'Featured' : 'Regular'}
+        </Tag>
+      )
+    },
+    {
+      title: 'Completion',
+      dataIndex: 'completionDate',
+      key: 'completionDate',
+      render: (date) => (
+        <Text type="secondary">
+          {date ? dayjs(date).format('MMM DD, YYYY') : 'N/A'}
+        </Text>
       )
     },
     {
@@ -197,30 +305,34 @@ export default function AdminCaseStudiesPage() {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button 
-            type="text" 
-            icon={<EyeOutlined />} 
-            onClick={() => showModal(record)}
-            title="View"
-          />
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
-            onClick={() => showModal(record)}
-            title="Edit"
-          />
+          <Tooltip title="Edit Case Study">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => handleEditCaseStudy(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Toggle Status">
+            <Button 
+              type="text" 
+              icon={<SettingOutlined />} 
+              onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
+            />
+          </Tooltip>
           <Popconfirm
-            title="Are you sure you want to delete this case study?"
-            onConfirm={() => handleDelete(record.id)}
+            title="Delete this case study?"
+            description="This action cannot be undone."
+            onConfirm={() => handleDeleteCaseStudy(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button 
-              type="text" 
-              icon={<DeleteOutlined />} 
-              danger
-              title="Delete"
-            />
+            <Tooltip title="Delete Case Study">
+              <Button 
+                type="text" 
+                danger 
+                icon={<DeleteOutlined />} 
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       )
@@ -228,168 +340,304 @@ export default function AdminCaseStudiesPage() {
   ];
 
   return (
-    <div>
+    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
+      <Title level={2}>Case Studies Management</Title>
+      
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div>
-            <Title level={2}>Case Studies Management</Title>
-            <Paragraph>Manage customer success stories and case studies</Paragraph>
-          </div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <Title level={4}>Case Studies ({caseStudies.length})</Title>
           <Button 
             type="primary" 
-            icon={<PlusOutlined />} 
-            size="large"
-            onClick={() => showModal()}
+            icon={<PlusOutlined />}
+            onClick={handleAddCaseStudy}
           >
             Add Case Study
           </Button>
         </div>
-
-        <Table 
-          columns={columns} 
-          dataSource={caseStudies}
-          rowKey="id"
-          pagination={{
+        
+        <Table
+          columns={columns}
+          dataSource={Array.isArray(caseStudies) ? caseStudies : []}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ 
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} case studies`
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
           }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
+      {/* Case Study Modal */}
       <Modal
         title={editingCaseStudy ? 'Edit Case Study' : 'Add New Case Study'}
-        open={isModalVisible}
-        onCancel={handleCancel}
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
         footer={null}
-        width={800}
+        width={900}
+        style={{ top: 20 }}
+        className="admin-modal"
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{
-            isFeatured: false,
-            status: 'draft'
-          }}
+          className="admin-form"
         >
-          <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: 'Please enter the case study title' }]}
-          >
-            <Input placeholder="Enter case study title" />
-          </Form.Item>
-
-          <Form.Item
-            name="company"
-            label="Company"
-            rules={[{ required: true, message: 'Please enter the company name' }]}
-          >
-            <Input placeholder="Enter company name" />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter the case study description' }]}
-          >
-            <TextArea 
-              rows={4} 
-              placeholder="Enter case study description"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="testimonial"
-            label="Customer Testimonial"
-            rules={[{ required: true, message: 'Please enter the customer testimonial' }]}
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="Enter customer testimonial"
-            />
-          </Form.Item>
-
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="author"
-                label="Author Name"
-                rules={[{ required: true, message: 'Please enter the author name' }]}
+                name="title"
+                label="Case Study Title"
+                rules={[{ required: true, message: 'Please enter case study title' }]}
               >
-                <Input placeholder="Enter author name" />
+                <Input placeholder="e.g., Ute Canopy Installation for City Council" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="role"
-                label="Author Role"
-                rules={[{ required: true, message: 'Please enter the author role' }]}
+                name="slug"
+                label="Slug"
+                rules={[{ required: true, message: 'Please enter slug' }]}
               >
-                <Input placeholder="Enter author role" />
+                <Input placeholder="e.g., ute-canopy-city-council" />
               </Form.Item>
             </Col>
           </Row>
-
+          
           <Form.Item
-            name="tags"
-            label="Tags"
-            rules={[{ required: true, message: 'Please enter at least one tag' }]}
+            name="shortDescription"
+            label="Short Description"
+            rules={[{ required: true, message: 'Please enter short description' }]}
           >
-            <Select
-              mode="tags"
-              placeholder="Enter tags"
-              style={{ width: '100%' }}
-            />
+            <Input placeholder="Brief description for display" />
           </Form.Item>
-
+          
           <Form.Item
-            name="image"
-            label="Image URL"
+            name="description"
+            label="Full Description"
+            rules={[{ required: true, message: 'Please enter full description' }]}
           >
-            <Input placeholder="Enter image URL" />
+            <TextArea rows={4} placeholder="Detailed description of the case study" />
           </Form.Item>
-
+          
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
-                name="isFeatured"
-                label="Featured"
-                valuePropName="checked"
+                name="clientName"
+                label="Client Name"
+                rules={[{ required: true, message: 'Please enter client name' }]}
               >
-                <Select>
-                  <Option value={true}>Yes</Option>
-                  <Option value={false}>No</Option>
+                <Input placeholder="e.g., City Council" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="service"
+                label="Related Service"
+              >
+                <Select placeholder="Select related service" allowClear>
+                  {services.map(service => (
+                    <Option key={service._id} value={service._id}>
+                      {service.title}
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
+            <Col span={8}>
+              <Form.Item
+                name="department"
+                label="Department"
+              >
+                <Select placeholder="Select department" allowClear>
+                  {departments.map(dept => (
+                    <Option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
             <Col span={12}>
+              <Form.Item
+                name="heroImage"
+                label="Hero Image"
+              >
+                <ImageUpload folder="case-studies/hero" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="order"
+                label="Display Order"
+                initialValue={0}
+              >
+                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col span={8}>
               <Form.Item
                 name="status"
                 label="Status"
+                initialValue="active"
               >
                 <Select>
+                  <Option value="active">Active</Option>
+                  <Option value="inactive">Inactive</Option>
                   <Option value="draft">Draft</Option>
-                  <Option value="published">Published</Option>
-                  <Option value="archived">Archived</Option>
                 </Select>
               </Form.Item>
             </Col>
+            <Col span={8}>
+              <Form.Item
+                name="isFeatured"
+                label="Featured Case Study"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="completionDate"
+                label="Completion Date"
+              >
+                <DatePicker 
+                  placeholder="Select completion date" 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
           </Row>
-
-          <Form.Item style={{ marginTop: 24, textAlign: 'right' }}>
+          
+          <Form.Item
+            name="gallery"
+            label="Case Study Gallery"
+          >
+            <ImageUpload folder="case-studies/gallery" multiple={true} />
+          </Form.Item>
+          
+          <Divider>Project Details</Divider>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="projectScope"
+                label="Project Scope"
+              >
+                <TextArea 
+                  rows={3} 
+                  placeholder="Describe the scope of the project"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="challenges"
+                label="Challenges Faced"
+              >
+                <TextArea 
+                  rows={3} 
+                  placeholder="Describe challenges encountered during the project"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Form.Item
+            name="solutions"
+            label="Solutions Implemented"
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="Describe the solutions implemented to address challenges"
+            />
+          </Form.Item>
+          
+          <Divider>Results & Metrics</Divider>
+          
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name={['results', 'vehiclesUpgraded']}
+                label="Vehicles Upgraded"
+              >
+                <InputNumber 
+                  min={0} 
+                  placeholder="0" 
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name={['results', 'costSavings']}
+                label="Cost Savings (%)"
+              >
+                <InputNumber 
+                  min={0} 
+                  max={100} 
+                  placeholder="0" 
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name={['results', 'efficiencyImprovement']}
+                label="Efficiency Improvement (%)"
+              >
+                <InputNumber 
+                  min={0} 
+                  max={100} 
+                  placeholder="0" 
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Form.Item
+            name="testimonial"
+            label="Client Testimonial"
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="Client testimonial about the project"
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="technologies"
+            label="Technologies Used"
+          >
+            <Select
+              mode="tags"
+              placeholder="Add technologies used in this case study"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
+          <div style={{ textAlign: 'right', marginTop: 24 }}>
             <Space>
-              <Button onClick={handleCancel}>
+              <Button onClick={() => setModalVisible(false)}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit">
-                {editingCaseStudy ? 'Update' : 'Create'}
+              <Button type="primary" htmlType="submit" loading={createCaseStudyMutation.isPending || updateCaseStudyMutation.isPending}>
+                {editingCaseStudy ? 'Update Case Study' : 'Add Case Study'}
               </Button>
             </Space>
-          </Form.Item>
+          </div>
         </Form>
       </Modal>
     </div>

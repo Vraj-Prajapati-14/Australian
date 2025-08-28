@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Table, 
   Button, 
@@ -15,141 +15,157 @@ import {
   Tag, 
   Popconfirm,
   message,
-  Image,
-  Upload,
+  Image as AntdImage,
   DatePicker,
   InputNumber,
-  Divider
+  Divider,
+  App,
+  Badge,
+  Tooltip
 } from 'antd';
 import { 
   PlusOutlined, 
   EditOutlined, 
   DeleteOutlined, 
   EyeOutlined,
-  UploadOutlined,
-  PictureOutlined
+  CalendarOutlined,
+  SettingOutlined,
+  FileOutlined
 } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import ImageUpload from '../../components/ImageUpload';
+import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
 export default function AdminProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
 
   // Fetch projects data
-  const { data: projectsData = [] } = useQuery({ 
+  const { data: projects = [], isLoading: loading, error: projectsError } = useQuery({ 
     queryKey: ['projects'], 
-    queryFn: async () => (await api.get('/projects')).data || []
+    queryFn: async () => {
+      try {
+        const response = await api.get('/projects');
+        console.log('Projects API response:', response);
+        console.log('Projects data:', response.data);
+        console.log('Projects data type:', typeof response.data);
+        console.log('Projects data length:', response.data?.data?.length);
+        // The API returns { data: [...] }, so we need to access response.data.data
+        return response.data?.data || [];
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        return [];
+      }
+    }
   });
 
-  // Mock data for now - replace with actual API calls
-  const mockProjects = [
-    {
-      _id: '1',
-      title: 'City Council Fleet Upgrade',
-      slug: 'city-council-fleet-upgrade',
-      description: 'Complete fleet upgrade for City Council vehicles with custom service bodies and canopies.',
-      shortDescription: 'Professional fleet solution for government operations',
-      client: 'City Council',
-      category: 'government',
-      status: 'completed',
-      featured: true,
-      completionDate: '2024-01-15',
-      image: 'https://via.placeholder.com/400x300',
-      gallery: [
-        'https://via.placeholder.com/400x300',
-        'https://via.placeholder.com/400x300'
-      ],
-      technologies: ['Aluminium Construction', 'Custom Storage', 'Government Compliance'],
-      results: {
-        vehiclesUpgraded: 25,
-        costSavings: '35%',
-        efficiencyImprovement: '40%'
-      },
-      testimonial: {
-        text: 'HIDRIVE delivered an exceptional solution that exceeded our expectations.',
-        author: 'John Smith',
-        role: 'Fleet Manager',
-        company: 'City Council'
-      },
-      createdAt: '2024-01-15'
-    },
-    {
-      _id: '2',
-      title: 'Mining Company Service Bodies',
-      slug: 'mining-company-service-bodies',
-      description: 'Heavy-duty service bodies for mining operations in harsh environments.',
-      shortDescription: 'Industrial strength solutions for mining',
-      client: 'Mining Corp',
-      category: 'industrial',
-      status: 'in-progress',
-      featured: true,
-      completionDate: '2024-03-30',
-      image: 'https://via.placeholder.com/400x300',
-      gallery: [
-        'https://via.placeholder.com/400x300'
-      ],
-      technologies: ['Steel Construction', 'Corrosion Resistant', 'Heavy Duty'],
-      results: {
-        vehiclesUpgraded: 12,
-        costSavings: '25%',
-        efficiencyImprovement: '30%'
-      },
-      testimonial: {
-        text: 'The service bodies have significantly improved our operational efficiency.',
-        author: 'Sarah Johnson',
-        role: 'Operations Manager',
-        company: 'Mining Corp'
-      },
-      createdAt: '2024-01-20'
-    },
-    {
-      _id: '3',
-      title: 'Emergency Services Fleet',
-      slug: 'emergency-services-fleet',
-      description: 'Specialized service bodies for emergency response vehicles.',
-      shortDescription: 'Emergency response solutions',
-      client: 'Fire Department',
-      category: 'emergency',
-      status: 'completed',
-      featured: false,
-      completionDate: '2024-02-15',
-      image: 'https://via.placeholder.com/400x300',
-      gallery: [
-        'https://via.placeholder.com/400x300',
-        'https://via.placeholder.com/400x300',
-        'https://via.placeholder.com/400x300'
-      ],
-      technologies: ['Emergency Lighting', 'Quick Access', 'Durable Construction'],
-      results: {
-        vehiclesUpgraded: 8,
-        costSavings: '20%',
-        efficiencyImprovement: '45%'
-      },
-      testimonial: {
-        text: 'Fast response times and reliable equipment access.',
-        author: 'Mike Davis',
-        role: 'Chief Fire Officer',
-        company: 'Fire Department'
-      },
-      createdAt: '2024-01-10'
+  // Fetch services for dropdown
+  const { data: services = [], error: servicesError } = useQuery({ 
+    queryKey: ['services'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services');
+        console.log('Services API response:', response);
+        // The API returns the data directly, so we access response.data
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
     }
-  ];
+  });
 
-  useEffect(() => {
-    setProjects(mockProjects);
-  }, []);
+  // Fetch departments for dropdown
+  const { data: departments = [], error: departmentsError } = useQuery({ 
+    queryKey: ['departments'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/departments');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+      }
+    }
+  });
+
+  // Mutations
+  const createProjectMutation = useMutation({
+    mutationFn: (data) => api.post('/projects', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      message.success('Project created successfully');
+      setModalVisible(false);
+      form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Create project error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error creating project. Please try again.');
+      }
+    }
+  });
+
+  const updateProjectMutation = useMutation({
+    mutationFn: ({ id, data }) => api.put(`/projects/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      message.success('Project updated successfully');
+      setModalVisible(false);
+      setEditingProject(null);
+      form.resetFields();
+    },
+    onError: (error) => {
+      console.error('Update project error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        message.error(error.response.data?.message || 'Invalid data provided');
+      } else {
+        message.error('Error updating project. Please try again.');
+      }
+    }
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: (id) => api.delete(`/projects/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      message.success('Project deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Delete project error:', error);
+      if (error.response?.status === 401) {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        message.error('Error deleting project. Please try again.');
+      }
+    }
+  });
 
   const handleAddProject = () => {
     setEditingProject(null);
     form.resetFields();
+    form.setFieldsValue({ 
+      status: 'in-progress',
+      isFeatured: false,
+      order: 0
+    });
     setModalVisible(true);
   };
 
@@ -157,153 +173,188 @@ export default function AdminProjectsPage() {
     setEditingProject(project);
     form.setFieldsValue({
       ...project,
-      completionDate: project.completionDate ? new Date(project.completionDate) : null
+      service: project.service?._id,
+      department: project.department?._id,
+      startDate: project.startDate ? dayjs(project.startDate) : null,
+      endDate: project.endDate ? dayjs(project.endDate) : null,
+      completionDate: project.completionDate ? dayjs(project.completionDate) : null
     });
     setModalVisible(true);
   };
 
-  const handleSubmit = async (values) => {
+  const handleDeleteProject = async (projectId) => {
     try {
-      if (editingProject) {
-        // Update existing project
-        const updatedProjects = projects.map(p => 
-          p._id === editingProject._id ? { ...p, ...values } : p
-        );
-        setProjects(updatedProjects);
-        message.success('Project updated successfully');
-      } else {
-        // Add new project
-        const newProject = {
-          _id: Date.now().toString(),
-          ...values,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setProjects([...projects, newProject]);
-        message.success('Project added successfully');
-      }
-      setModalVisible(false);
+      await deleteProjectMutation.mutateAsync(projectId);
     } catch (error) {
-      message.error('Error saving project');
+      console.error('Error deleting project:', error);
     }
   };
 
-  const handleDeleteProject = (projectId) => {
-    setProjects(projects.filter(p => p._id !== projectId));
-    message.success('Project deleted successfully');
+  const handleStatusChange = async (projectId, status) => {
+    try {
+      const project = projects.find(p => p._id === projectId);
+      if (project) {
+        await updateProjectMutation.mutateAsync({ id: projectId, data: { status } });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
-  const handleStatusChange = (projectId, status) => {
-    setProjects(projects.map(p => 
-      p._id === projectId ? { ...p, status } : p
-    ));
-    message.success(`Project ${status === 'completed' ? 'marked as completed' : 'status updated'}`);
-  };
+  const handleSubmit = async (values) => {
+    try {
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        message.error('Please log in to continue');
+        return;
+      }
 
-  const handleFeaturedChange = (projectId, featured) => {
-    setProjects(projects.map(p => 
-      p._id === projectId ? { ...p, featured } : p
-    ));
-    message.success(`Project ${featured ? 'featured' : 'unfeatured'}`);
+      // Convert dayjs to ISO string if present
+      if (values.startDate && values.startDate.isValid()) {
+        values.startDate = values.startDate.toISOString();
+      }
+      if (values.endDate && values.endDate.isValid()) {
+        values.endDate = values.endDate.toISOString();
+      }
+      if (values.completionDate && values.completionDate.isValid()) {
+        values.completionDate = values.completionDate.toISOString();
+      }
+
+      console.log('Submitting project data:', values);
+      
+      if (editingProject) {
+        await updateProjectMutation.mutateAsync({ id: editingProject._id, data: values });
+      } else {
+        await createProjectMutation.mutateAsync(values);
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+    }
   };
 
   const columns = [
     {
-      title: 'Image',
-      dataIndex: 'image',
-      key: 'image',
-      width: 100,
-      render: (image) => (
-        <Image
-          width={80}
-          height={60}
-          src={image}
-          style={{ objectFit: 'cover', borderRadius: 4 }}
-        />
+      title: 'Project',
+      key: 'project',
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.heroImage?.url ? (
+            <AntdImage
+              src={record.heroImage.url}
+              alt={record.title}
+              width={80}
+              height={60}
+              style={{ objectFit: 'cover', borderRadius: 4 }}
+              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+            />
+          ) : (
+            <div style={{ width: 80, height: 60, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileOutlined style={{ color: '#999' }} />
+            </div>
+          )}
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.title}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.shortDescription}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>
+              Client: {record.clientName || 'N/A'}
+            </div>
+          </div>
+        </div>
       )
     },
     {
-      title: 'Project',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: 'bold' }}>{text}</div>
-          <Text type="secondary">{record.shortDescription}</Text>
-          <div style={{ marginTop: 4 }}>
-            <Tag color="blue">{record.client}</Tag>
-            <Tag color={
-              record.category === 'government' ? 'green' : 
-              record.category === 'industrial' ? 'orange' : 
-              record.category === 'emergency' ? 'red' : 'purple'
-            }>
-              {record.category}
-            </Tag>
-          </div>
-        </div>
+      title: 'Service',
+      dataIndex: 'service',
+      key: 'service',
+      render: (service) => (
+        <Tag color="blue">
+          {service?.title || 'N/A'}
+        </Tag>
+      )
+    },
+    {
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
+      render: (department) => (
+        <Tag color="green">
+          {department?.name || 'N/A'}
+        </Tag>
       )
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status, record) => (
-        <Select
-          value={status}
-          onChange={(value) => handleStatusChange(record._id, value)}
-          style={{ width: 120 }}
-        >
-          <Option value="planning">Planning</Option>
-          <Option value="in-progress">In Progress</Option>
-          <Option value="completed">Completed</Option>
-          <Option value="on-hold">On Hold</Option>
-        </Select>
+      render: (status) => (
+        <Badge 
+          status={status === 'completed' ? 'success' : status === 'in-progress' ? 'processing' : status === 'planned' ? 'default' : 'error'} 
+          text={status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')} 
+        />
       )
     },
     {
-      title: 'Completion',
-      dataIndex: 'completionDate',
-      key: 'completionDate',
-      render: (date) => date ? new Date(date).toLocaleDateString() : 'TBD'
+      title: 'Featured',
+      dataIndex: 'isFeatured',
+      key: 'isFeatured',
+      render: (isFeatured) => (
+        <Tag color={isFeatured ? 'gold' : 'default'}>
+          {isFeatured ? 'Featured' : 'Regular'}
+        </Tag>
+      )
     },
     {
-      title: 'Featured',
-      dataIndex: 'featured',
-      key: 'featured',
-      render: (featured, record) => (
-        <Switch
-          checked={featured}
-          onChange={(checked) => handleFeaturedChange(record._id, checked)}
-          checkedChildren="Yes"
-          unCheckedChildren="No"
-        />
+      title: 'Dates',
+      key: 'dates',
+      render: (_, record) => (
+        <div style={{ fontSize: 12 }}>
+          <div>Start: {record.startDate ? dayjs(record.startDate).format('MMM DD, YYYY') : 'N/A'}</div>
+          <div>End: {record.endDate ? dayjs(record.endDate).format('MMM DD, YYYY') : 'N/A'}</div>
+        </div>
+      )
+    },
+    {
+      title: 'Budget',
+      key: 'budget',
+      render: (_, record) => (
+        <Text strong>
+          ${record.budget?.toLocaleString() || 'N/A'}
+        </Text>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 200,
       render: (_, record) => (
         <Space>
-          <Button 
-            icon={<EditOutlined />} 
-            size="small" 
-            onClick={() => handleEditProject(record)}
-          >
-            Edit
-          </Button>
+          <Tooltip title="Edit Project">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              onClick={() => handleEditProject(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Toggle Status">
+            <Button 
+              type="text" 
+              icon={<SettingOutlined />} 
+              onClick={() => handleStatusChange(record._id, record.status === 'completed' ? 'in-progress' : 'completed')}
+            />
+          </Tooltip>
           <Popconfirm
-            title="Are you sure you want to delete this project?"
+            title="Delete this project?"
+            description="This action cannot be undone."
             onConfirm={() => handleDeleteProject(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button 
-              icon={<DeleteOutlined />} 
-              size="small" 
-              danger
-            >
-              Delete
-            </Button>
+            <Tooltip title="Delete Project">
+              <Button 
+                type="text" 
+                danger 
+                icon={<DeleteOutlined />} 
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       )
@@ -311,99 +362,75 @@ export default function AdminProjectsPage() {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
       <Title level={2}>Projects Management</Title>
       
       <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4}>All Projects</Title>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <Title level={4}>Projects ({projects.length})</Title>
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
             onClick={handleAddProject}
-            size="large"
           >
             Add Project
           </Button>
         </div>
         
+
+        
         <Table
           columns={columns}
-          dataSource={projects}
+          dataSource={Array.isArray(projects) ? projects : []}
           rowKey="_id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+          }}
           scroll={{ x: 1200 }}
         />
       </Card>
 
-      {/* Add/Edit Project Modal */}
+      {/* Project Modal */}
       <Modal
         title={editingProject ? 'Edit Project' : 'Add New Project'}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
-        width={800}
+        width={900}
         style={{ top: 20 }}
+        className="admin-modal"
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          className="admin-form"
         >
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
                 name="title"
                 label="Project Title"
                 rules={[{ required: true, message: 'Please enter project title' }]}
               >
-                <Input placeholder="e.g., City Council Fleet Upgrade" />
+                <Input placeholder="e.g., Ute Canopy Installation" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col span={12}>
               <Form.Item
-                name="client"
-                label="Client"
-                rules={[{ required: true, message: 'Please enter client name' }]}
+                name="slug"
+                label="Slug"
+                rules={[{ required: true, message: 'Please enter slug' }]}
               >
-                <Input placeholder="e.g., City Council" />
+                <Input placeholder="e.g., ute-canopy-installation" />
               </Form.Item>
             </Col>
           </Row>
-
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="category"
-                label="Category"
-                rules={[{ required: true, message: 'Please select category' }]}
-              >
-                <Select placeholder="Select category">
-                  <Option value="government">Government</Option>
-                  <Option value="industrial">Industrial</Option>
-                  <Option value="emergency">Emergency Services</Option>
-                  <Option value="commercial">Commercial</Option>
-                  <Option value="retail">Retail</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-                rules={[{ required: true, message: 'Please select status' }]}
-              >
-                <Select placeholder="Select status">
-                  <Option value="planning">Planning</Option>
-                  <Option value="in-progress">In Progress</Option>
-                  <Option value="completed">Completed</Option>
-                  <Option value="on-hold">On Hold</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
+          
           <Form.Item
             name="shortDescription"
             label="Short Description"
@@ -411,7 +438,7 @@ export default function AdminProjectsPage() {
           >
             <Input placeholder="Brief description for display" />
           </Form.Item>
-
+          
           <Form.Item
             name="description"
             label="Full Description"
@@ -419,136 +446,192 @@ export default function AdminProjectsPage() {
           >
             <TextArea rows={4} placeholder="Detailed description of the project" />
           </Form.Item>
-
+          
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col span={8}>
               <Form.Item
-                name="completionDate"
-                label="Expected Completion Date"
+                name="clientName"
+                label="Client Name"
+                rules={[{ required: true, message: 'Please enter client name' }]}
               >
-                <DatePicker style={{ width: '100%' }} />
+                <Input placeholder="e.g., John Smith" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col span={8}>
               <Form.Item
-                name="image"
-                label="Main Image URL"
-                rules={[{ required: true, message: 'Please enter image URL' }]}
+                name="service"
+                label="Related Service"
               >
-                <Input placeholder="https://example.com/image.jpg" />
+                <Select placeholder="Select related service" allowClear>
+                  {services.map(service => (
+                    <Option key={service._id} value={service._id}>
+                      {service.title}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="department"
+                label="Department"
+              >
+                <Select placeholder="Select department" allowClear>
+                  {departments.map(dept => (
+                    <Option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item
-            name="gallery"
-            label="Gallery Images (comma separated URLs)"
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="technologies"
-            label="Technologies Used (comma separated)"
-          >
-            <Input placeholder="Aluminium Construction, Custom Storage, Government Compliance" />
-          </Form.Item>
-
-          <Divider>Results & Metrics</Divider>
-
+          
           <Row gutter={16}>
-            <Col xs={24} md={8}>
+            <Col span={12}>
               <Form.Item
-                name={['results', 'vehiclesUpgraded']}
-                label="Vehicles Upgraded"
+                name="heroImage"
+                label="Hero Image"
               >
-                <InputNumber style={{ width: '100%' }} placeholder="25" />
+                <ImageUpload folder="projects/hero" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
+            <Col span={12}>
               <Form.Item
-                name={['results', 'costSavings']}
-                label="Cost Savings"
+                name="order"
+                label="Display Order"
+                initialValue={0}
               >
-                <Input placeholder="35%" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name={['results', 'efficiencyImprovement']}
-                label="Efficiency Improvement"
-              >
-                <Input placeholder="40%" />
+                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           </Row>
-
-          <Divider>Testimonial</Divider>
-
+          
           <Row gutter={16}>
-            <Col xs={24} md={8}>
+            <Col span={8}>
               <Form.Item
-                name={['testimonial', 'author']}
-                label="Author Name"
+                name="status"
+                label="Status"
+                initialValue="in-progress"
               >
-                <Input placeholder="John Smith" />
+                <Select>
+                  <Option value="planned">Planned</Option>
+                  <Option value="in-progress">In Progress</Option>
+                  <Option value="completed">Completed</Option>
+                  <Option value="on-hold">On Hold</Option>
+                </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
+            <Col span={8}>
               <Form.Item
-                name={['testimonial', 'role']}
-                label="Role"
-              >
-                <Input placeholder="Fleet Manager" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                name={['testimonial', 'company']}
-                label="Company"
-              >
-                <Input placeholder="City Council" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name={['testimonial', 'text']}
-            label="Testimonial Text"
-          >
-            <TextArea rows={3} placeholder="Client testimonial about the project..." />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Form.Item
-                name="featured"
+                name="isFeatured"
                 label="Featured Project"
                 valuePropName="checked"
               >
                 <Switch />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col span={8}>
               <Form.Item
-                name="slug"
-                label="URL Slug"
-                rules={[{ required: true, message: 'Please enter URL slug' }]}
+                name="budget"
+                label="Budget (AUD)"
               >
-                <Input placeholder="city-council-fleet-upgrade" />
+                <InputNumber 
+                  min={0} 
+                  placeholder="0" 
+                  style={{ width: '100%' }}
+                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                />
               </Form.Item>
             </Col>
           </Row>
-
+          
+          <Divider>Project Timeline</Divider>
+          
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+              >
+                <DatePicker 
+                  placeholder="Select start date" 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="endDate"
+                label="End Date"
+              >
+                <DatePicker 
+                  placeholder="Select end date" 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="completionDate"
+                label="Completion Date"
+              >
+                <DatePicker 
+                  placeholder="Select completion date" 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Form.Item
+            name="gallery"
+            label="Project Gallery"
+          >
+            <ImageUpload folder="projects/gallery" multiple={true} />
+          </Form.Item>
+          
+          <Form.Item
+            name="technologies"
+            label="Technologies Used"
+          >
+            <Select
+              mode="tags"
+              placeholder="Add technologies used"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="challenges"
+            label="Challenges & Solutions"
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="Describe challenges faced and solutions implemented"
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="results"
+            label="Results & Outcomes"
+          >
+            <TextArea 
+              rows={3} 
+              placeholder="Describe the results and outcomes of the project"
+            />
+          </Form.Item>
+          
           <div style={{ textAlign: 'right', marginTop: 24 }}>
             <Space>
               <Button onClick={() => setModalVisible(false)}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={createProjectMutation.isPending || updateProjectMutation.isPending}>
                 {editingProject ? 'Update Project' : 'Add Project'}
               </Button>
             </Space>

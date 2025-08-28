@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button, Typography, Space, Divider, Image, Tag, Empty } from 'antd';
+import { Row, Col, Card, Button, Typography, Space, Divider, Image as AntdImage, Tag, Empty } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import Hero from '../components/Hero';
@@ -21,100 +21,9 @@ export default function UtePage() {
     queryFn: async () => (await api.get('/sub-services')).data || []
   });
 
-  // Mock data for now - replace with actual API calls
-  const mockServices = [
-    {
-      _id: '1',
-      name: 'Ute Canopies',
-      slug: 'ute-canopies',
-      description: 'Professional ute canopy solutions for all vehicle types',
-      shortDescription: 'Lightweight, strong canopies for utes',
-      category: 'ute',
-      image: 'https://via.placeholder.com/400x300',
-      featured: true,
-      status: 'active',
-      order: 1
-    }
-  ];
-
-  const mockSubServices = [
-    {
-      _id: '1',
-      name: 'Aluminium Canopy',
-      slug: 'aluminium-canopy',
-      description: 'Lightweight aluminium canopy with integrated storage solutions. Perfect for tradespeople and professionals who need a secure, weatherproof storage solution.',
-      shortDescription: 'Lightweight aluminium construction',
-      parentService: '1',
-      parentServiceName: 'Ute Canopies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Lightweight', 'Strong', 'Customizable', 'Weatherproof'],
-      specifications: {
-        material: 'Aluminium',
-        weight: '45kg',
-        installation: '2-3 hours',
-        warranty: '3 years'
-      },
-      pricing: {
-        base: 2500,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 1
-    },
-    {
-      _id: '2',
-      name: 'Steel Canopy',
-      slug: 'steel-canopy',
-      description: 'Heavy-duty steel canopy for maximum security and durability. Ideal for high-security applications and harsh environments.',
-      shortDescription: 'Maximum security steel construction',
-      parentService: '1',
-      parentServiceName: 'Ute Canopies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Maximum Security', 'Durable', 'Heavy-duty', 'Anti-theft'],
-      specifications: {
-        material: 'Steel',
-        weight: '85kg',
-        installation: '3-4 hours',
-        warranty: '5 years'
-      },
-      pricing: {
-        base: 3200,
-        currency: 'AUD'
-      },
-      featured: false,
-      status: 'active',
-      order: 2
-    },
-    {
-      _id: '3',
-      name: 'Fiberglass Canopy',
-      slug: 'fiberglass-canopy',
-      description: 'Premium fiberglass canopy offering the perfect balance of strength, weight, and aesthetics. Custom molded for your specific vehicle.',
-      shortDescription: 'Premium fiberglass construction',
-      parentService: '1',
-      parentServiceName: 'Ute Canopies',
-      image: 'https://via.placeholder.com/300x200',
-      features: ['Premium Finish', 'Lightweight', 'Custom Molded', 'Aesthetic'],
-      specifications: {
-        material: 'Fiberglass',
-        weight: '35kg',
-        installation: '2-3 hours',
-        warranty: '3 years'
-      },
-      pricing: {
-        base: 3800,
-        currency: 'AUD'
-      },
-      featured: true,
-      status: 'active',
-      order: 3
-    }
-  ];
-
-  // Use mock data for now, replace with actual data when API is ready
-  const uteService = mockServices.find(s => s.category === 'ute' && s.status === 'active');
-  const uteSubServices = mockSubServices.filter(s => s.parentService === uteService?._id && s.status === 'active');
+  // Get ute services and sub-services from API
+  const uteService = services.find(s => s.category === 'ute' && s.status === 'active');
+  const uteSubServices = subServices.filter(s => s.parentService === uteService?._id && s.status === 'active') || [];
 
   const features = [
     {
@@ -209,7 +118,7 @@ export default function UtePage() {
                 style={{ textAlign: 'center', height: '100%' }}
                 cover={
                   <div style={{ position: 'relative' }}>
-                    <Image
+                    <AntdImage
                       alt={subService.name}
                       src={subService.image}
                       style={{ height: 200, objectFit: 'cover' }}
@@ -292,7 +201,7 @@ export default function UtePage() {
                 hoverable 
                 style={{ height: '100%' }}
                 cover={
-                  <Image
+                  <AntdImage
                     alt={variation.name}
                     src={variation.image}
                     style={{ height: 200, objectFit: 'cover' }}

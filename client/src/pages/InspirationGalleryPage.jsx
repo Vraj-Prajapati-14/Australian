@@ -1,5 +1,7 @@
-import { Row, Col, Card, Button, Typography, Space, Image, Tag, Select, Input } from 'antd';
+import { Row, Col, Card, Button, Typography, Space, Image, Tag, Select, Input, Spin } from 'antd';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../lib/api';
 import Hero from '../components/Hero';
 import Section from '../components/Section';
 import { SearchOutlined, FilterOutlined, EyeOutlined, HeartOutlined } from '@ant-design/icons';
@@ -12,88 +14,25 @@ export default function InspirationGalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const inspirationItems = [
-    {
-      id: 1,
-      title: "Modinex Ute with HIDRIVE Canopy",
-      category: "ute",
-      description: "Premium ute canopy with integrated storage solutions for sales team operations.",
-      image: "/modinex-ute.jpg",
-      tags: ["Ute", "Canopy", "Sales", "Premium"]
-    },
-    {
-      id: 2,
-      title: "EMS Field Mechanic Fleet",
-      category: "fleet",
-      description: "Complete fleet of ute and truck service bodies for mechanical services.",
-      image: "/ems-fleet.jpg",
-      tags: ["Fleet", "Mechanical", "Ute", "Truck"]
-    },
-    {
-      id: 3,
-      title: "Gecko Cleantech Spills Trailer",
-      category: "trailer",
-      description: "Specialized spills cleanup trailer for airport runway safety.",
-      image: "/gecko-trailer.jpg",
-      tags: ["Trailer", "Specialized", "Airport", "Safety"]
-    },
-    {
-      id: 4,
-      title: "HIDRIVE Service Body with Crane",
-      category: "truck",
-      description: "Heavy-duty truck service body with integrated crane system.",
-      image: "/crane-truck.jpg",
-      tags: ["Truck", "Crane", "Heavy-Duty", "Industrial"]
-    },
-    {
-      id: 5,
-      title: "Tool Canopy Configuration",
-      category: "ute",
-      description: "Specialized tool storage canopy for tradespeople and contractors.",
-      image: "/tool-canopy.jpg",
-      tags: ["Ute", "Tools", "Storage", "Trades"]
-    },
-    {
-      id: 6,
-      title: "Government Fleet Ute",
-      category: "government",
-      description: "Compliant ute service body for government operations and compliance.",
-      image: "/government-ute.jpg",
-      tags: ["Government", "Compliant", "Ute", "Fleet"]
-    },
-    {
-      id: 7,
-      title: "All-Rounder Trailer Pack",
-      category: "trailer",
-      description: "Versatile trailer configuration for multiple applications and industries.",
-      image: "/all-rounder-trailer.jpg",
-      tags: ["Trailer", "Versatile", "Multi-Purpose", "Industry"]
-    },
-    {
-      id: 8,
-      title: "Mining Service Body",
-      category: "truck",
-      description: "Heavy-duty service body designed for mining and construction environments.",
-      image: "/mining-truck.jpg",
-      tags: ["Truck", "Mining", "Construction", "Heavy-Duty"]
-    },
-    {
-      id: 9,
-      title: "Emergency Response Setup",
-      category: "emergency",
-      description: "Rapid response trailer with essential equipment and supplies.",
-      image: "/emergency-trailer.jpg",
-      tags: ["Emergency", "Response", "Trailer", "Equipment"]
+  // Fetch inspiration data
+  const { data: inspirationItems = [], isLoading } = useQuery({
+    queryKey: ['inspiration-published', selectedCategory, searchTerm],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      
+      const response = await api.get(`/inspiration/published?${params.toString()}`);
+      return response.data?.data || [];
     }
-  ];
-
-  const filteredItems = inspirationItems.filter(item => {
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesCategory && matchesSearch;
   });
+
+  // Filtering is now handled by the API
+  const filteredItems = inspirationItems;
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -146,77 +85,112 @@ export default function InspirationGalleryPage() {
 
       {/* Gallery Grid */}
       <Section title="Inspiration Gallery" subtitle={`Showing ${filteredItems.length} items`}>
-        <Row gutter={[24, 24]}>
-          {filteredItems.map((item) => (
-            <Col key={item.id} xs={24} sm={12} md={8} lg={6}>
-              <Card 
-                hoverable
-                cover={
-                  <div style={{ 
-                    height: 250, 
-                    background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: 64,
-                    position: 'relative'
-                  }}>
-                    <div style={{ 
-                      position: 'absolute', 
-                      top: 12, 
-                      right: 12, 
-                      display: 'flex', 
-                      gap: 8 
-                    }}>
-                      <Button 
-                        type="text" 
-                        icon={<EyeOutlined />} 
-                        style={{ color: 'white' }}
-                        size="small"
-                      />
-                      <Button 
-                        type="text" 
-                        icon={<HeartOutlined />} 
-                        style={{ color: 'white' }}
-                        size="small"
-                      />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 48, marginBottom: 8 }}>
-                        {item.category === 'ute' && '🚗'}
-                        {item.category === 'trailer' && '🚛'}
-                        {item.category === 'truck' && '🚚'}
-                        {item.category === 'fleet' && '🏢'}
-                        {item.category === 'government' && '🏛️'}
-                        {item.category === 'emergency' && '🚨'}
+        <Spin spinning={isLoading}>
+          <Row gutter={[24, 24]}>
+            {filteredItems.map((item) => (
+              <Col key={item._id} xs={24} sm={12} md={8} lg={6}>
+                <Card 
+                  hoverable
+                  cover={
+                    item.image && item.image.url ? (
+                      <div style={{ height: 250, position: 'relative' }}>
+                        <Image
+                          src={item.image.url}
+                          alt={item.image.alt || item.title}
+                          width="100%"
+                          height="100%"
+                          style={{ objectFit: 'cover' }}
+                          preview={false}
+                        />
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: 12, 
+                          right: 12, 
+                          display: 'flex', 
+                          gap: 8 
+                        }}>
+                          <Button 
+                            type="text" 
+                            icon={<EyeOutlined />} 
+                            style={{ color: 'white' }}
+                            size="small"
+                          />
+                          <Button 
+                            type="text" 
+                            icon={<HeartOutlined />} 
+                            style={{ color: 'white' }}
+                            size="small"
+                          />
+                        </div>
                       </div>
-                      <Text style={{ color: 'white', fontSize: 16 }}>
-                        {item.category.toUpperCase()}
-                      </Text>
-                    </div>
+                    ) : (
+                      <div style={{ 
+                        height: 250, 
+                        background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: 64,
+                        position: 'relative'
+                      }}>
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: 12, 
+                          right: 12, 
+                          display: 'flex', 
+                          gap: 8 
+                        }}>
+                          <Button 
+                            type="text" 
+                            icon={<EyeOutlined />} 
+                            style={{ color: 'white' }}
+                            size="small"
+                          />
+                          <Button 
+                            type="text" 
+                            icon={<HeartOutlined />} 
+                            style={{ color: 'white' }}
+                            size="small"
+                          />
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 48, marginBottom: 8 }}>
+                            {item.category === 'ute' && '🚗'}
+                            {item.category === 'trailer' && '🚛'}
+                            {item.category === 'truck' && '🚚'}
+                            {item.category === 'fleet' && '🏢'}
+                            {item.category === 'government' && '🏛️'}
+                            {item.category === 'emergency' && '🚨'}
+                          </div>
+                          <Text style={{ color: 'white', fontSize: 16 }}>
+                            {item.category.toUpperCase()}
+                          </Text>
+                        </div>
+                      </div>
+                    )
+                  }
+                  actions={[
+                    <Button type="link" icon={<EyeOutlined />}>View</Button>,
+                    <Button type="link" icon={<HeartOutlined />}>Save</Button>
+                  ]}
+                >
+                  <Title level={5} style={{ marginBottom: 8 }}>{item.title}</Title>
+                  <Paragraph style={{ fontSize: 14, color: '#666', marginBottom: 12 }}>
+                    {item.description}
+                  </Paragraph>
+                  <div>
+                    {item.tags.map((tag, index) => (
+                      <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
+                        {tag}
+                      </Tag>
+                    ))}
                   </div>
-                }
-                actions={[
-                  <Button type="link" icon={<EyeOutlined />}>View</Button>,
-                  <Button type="link" icon={<HeartOutlined />}>Save</Button>
-                ]}
-              >
-                <Title level={5} style={{ marginBottom: 8 }}>{item.title}</Title>
-                <Paragraph style={{ fontSize: 14, color: '#666', marginBottom: 12 }}>
-                  {item.description}
-                </Paragraph>
-                <div>
-                  {item.tags.map((tag, index) => (
-                    <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
-                      {tag}
-                    </Tag>
-                  ))}
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Spin>
       </Section>
 
       {/* Categories Showcase */}

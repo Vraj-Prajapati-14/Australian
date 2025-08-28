@@ -7,6 +7,7 @@ router.get('/', controller.list);
 router.get('/main', controller.getMainServices);
 router.get('/featured', controller.getFeatured);
 router.get('/sub/:parentId', controller.getSubServices);
+router.get('/sub-services', controller.getAllSubServices); // New route for all sub-services
 router.get('/:slug', controller.getBySlug);
 
 // Admin routes

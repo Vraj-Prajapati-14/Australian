@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, Space, Typography, Drawer } from 'antd';
-import { PhoneOutlined, MenuOutlined, DownOutlined, CloseOutlined } from '@ant-design/icons';
+import { Layout, Menu, Button, Dropdown, Space, Typography, Drawer, Image } from 'antd';
+import { PhoneOutlined, MenuOutlined, DownOutlined, CloseOutlined, HomeOutlined } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -13,92 +13,87 @@ export default function Header() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const location = useLocation();
 
+  // Fetch settings data
+  const { data: settings = {} } = useQuery({ 
+    queryKey: ['settings'], 
+    queryFn: async () => {
+      const response = await api.get('/settings');
+      return response.data || {};
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Extract settings data
+  const general = settings.general || {};
+  const contact = settings.contact || {};
+  const appearance = settings.appearance || {};
+
   // Fetch main services with their sub-services
   const { data: mainServices = [] } = useQuery({ 
     queryKey: ['mainServices'], 
     queryFn: async () => (await api.get('/services/main')).data || []
   });
 
-  // Mock data for additional menu items
-  const additionalMenuItems = [
-    {
-      key: 'service-support',
-      label: 'Service & Support',
-      children: [
-        { key: 'customer-care', label: <Link to="/customer-care">Customer Care & Technical Support</Link> },
-        { key: 'fleet-management', label: <Link to="/fleet-management">Fleet Management</Link> },
-        { key: 'servicing', label: <Link to="/servicing">Servicing</Link> },
-        { key: 'warranty', label: <Link to="/warranty">Warranty</Link> },
-        { key: 'manuals', label: <Link to="/manuals">Operator Manuals</Link> }
-      ]
-    },
-    {
-      key: 'about',
-      label: 'About',
-      children: [
-        { key: 'about-us', label: <Link to="/about">About Us</Link> },
-        { key: 'case-studies', label: <Link to="/case-studies">Case Studies</Link> },
-        { key: 'news', label: <Link to="/news">HIDRIVE News</Link> },
-        { key: 'community', label: <Link to="/community">Community Support</Link> },
-        { key: 'careers', label: <Link to="/careers">Careers</Link> },
-        { key: 'blog', label: <Link to="/blog">Blog</Link> }
-      ]
-    },
-    {
-      key: 'brochures',
-      label: <Link to="/brochures">Brochures</Link>
-    },
-    {
-      key: 'contact',
-      label: 'Contact',
-      children: [
-        { key: 'contact-us', label: <Link to="/contact">Contact Us</Link> },
-        { key: 'adelaide', label: <Link to="/contact/adelaide">Adelaide</Link> },
-        { key: 'brisbane', label: <Link to="/contact/brisbane">Brisbane</Link> },
-        { key: 'goulburn', label: <Link to="/contact/goulburn">Goulburn</Link> },
-        { key: 'melbourne', label: <Link to="/contact/melbourne">Melbourne</Link> },
-        { key: 'perth', label: <Link to="/contact/perth">Perth</Link> },
-        { key: 'sydney', label: <Link to="/contact/sydney">Sydney</Link> }
-      ]
-    }
-  ];
-
+  // Create service menu with nested dropdowns
   const createServiceMenu = (service) => {
     const subServices = service.subServices || [];
     
     if (subServices.length === 0) {
       return {
         key: service.slug,
-        label: <Link to={`/${service.slug}`}>{service.title}</Link>
+        label: <Link to={`/services/${service.slug}`}>{service.title}</Link>
       };
     }
 
     return {
       key: service.slug,
-      label: (
-        <Space>
-          {service.title}
-          <DownOutlined />
-        </Space>
-      ),
+      label: service.title,
       children: [
         {
           key: `${service.slug}-overview`,
-          label: <Link to={`/${service.slug}`}>Overview</Link>
+          label: <Link to={`/services/${service.slug}`}>Overview</Link>
         },
         ...subServices
           .filter(sub => sub.status === 'active')
           .map(sub => ({
             key: sub.slug,
-            label: <Link to={`/${service.slug}/${sub.slug}`}>{sub.title}</Link>
+            label: <Link to={`/services/${service.slug}/${sub.slug}`}>{sub.title}</Link>
           }))
       ]
     };
   };
 
+  // Main navigation items - using dynamic data
   const menuItems = [
-    ...mainServices.map(createServiceMenu),
-    ...additionalMenuItems
+    {
+      key: 'home',
+      label: <Link to="/">HOME</Link>
+    },
+    {
+      key: 'about',
+      label: <Link to="/about">ABOUT</Link>
+    },
+    {
+      key: 'case-studies',
+      label: <Link to="/case-studies">CASE STUDIES</Link>
+    },
+    {
+      key: 'inspiration-gallery',
+      label: <Link to="/inspiration-gallery">INSPIRATION GALLERY</Link>
+    },
+    {
+      key: 'services',
+      label: (
+        <span>
+          SERVICES <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
+        </span>
+      ),
+      children: mainServices.map(createServiceMenu)
+    },
+    {
+      key: 'contact',
+      label: <Link to="/contact">CONTACT</Link>
+    }
   ];
 
   const handleMobileMenuClose = () => {
@@ -107,43 +102,81 @@ export default function Header() {
 
   const isActive = (path) => location.pathname === path;
 
+  // Professional navbar styling
+  const headerStyle = {
+    background: '#ffffff', 
+    padding: '0',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    height: 'auto',
+    minHeight: 70,
+    width: '100%',
+    borderBottom: '1px solid #e0e0e0'
+  };
+
+  const logoStyle = {
+    display: 'flex', 
+    alignItems: 'center',
+    fontSize: '26px',
+    fontWeight: 'bold',
+    color: '#1677ff',
+    letterSpacing: '1px'
+  };
+
+  const contactButtonStyle = {
+    borderRadius: '6px',
+    height: '40px',
+    padding: '0 20px',
+    fontWeight: '600',
+    fontSize: '14px',
+    background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+    border: 'none',
+    color: '#ffffff',
+    boxShadow: '0 2px 8px rgba(22, 119, 255, 0.3)',
+    transition: 'all 0.3s ease'
+  };
+
   return (
     <>
-      <AntHeader style={{ 
-        background: 'white', 
-        padding: '0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        height: 'auto',
-        minHeight: 80
-      }}>
+      <AntHeader style={headerStyle}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          maxWidth: 1200,
+          width: '100%',
           margin: '0 auto',
           padding: '0 24px',
-          height: 80
+          height: 70
         }}>
           {/* Logo */}
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              fontSize: '28px',
-              fontWeight: 'bold',
-              color: '#1677ff',
-              letterSpacing: '1px'
-            }}>
-              HIDRIVE
-            </div>
+          <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
+            {appearance.logo?.url ? (
+              <Image
+                className="logo-image"
+                src={appearance.logo.url}
+                alt={appearance.logo.alt || general.siteName || 'Logo'}
+                width={120}
+                height={35}
+                style={{ objectFit: 'contain' }}
+                preview={false}
+              />
+            ) : (
+              <div className="logo-container" style={logoStyle}>
+                {general.siteName || 'HIDRIVE'}
+              </div>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          <div className="desktop-navigation" style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            flex: 1,
+            justifyContent: 'center',
+            margin: '0 40px'
+          }}>
             <Menu
               mode="horizontal"
               selectedKeys={[location.pathname]}
@@ -151,121 +184,139 @@ export default function Header() {
               style={{ 
                 border: 'none', 
                 background: 'transparent',
-                minWidth: 700,
-                fontSize: '15px',
-                fontWeight: 500
+                fontSize: '14px',
+                fontWeight: '600',
+                flex: 1,
+                justifyContent: 'center',
+                display: 'flex',
+                color: '#2c2c2c',
+                height: 70,
+                lineHeight: '70px'
               }}
               onMouseEnter={(e) => {
-                if (e.key && mainServices.some(s => s.slug === e.key)) {
-                  setActiveDropdown(e.key);
+                if (e.key === 'services') {
+                  setActiveDropdown('services');
                 }
               }}
               onMouseLeave={() => setActiveDropdown(null)}
             />
-            
-            {/* Phone Number Button */}
+          </div>
+          
+          {/* Contact Button */}
+          <div style={{ flexShrink: 0, marginLeft: 'auto' }}>
             <Button 
               type="primary" 
               icon={<PhoneOutlined />}
-              style={{ 
-                borderRadius: '24px',
-                height: '44px',
-                padding: '0 24px',
-                fontWeight: 'bold',
-                fontSize: '15px',
-                background: '#1677ff',
-                border: 'none'
+              style={contactButtonStyle}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(22, 119, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(22, 119, 255, 0.3)';
               }}
             >
-              1300 368 161
+              {contact.phone || '1300 368 161'}
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div style={{ display: 'none' }}>
+          <div className="mobile-menu-button" style={{ display: 'none', flexShrink: 0 }}>
             <Button
               type="text"
               icon={<MenuOutlined />}
               onClick={() => setMobileMenuOpen(true)}
-              style={{ fontSize: '20px', height: '44px', width: '44px' }}
+              style={{ 
+                fontSize: '20px', 
+                height: '44px', 
+                width: '44px',
+                color: '#2c2c2c'
+              }}
             />
           </div>
         </div>
 
-        {/* Service Dropdown Overlay for Desktop */}
-        {activeDropdown && (
+        {/* Services Dropdown Overlay for Desktop */}
+        {activeDropdown === 'services' && (
           <div 
             style={{
               position: 'absolute',
               top: '100%',
               left: 0,
               right: 0,
-              background: 'white',
-              borderTop: '1px solid #f0f0f0',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              background: '#ffffff',
+              borderTop: '1px solid #e0e0e0',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               zIndex: 999
             }}
-            onMouseEnter={() => setActiveDropdown(activeDropdown)}
+            onMouseEnter={() => setActiveDropdown('services')}
             onMouseLeave={() => setActiveDropdown(null)}
           >
             <div style={{ 
-              maxWidth: 1200, 
+              width: '100%', 
               margin: '0 auto', 
               padding: '32px 24px',
-              display: 'flex',
-              gap: '48px'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '32px'
             }}>
-              {mainServices
-                .filter(service => service.slug === activeDropdown)
-                .map(service => (
-                  <div key={service._id} style={{ flex: 1 }}>
-                    <div style={{ 
-                      fontSize: '18px', 
-                      fontWeight: 'bold', 
-                      marginBottom: '16px',
-                      color: '#1677ff'
-                    }}>
-                      {service.title}
-                    </div>
-                    <div style={{ 
-                      fontSize: '14px', 
-                      color: '#666', 
-                      marginBottom: '24px',
-                      lineHeight: '1.5'
-                    }}>
-                      {service.shortDescription}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <Link 
-                        to={`/${service.slug}`}
-                        style={{ 
-                          color: '#333', 
-                          textDecoration: 'none',
-                          padding: '8px 0',
-                          fontSize: '15px'
-                        }}
-                      >
-                        Overview
-                      </Link>
-                      {(service.subServices || [])
-                        .filter(sub => sub.status === 'active')
-                        .map(sub => (
-                          <Link 
-                            key={sub._id}
-                            to={`/${service.slug}/${sub.slug}`}
-                            style={{ 
-                              color: '#333', 
-                              textDecoration: 'none',
-                              padding: '8px 0',
-                              fontSize: '15px'
-                            }}
-                          >
-                            {sub.title}
-                          </Link>
-                        ))}
-                    </div>
+              {mainServices.map(service => (
+                <div key={service._id} style={{ minWidth: 0 }}>
+                  <div style={{ 
+                    fontSize: '18px', 
+                    fontWeight: 'bold', 
+                    marginBottom: '12px',
+                    color: '#2c2c2c'
+                  }}>
+                    {service.title}
                   </div>
-                ))}
+                  <div style={{ 
+                    fontSize: '14px', 
+                    color: '#666', 
+                    marginBottom: '16px',
+                    lineHeight: '1.5'
+                  }}>
+                    {service.shortDescription}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <Link 
+                      to={`/services/${service.slug}`}
+                      style={{ 
+                        color: '#333', 
+                        textDecoration: 'none',
+                        padding: '6px 0',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        transition: 'color 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => e.target.style.color = '#1677ff'}
+                      onMouseLeave={(e) => e.target.style.color = '#333'}
+                    >
+                      Overview
+                    </Link>
+                    {(service.subServices || [])
+                      .filter(sub => sub.status === 'active')
+                      .map(sub => (
+                        <Link 
+                          key={sub._id}
+                          to={`/services/${service.slug}/${sub.slug}`}
+                          style={{ 
+                            color: '#666', 
+                            textDecoration: 'none',
+                            padding: '4px 0',
+                            fontSize: '14px',
+                            transition: 'color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => e.target.style.color = '#1677ff'}
+                          onMouseLeave={(e) => e.target.style.color = '#666'}
+                        >
+                          {sub.title}
+                        </Link>
+                      ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -275,7 +326,20 @@ export default function Header() {
       <Drawer
         title={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#1677ff' }}>HIDRIVE</span>
+            {appearance.logo?.url ? (
+              <Image
+                src={appearance.logo.url}
+                alt={appearance.logo.alt || general.siteName || 'Logo'}
+                width={100}
+                height={30}
+                style={{ objectFit: 'contain' }}
+                preview={false}
+              />
+            ) : (
+              <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#2c2c2c' }}>
+                {general.siteName || 'HIDRIVE'}
+              </span>
+            )}
             <Button 
               type="text" 
               icon={<CloseOutlined />} 
@@ -288,7 +352,7 @@ export default function Header() {
         onClose={handleMobileMenuClose}
         open={mobileMenuOpen}
         width={320}
-        bodyStyle={{ padding: 0 }}
+        styles={{ body: { padding: 0 } }}
       >
         <div style={{ padding: '16px' }}>
           <Menu
@@ -297,6 +361,7 @@ export default function Header() {
             items={menuItems}
             style={{ border: 'none' }}
             onClick={handleMobileMenuClose}
+            expandIcon={<DownOutlined />}
           />
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <Button 
@@ -305,13 +370,16 @@ export default function Header() {
               block
               size="large"
               style={{ 
-                borderRadius: '24px', 
+                borderRadius: '6px', 
                 height: '48px',
                 fontSize: '16px',
-                fontWeight: 'bold'
+                fontWeight: '600',
+                background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+                border: 'none',
+                boxShadow: '0 2px 8px rgba(22, 119, 255, 0.3)'
               }}
             >
-              1300 368 161
+              {contact.phone || '1300 368 161'}
             </Button>
           </div>
         </div>
