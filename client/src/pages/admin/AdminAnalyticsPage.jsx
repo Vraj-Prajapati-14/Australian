@@ -73,11 +73,16 @@ export default function AdminAnalyticsPage() {
   });
 
   // Fetch recent visitors
-  const { data: visitorsData = {}, isLoading: visitorsLoading } = useQuery({
+  const { data: visitorsData = {}, isLoading: visitorsLoading, error: visitorsError } = useQuery({
     queryKey: ['recent-visitors'],
     queryFn: async () => {
-      const response = await api.get('/visitors/recent?limit=50');
-      return response.data || {};
+      try {
+        const response = await api.get('/visitors/recent?limit=50');
+        return response.data || {};
+      } catch (error) {
+        console.error('Error fetching recent visitors:', error);
+        return {};
+      }
     }
   });
 
@@ -620,19 +625,45 @@ export default function AdminAnalyticsPage() {
       ),
       children: (
         <Card title="Recent Visitors" style={cardStyle}>
-          <Table
-            dataSource={visitors}
-            columns={visitorColumns}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} visitors`
-            }}
-            size="small"
-            style={tableStyle}
-            loading={visitorsLoading}
-          />
+          {visitorsError ? (
+            <Alert
+              message="Error Loading Recent Visitors"
+              description="There was an error loading recent visitors data. Please try refreshing the page."
+              type="error"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          ) : null}
+          
+          {visitors.length > 0 ? (
+            <Table
+              dataSource={visitors}
+              columns={visitorColumns}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} visitors`
+              }}
+              size="small"
+              style={tableStyle}
+              loading={visitorsLoading}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <UserOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
+              <Text type="secondary" style={{ fontSize: '16px', display: 'block', marginBottom: '8px' }}>
+                No recent visitors found
+              </Text>
+              <Text type="secondary" style={{ fontSize: '14px' }}>
+                Visitor tracking will show data when users visit your public pages
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: '12px', marginTop: '8px' }}>
+                Make sure to visit your public website (not admin pages) to generate visitor data
+              </Text>
+            </div>
+          )}
         </Card>
       )
     },

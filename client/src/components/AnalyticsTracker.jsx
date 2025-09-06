@@ -166,7 +166,7 @@ const AnalyticsTracker = ({ page, email, name, socialAccounts, customData }) => 
         page: page || window.location.pathname,
         ...finalData
       });
-      navigator.sendBeacon('/api/visitors/track', data);
+      navigator.sendBeacon('http://localhost:3001/api/visitors/track', data);
     } else {
       // Fallback to regular fetch
       sendTrackingData(finalData);

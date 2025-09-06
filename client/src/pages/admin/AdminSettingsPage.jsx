@@ -134,6 +134,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import dayjs from 'dayjs';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -335,7 +336,6 @@ export default function AdminSettingsPage() {
           notificationsForm.setFieldsValue(settings.notifications || {});
         } catch (error) {
           // Forms might not be ready yet, this is normal during initial render
-          console.log('Forms not ready yet, will retry on next render');
         }
       }, 100);
 
@@ -1135,45 +1135,65 @@ export default function AdminSettingsPage() {
               <Col xs={24} md={12}>
                 <Form.Item
                   name="logo"
-                  label="Logo URL"
+                  label="Logo"
                   style={formItemStyle}
                 >
-                  <Input placeholder="https://example.com/logo.png" style={inputStyle} />
-                </Form.Item>
-                {appearanceForm.getFieldValue('logo') && (
-                  <Image
-                    width={200}
-                    src={appearanceForm.getFieldValue('logo')}
-                    alt="Logo preview"
-                    style={{ marginTop: 8, borderRadius: '8px' }}
+                  <SimpleImageUpload
+                    onUploadSuccess={(url) => {
+                      appearanceForm.setFieldsValue({ logo: url });
+                    }}
+                    onUploadError={(error) => {
+                      message.error('Failed to upload logo: ' + error);
+                    }}
+                    uploadText="Upload Logo"
+                    accept="image/*"
+                    maxSize={2 * 1024 * 1024} // 2MB
+                    showPreview={true}
+                    previewStyle={{ width: '100px', height: '60px', objectFit: 'contain' }}
                   />
-                )}
+                </Form.Item>
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
                   name="favicon"
-                  label="Favicon URL"
+                  label="Favicon"
                   style={formItemStyle}
                 >
-                  <Input placeholder="https://example.com/favicon.ico" style={inputStyle} />
-                </Form.Item>
-                {appearanceForm.getFieldValue('favicon') && (
-                  <Image
-                    width={32}
-                    src={appearanceForm.getFieldValue('favicon')}
-                    alt="Favicon preview"
-                    style={{ marginTop: 8, borderRadius: '4px' }}
+                  <SimpleImageUpload
+                    onUploadSuccess={(url) => {
+                      appearanceForm.setFieldsValue({ favicon: url });
+                    }}
+                    onUploadError={(error) => {
+                      message.error('Failed to upload favicon: ' + error);
+                    }}
+                    uploadText="Upload Favicon"
+                    accept="image/x-icon,image/png"
+                    maxSize={1 * 1024 * 1024} // 1MB
+                    showPreview={true}
+                    previewStyle={{ width: '32px', height: '32px', objectFit: 'contain' }}
                   />
-                )}
+                </Form.Item>
               </Col>
             </Row>
 
             <Form.Item
               name="heroImage"
-              label="Default Hero Image URL"
+              label="Default Hero Image"
               style={formItemStyle}
             >
-              <Input placeholder="https://example.com/hero.jpg" style={inputStyle} />
+              <SimpleImageUpload
+                onUploadSuccess={(url) => {
+                  appearanceForm.setFieldsValue({ heroImage: url });
+                }}
+                onUploadError={(error) => {
+                  message.error('Failed to upload hero image: ' + error);
+                }}
+                uploadText="Upload Hero Image"
+                accept="image/*"
+                maxSize={5 * 1024 * 1024} // 5MB
+                showPreview={true}
+                previewStyle={{ width: '200px', height: '120px', objectFit: 'cover' }}
+              />
             </Form.Item>
 
             <Row gutter={[16, 0]}>
@@ -1202,6 +1222,157 @@ export default function AdminSettingsPage() {
                     <Option value="minimal">Minimal</Option>
                   </Select>
                 </Form.Item>
+              </Col>
+            </Row>
+
+            <Divider style={dividerStyle}>Typography & Styling</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="fontFamily"
+                  label="Font Family"
+                  style={formItemStyle}
+                >
+                  <Select placeholder="Select font family" style={selectStyle}>
+                    <Option value="Inter, sans-serif">Inter</Option>
+                    <Option value="Roboto, sans-serif">Roboto</Option>
+                    <Option value="Open Sans, sans-serif">Open Sans</Option>
+                    <Option value="Lato, sans-serif">Lato</Option>
+                    <Option value="Poppins, sans-serif">Poppins</Option>
+                    <Option value="Montserrat, sans-serif">Montserrat</Option>
+                    <Option value="Arial, sans-serif">Arial</Option>
+                    <Option value="Helvetica, sans-serif">Helvetica</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="fontSize"
+                  label="Base Font Size"
+                  style={formItemStyle}
+                >
+                  <Select placeholder="Select font size" style={selectStyle}>
+                    <Option value="12px">12px</Option>
+                    <Option value="14px">14px</Option>
+                    <Option value="16px">16px</Option>
+                    <Option value="18px">18px</Option>
+                    <Option value="20px">20px</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="borderRadius"
+                  label="Border Radius"
+                  style={formItemStyle}
+                >
+                  <Select placeholder="Select border radius" style={selectStyle}>
+                    <Option value="0px">None (0px)</Option>
+                    <Option value="4px">Small (4px)</Option>
+                    <Option value="8px">Medium (8px)</Option>
+                    <Option value="12px">Large (12px)</Option>
+                    <Option value="16px">Extra Large (16px)</Option>
+                    <Option value="50%">Rounded (50%)</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="boxShadow"
+                  label="Box Shadow"
+                  style={formItemStyle}
+                >
+                  <Select placeholder="Select box shadow" style={selectStyle}>
+                    <Option value="none">None</Option>
+                    <Option value="0 1px 3px rgba(0,0,0,0.1)">Light</Option>
+                    <Option value="0 2px 8px rgba(0,0,0,0.1)">Medium</Option>
+                    <Option value="0 4px 12px rgba(0,0,0,0.15)">Heavy</Option>
+                    <Option value="0 8px 25px rgba(0,0,0,0.2)">Extra Heavy</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Divider style={dividerStyle}>Live Preview</Divider>
+
+            <Row gutter={[24, 24]}>
+              <Col xs={24} lg={16}>
+                <div style={{ 
+                  background: '#f8f9fa', 
+                  padding: '20px', 
+                  borderRadius: '12px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <Text strong style={{ display: 'block', marginBottom: '16px' }}>Website Preview</Text>
+                  <div style={{ 
+                    background: '#ffffff', 
+                    padding: '20px', 
+                    borderRadius: '8px',
+                    border: '1px solid #dee2e6'
+                  }}>
+                    <div style={{ 
+                      height: '40px', 
+                      background: appearanceForm.getFieldValue('primaryColor') || '#000000',
+                      borderRadius: '4px',
+                      marginBottom: '16px'
+                    }}></div>
+                    <div style={{ 
+                      height: '20px', 
+                      background: appearanceForm.getFieldValue('textColor') || '#000000',
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                      width: '60%'
+                    }}></div>
+                    <div style={{ 
+                      height: '16px', 
+                      background: appearanceForm.getFieldValue('textColor') || '#000000',
+                      borderRadius: '4px',
+                      marginBottom: '16px',
+                      width: '40%',
+                      opacity: 0.7
+                    }}></div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{ 
+                        height: '32px', 
+                        background: appearanceForm.getFieldValue('primaryColor') || '#000000',
+                        borderRadius: '4px',
+                        width: '80px'
+                      }}></div>
+                      <div style={{ 
+                        height: '32px', 
+                        background: appearanceForm.getFieldValue('secondaryColor') || '#ffffff',
+                        border: `1px solid ${appearanceForm.getFieldValue('primaryColor') || '#000000'}`,
+                        borderRadius: '4px',
+                        width: '80px'
+                      }}></div>
+                    </div>
+                  </div>
+                </div>
+              </Col>
+              <Col xs={24} lg={8}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Button 
+                    type="primary" 
+                    icon={<EyeOutlined />}
+                    onClick={previewTheme}
+                    block
+                    style={buttonStyle}
+                  >
+                    Preview Theme
+                  </Button>
+                  <Button 
+                    icon={<ReloadOutlined />}
+                    onClick={resetTheme}
+                    block
+                    style={buttonStyle}
+                  >
+                    Reset to Default
+                  </Button>
+                </Space>
               </Col>
             </Row>
 
@@ -1238,33 +1409,6 @@ export default function AdminSettingsPage() {
             <Row gutter={[16, 0]}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name="businessName"
-                  label="Business Name"
-                  rules={[{ required: true, message: 'Please enter business name' }]}
-                  style={formItemStyle}
-                >
-                  <Input placeholder="Australian Engineering Solutions" style={inputStyle} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="businessType"
-                  label="Business Type"
-                  style={formItemStyle}
-                >
-                  <Select placeholder="Select business type" style={selectStyle}>
-                    <Option value="Sole Proprietor">Sole Proprietor</Option>
-                    <Option value="Partnership">Partnership</Option>
-                    <Option value="Corporation">Corporation</Option>
-                    <Option value="Limited Liability Company">Limited Liability Company</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={12}>
-                <Form.Item
                   name="abn"
                   label="Australian Business Number (ABN)"
                   style={formItemStyle}
@@ -1286,48 +1430,100 @@ export default function AdminSettingsPage() {
             <Row gutter={[16, 0]}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name="gst"
-                  label="Goods and Services Tax (GST)"
+                  name="gstNumber"
+                  label="GST Number"
                   style={formItemStyle}
                 >
-                  <Select placeholder="Select GST status" style={selectStyle}>
-                    <Option value="Registered">Registered</Option>
-                    <Option value="Not Registered">Not Registered</Option>
-                    <Option value="Exempt">Exempt</Option>
-                  </Select>
+                  <Input placeholder="GST Number" style={inputStyle} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name="taxNumber"
-                  label="Tax Registration Number"
+                  name="insuranceProvider"
+                  label="Insurance Provider"
                   style={formItemStyle}
                 >
-                  <Input placeholder="123-456-789" style={inputStyle} />
+                  <Input placeholder="Insurance Provider Name" style={inputStyle} />
                 </Form.Item>
               </Col>
             </Row>
 
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={12}>
                 <Form.Item
-                  name="bankAccountNumber"
-                  label="Bank Account Number"
+              name="insurancePolicy"
+              label="Insurance Policy Number"
                   style={formItemStyle}
                 >
-                  <Input placeholder="123-456-78901234567890" style={inputStyle} />
+              <Input placeholder="Policy Number" style={inputStyle} />
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
+
+            <Divider style={dividerStyle}>Certifications & Awards</Divider>
+
                 <Form.Item
-                  name="bsbNumber"
-                  label="Bank Sort Code (BSB)"
+              name="certifications"
+              label="Certifications"
                   style={formItemStyle}
                 >
-                  <Input placeholder="123-456" style={inputStyle} />
+              <Select
+                mode="tags"
+                placeholder="Add certifications"
+                style={selectStyle}
+                open={false}
+              />
                 </Form.Item>
-              </Col>
-            </Row>
+
+                <Form.Item
+              name="awards"
+              label="Awards"
+                  style={formItemStyle}
+                >
+              <Select
+                mode="tags"
+                placeholder="Add awards"
+                style={selectStyle}
+                open={false}
+              />
+                </Form.Item>
+
+                <Form.Item
+              name="partnerships"
+              label="Partnerships"
+                  style={formItemStyle}
+                >
+              <Select
+                mode="tags"
+                placeholder="Add partnerships"
+                style={selectStyle}
+                open={false}
+              />
+                </Form.Item>
+
+            <Divider style={dividerStyle}>Service Areas & Specialties</Divider>
+
+            <Form.Item
+              name="serviceAreas"
+              label="Service Areas"
+              style={formItemStyle}
+            >
+              <Select
+                mode="tags"
+                placeholder="Add service areas"
+                style={selectStyle}
+                open={false}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="specialties"
+              label="Specialties"
+              style={formItemStyle}
+            >
+              <Select
+                mode="tags"
+                placeholder="Add specialties"
+                style={selectStyle}
+                open={false}
+              />
+            </Form.Item>
 
             <div style={{ textAlign: 'right', marginTop: '24px' }}>
               <Button 
@@ -1359,44 +1555,114 @@ export default function AdminSettingsPage() {
             layout="vertical"
             onFinish={(values) => handleSectionSave('content', contentForm)}
           >
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="footerText"
-              label="Footer Text"
+                  name="blogEnabled"
+                  label="Enable Blog"
+                  valuePropName="checked"
               style={formItemStyle}
             >
-              <TextArea rows={2} placeholder="© 2023 Australian Engineering Solutions. All rights reserved." style={inputStyle} />
+                  <Switch />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="testimonialsEnabled"
+                  label="Enable Testimonials"
+                  valuePropName="checked"
+                  style={formItemStyle}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+            <Form.Item
+                  name="galleryEnabled"
+                  label="Enable Gallery"
+                  valuePropName="checked"
+              style={formItemStyle}
+            >
+                  <Switch />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="newsletterEnabled"
+                  label="Enable Newsletter"
+                  valuePropName="checked"
+                  style={formItemStyle}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+            <Form.Item
+                  name="chatEnabled"
+                  label="Enable Chat Widget"
+                  valuePropName="checked"
+              style={formItemStyle}
+            >
+                  <Switch />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="defaultLanguage"
+                  label="Default Language"
+                  style={formItemStyle}
+                >
+                  <Select placeholder="Select default language" style={selectStyle}>
+                    <Option value="en">English</Option>
+                    <Option value="es">Spanish</Option>
+                    <Option value="fr">French</Option>
+                    <Option value="de">German</Option>
+                    <Option value="it">Italian</Option>
+                    <Option value="pt">Portuguese</Option>
+                    <Option value="ru">Russian</Option>
+                    <Option value="zh">Chinese</Option>
+                    <Option value="ja">Japanese</Option>
+                    <Option value="ko">Korean</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="chatWidget"
+              label="Chat Widget Code"
+              style={formItemStyle}
+            >
+              <TextArea rows={4} placeholder="Paste your chat widget code here..." style={inputStyle} />
             </Form.Item>
 
             <Form.Item
-              name="copyrightText"
-              label="Copyright Text"
+              name="supportedLanguages"
+              label="Supported Languages"
               style={formItemStyle}
             >
-              <TextArea rows={2} placeholder="© 2023 Australian Engineering Solutions. All rights reserved." style={inputStyle} />
-            </Form.Item>
-
-            <Form.Item
-              name="disclaimerText"
-              label="Disclaimer Text"
-              style={formItemStyle}
-            >
-              <TextArea rows={3} placeholder="This website is for informational purposes only. No representation is made as to the accuracy of the information provided." style={inputStyle} />
-            </Form.Item>
-
-            <Form.Item
-              name="privacyPolicyUrl"
-              label="Privacy Policy URL"
-              style={formItemStyle}
-            >
-              <Input placeholder="https://australianengineering.com.au/privacy-policy" style={inputStyle} />
-            </Form.Item>
-
-            <Form.Item
-              name="termsOfServiceUrl"
-              label="Terms of Service URL"
-              style={formItemStyle}
-            >
-              <Input placeholder="https://australianengineering.com.au/terms-of-service" style={inputStyle} />
+              <Select
+                mode="multiple"
+                placeholder="Select supported languages"
+                style={selectStyle}
+              >
+                <Option value="en">English</Option>
+                <Option value="es">Spanish</Option>
+                <Option value="fr">French</Option>
+                <Option value="de">German</Option>
+                <Option value="it">Italian</Option>
+                <Option value="pt">Portuguese</Option>
+                <Option value="ru">Russian</Option>
+                <Option value="zh">Chinese</Option>
+                <Option value="ja">Japanese</Option>
+                <Option value="ko">Korean</Option>
+              </Select>
             </Form.Item>
 
             <div style={{ textAlign: 'right', marginTop: '24px' }}>
@@ -1429,30 +1695,45 @@ export default function AdminSettingsPage() {
             layout="vertical"
             onFinish={(values) => handleSectionSave('integrations', integrationsForm)}
           >
-            <Form.Item
-              name="googleAnalytics"
-              label="Google Analytics"
-              valuePropName="checked"
-              style={formItemStyle}
-            >
-              <Switch />
-            </Form.Item>
+            <Divider style={dividerStyle}>Google Services</Divider>
 
             <Form.Item
-              name="facebookPixel"
-              label="Facebook Pixel"
-              valuePropName="checked"
+              name="googleMapsApiKey"
+              label="Google Maps API Key"
               style={formItemStyle}
             >
-              <Switch />
+              <Input placeholder="AIzaSyB..." style={inputStyle} />
             </Form.Item>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+            <Form.Item
+                  name="recaptchaSiteKey"
+                  label="reCAPTCHA Site Key"
+              style={formItemStyle}
+            >
+                  <Input placeholder="6Lc..." style={inputStyle} />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="recaptchaSecretKey"
+                  label="reCAPTCHA Secret Key"
+                  style={formItemStyle}
+                >
+                  <Input.Password placeholder="6Lc..." style={inputStyle} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Divider style={dividerStyle}>Email Marketing</Divider>
 
             <Form.Item
               name="mailchimpApiKey"
               label="Mailchimp API Key"
               style={formItemStyle}
             >
-              <Input placeholder="your-api-key-here" style={inputStyle} />
+              <Input.Password placeholder="your-api-key-here" style={inputStyle} />
             </Form.Item>
 
             <Form.Item
@@ -1463,13 +1744,49 @@ export default function AdminSettingsPage() {
               <Input placeholder="your-list-id-here" style={inputStyle} />
             </Form.Item>
 
+            <Divider style={dividerStyle}>Payment Processing</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="mailchimpApiUrl"
-              label="Mailchimp API URL"
+                  name="stripePublicKey"
+                  label="Stripe Public Key"
               style={formItemStyle}
             >
-              <Input placeholder="https://usX.api.mailchimp.com/3.0" style={inputStyle} />
+                  <Input placeholder="pk_test_..." style={inputStyle} />
             </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="stripeSecretKey"
+                  label="Stripe Secret Key"
+                  style={formItemStyle}
+                >
+                  <Input.Password placeholder="sk_test_..." style={inputStyle} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="paypalClientId"
+                  label="PayPal Client ID"
+                  style={formItemStyle}
+                >
+                  <Input placeholder="client-id-here" style={inputStyle} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="paypalSecret"
+                  label="PayPal Secret"
+                  style={formItemStyle}
+                >
+                  <Input.Password placeholder="secret-here" style={inputStyle} />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <div style={{ textAlign: 'right', marginTop: '24px' }}>
               <Button 
@@ -1501,42 +1818,83 @@ export default function AdminSettingsPage() {
             layout="vertical"
             onFinish={(values) => handleSectionSave('security', securityForm)}
           >
+            <Divider style={dividerStyle}>SSL & Headers</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="twoFactorAuth"
-              label="Two-Factor Authentication"
+                  name="enableSSL"
+                  label="Enable SSL"
+              valuePropName="checked"
+              style={formItemStyle}
+            >
+              <Switch />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="enableHSTS"
+                  label="Enable HSTS"
+                  valuePropName="checked"
+                  style={formItemStyle}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+            <Form.Item
+                  name="enableCSP"
+                  label="Enable Content Security Policy"
+                  valuePropName="checked"
+              style={formItemStyle}
+            >
+                  <Switch />
+            </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="enableXSSProtection"
+                  label="Enable XSS Protection"
+                  valuePropName="checked"
+                  style={formItemStyle}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="enableCSRFProtection"
+              label="Enable CSRF Protection"
               valuePropName="checked"
               style={formItemStyle}
             >
               <Switch />
             </Form.Item>
 
-            <Form.Item
-              name="passwordComplexity"
-              label="Password Complexity"
-              style={formItemStyle}
-            >
-              <Select placeholder="Select password complexity" style={selectStyle}>
-                <Option value="low">Low (e.g., 123456)</Option>
-                <Option value="medium">Medium (e.g., Abc123!)</Option>
-                <Option value="high">High (e.g., Abc123!@#)</Option>
-              </Select>
-            </Form.Item>
+            <Divider style={dividerStyle}>Session & Authentication</Divider>
 
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
               name="sessionTimeout"
-              label="Session Timeout (minutes)"
+                  label="Session Timeout (seconds)"
               style={formItemStyle}
             >
               <InputNumber 
-                placeholder="30" 
-                min={1} 
-                max={1440} 
+                    placeholder="3600" 
+                    min={300} 
+                    max={86400} 
                 style={{ width: '100%' }}
               />
             </Form.Item>
-
+              </Col>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="loginAttempts"
+                  name="maxLoginAttempts"
               label="Max Login Attempts"
               style={formItemStyle}
             >
@@ -1547,16 +1905,18 @@ export default function AdminSettingsPage() {
                 style={{ width: '100%' }}
               />
             </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
-              name="lockoutDuration"
-              label="Account Lockout Duration (minutes)"
+              name="passwordMinLength"
+              label="Minimum Password Length"
               style={formItemStyle}
             >
               <InputNumber 
-                placeholder="15" 
-                min={1} 
-                max={60} 
+                placeholder="8" 
+                min={6} 
+                max={50} 
                 style={{ width: '100%' }}
               />
             </Form.Item>
@@ -1591,37 +1951,43 @@ export default function AdminSettingsPage() {
             layout="vertical"
             onFinish={(values) => handleSectionSave('performance', performanceForm)}
           >
+            <Divider style={dividerStyle}>Caching & Optimization</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="cacheDuration"
-              label="Cache Duration (minutes)"
+                  name="enableCaching"
+                  label="Enable Caching"
+                  valuePropName="checked"
               style={formItemStyle}
             >
-              <InputNumber 
-                placeholder="60" 
-                min={1} 
-                max={1440} 
-                style={{ width: '100%' }}
-              />
+                  <Switch />
             </Form.Item>
-
+              </Col>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="compressionEnabled"
+                  name="enableCompression"
               label="Enable Compression"
               valuePropName="checked"
               style={formItemStyle}
             >
               <Switch />
             </Form.Item>
+              </Col>
+            </Row>
 
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="minifyEnabled"
+                  name="enableMinification"
               label="Enable Minification"
               valuePropName="checked"
               style={formItemStyle}
             >
               <Switch />
             </Form.Item>
-
+              </Col>
+              <Col xs={24} md={12}>
             <Form.Item
               name="imageOptimization"
               label="Enable Image Optimization"
@@ -1630,15 +1996,41 @@ export default function AdminSettingsPage() {
             >
               <Switch />
             </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
-              name="databaseOptimization"
-              label="Enable Database Optimization"
+              name="lazyLoading"
+              label="Enable Lazy Loading"
               valuePropName="checked"
               style={formItemStyle}
             >
               <Switch />
             </Form.Item>
+
+            <Divider style={dividerStyle}>CDN Settings</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="enableCDN"
+                  label="Enable CDN"
+                  valuePropName="checked"
+                  style={formItemStyle}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="cdnUrl"
+                  label="CDN URL"
+                  style={formItemStyle}
+                >
+                  <Input placeholder="https://cdn.example.com" style={inputStyle} />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <div style={{ textAlign: 'right', marginTop: '24px' }}>
               <Button 
@@ -1670,6 +2062,10 @@ export default function AdminSettingsPage() {
             layout="vertical"
             onFinish={(values) => handleSectionSave('notifications', notificationsForm)}
           >
+            <Divider style={dividerStyle}>Notification Types</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
               name="emailNotifications"
               label="Enable Email Notifications"
@@ -1678,6 +2074,18 @@ export default function AdminSettingsPage() {
             >
               <Switch />
             </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+            <Form.Item
+                  name="smsNotifications"
+                  label="Enable SMS Notifications"
+              valuePropName="checked"
+              style={formItemStyle}
+            >
+              <Switch />
+            </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
               name="pushNotifications"
@@ -1688,31 +2096,38 @@ export default function AdminSettingsPage() {
               <Switch />
             </Form.Item>
 
+            <Divider style={dividerStyle}>Email Addresses</Divider>
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} md={12}>
             <Form.Item
-              name="smsNotifications"
-              label="Enable SMS Notifications"
-              valuePropName="checked"
+                  name="contactFormEmail"
+                  label="Contact Form Email"
+                  rules={[{ type: 'email', message: 'Please enter valid email' }]}
               style={formItemStyle}
             >
-              <Switch />
+                  <Input placeholder="info@australianengineering.com.au" style={inputStyle} />
             </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="newOrderEmail"
+                  label="New Order Email"
+                  rules={[{ type: 'email', message: 'Please enter valid email' }]}
+                  style={formItemStyle}
+                >
+                  <Input placeholder="orders@australianengineering.com.au" style={inputStyle} />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
-              name="notificationSound"
-              label="Enable Notification Sound"
-              valuePropName="checked"
+              name="supportEmail"
+              label="Support Email"
+              rules={[{ type: 'email', message: 'Please enter valid email' }]}
               style={formItemStyle}
             >
-              <Switch />
-            </Form.Item>
-
-            <Form.Item
-              name="notificationVibration"
-              label="Enable Notification Vibration"
-              valuePropName="checked"
-              style={formItemStyle}
-            >
-              <Switch />
+              <Input placeholder="support@australianengineering.com.au" style={inputStyle} />
             </Form.Item>
 
             <div style={{ textAlign: 'right', marginTop: '24px' }}>
@@ -1731,199 +2146,522 @@ export default function AdminSettingsPage() {
       )
     },
     {
-      key: 'theme',
+      key: 'pages',
       label: (
         <span>
-          <PictureOutlined />
-          Theme & Appearance
+          <FileTextOutlined style={{ marginRight: '8px' }} />
+          Page Settings
         </span>
       ),
       children: (
-        <Row gutter={[24, 24]}>
-          <Col xs={24} lg={16}>
-            <Card title="Color Scheme" className="settings-card">
-              <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12}>
+        <Card title="Page-Specific Settings" style={cardStyle}>
+          <Tabs
+            type="card"
+            items={[
+              {
+                key: 'home',
+                label: 'Home Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
                   <Form.Item
-                    label="Primary Color"
-                    name={['appearance', 'primaryColor']}
-                    rules={[{ required: true, message: 'Please select primary color' }]}
-                  >
-                    <ColorPicker
-                      showText
-                      format="hex"
-                      defaultValue="#000000"
-                      presets={[
-                        {
-                          label: 'Black & White',
-                          colors: ['#000000', '#ffffff', '#333333', '#666666', '#999999']
-                        },
-                        {
-                          label: 'Blue Theme',
-                          colors: ['#1677ff', '#4096ff', '#69b1ff', '#91caff', '#bae0ff']
-                        },
-                        {
-                          label: 'Green Theme',
-                          colors: ['#52c41a', '#73d13d', '#95de64', '#b7eb8f', '#d9f7be']
-                        },
-                        {
-                          label: 'Purple Theme',
-                          colors: ['#722ed1', '#9254de', '#b37feb', '#d3adf7', '#efdbff']
-                        }
-                      ]}
-                    />
+                          name={['pages', 'home', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Home - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'home', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'home', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Home page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'home', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="home, engineering, solutions" style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'home', 'customCSS']}
+                      label="Custom CSS"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={4} placeholder="/* Custom CSS for home page */" style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'home', 'customJS']}
+                      label="Custom JavaScript"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={4} placeholder="// Custom JS for home page" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'about',
+                label: 'About Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'about', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="About Us - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'about', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'about', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="About page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'about', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="about, company, team" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'services',
+                label: 'Services Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'services', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Services - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'services', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'services', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Services page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'services', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="services, engineering, modifications" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'contact',
+                label: 'Contact Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'contact', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Contact Us - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'contact', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'contact', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Contact page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'contact', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="contact, location, phone" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'projects',
+                label: 'Projects Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'projects', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Projects - Australian Engineering Solutions" style={inputStyle} />
                   </Form.Item>
                 </Col>
-                <Col xs={24} sm={12}>
+                      <Col xs={24} md={12}>
                   <Form.Item
-                    label="Secondary Color"
-                    name={['appearance', 'secondaryColor']}
-                  >
-                    <ColorPicker
-                      showText
-                      format="hex"
-                      defaultValue="#ffffff"
-                    />
+                          name={['pages', 'projects', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
                   </Form.Item>
                 </Col>
-                <Col xs={24} sm={12}>
+                    </Row>
                   <Form.Item
-                    label="Text Color"
-                    name={['appearance', 'textColor']}
-                  >
-                    <ColorPicker
-                      showText
-                      format="hex"
-                      defaultValue="#000000"
-                    />
+                      name={['pages', 'projects', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Projects page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'projects', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="projects, portfolio, work" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'caseStudies',
+                label: 'Case Studies Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'caseStudies', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Case Studies - Australian Engineering Solutions" style={inputStyle} />
                   </Form.Item>
                 </Col>
-                <Col xs={24} sm={12}>
+                      <Col xs={24} md={12}>
                   <Form.Item
-                    label="Background Color"
-                    name={['appearance', 'backgroundColor']}
-                  >
-                    <ColorPicker
-                      showText
-                      format="hex"
-                      defaultValue="#ffffff"
-                    />
+                          name={['pages', 'caseStudies', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
                   </Form.Item>
                 </Col>
               </Row>
-              
-              <Divider />
-              
-              <Title level={4}>Theme Presets</Title>
-              <Row gutter={[16, 16]}>
-                <Col xs={24} sm={8}>
-                  <Card 
-                    hoverable 
-                    className="theme-preset-card"
-                    onClick={() => setThemePreset('black-white')}
-                  >
-                    <div className="theme-preview black-white-theme">
-                      <div className="preview-header"></div>
-                      <div className="preview-content">
-                        <div className="preview-button"></div>
-                        <div className="preview-text"></div>
-                      </div>
-                    </div>
-                    <div className="theme-info">
-                      <Text strong>Black & White</Text>
-                      <Text type="secondary">Classic monochrome theme</Text>
-                    </div>
-                  </Card>
+                    <Form.Item
+                      name={['pages', 'caseStudies', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Case studies page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'caseStudies', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="case studies, examples, success stories" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'team',
+                label: 'Team Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'team', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Our Team - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
                 </Col>
-                <Col xs={24} sm={8}>
-                  <Card 
-                    hoverable 
-                    className="theme-preset-card"
-                    onClick={() => setThemePreset('blue')}
-                  >
-                    <div className="theme-preview blue-theme">
-                      <div className="preview-header"></div>
-                      <div className="preview-content">
-                        <div className="preview-button"></div>
-                        <div className="preview-text"></div>
-                      </div>
-                    </div>
-                    <div className="theme-info">
-                      <Text strong>Blue Theme</Text>
-                      <Text type="secondary">Professional blue theme</Text>
-                    </div>
-                  </Card>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'team', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
                 </Col>
-                <Col xs={24} sm={8}>
-                  <Card 
-                    hoverable 
-                    className="theme-preset-card"
-                    onClick={() => setThemePreset('green')}
-                  >
-                    <div className="theme-preview green-theme">
-                      <div className="preview-header"></div>
-                      <div className="preview-content">
-                        <div className="preview-button"></div>
-                        <div className="preview-text"></div>
-                      </div>
-                    </div>
-                    <div className="theme-info">
-                      <Text strong>Green Theme</Text>
-                      <Text type="secondary">Nature-inspired theme</Text>
-                    </div>
-                  </Card>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'team', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Team page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'team', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="team, staff, employees" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'inspiration',
+                label: 'Inspiration Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'inspiration', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Inspiration Gallery - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'inspiration', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
                 </Col>
               </Row>
-            </Card>
+                    <Form.Item
+                      name={['pages', 'inspiration', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Inspiration gallery page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'inspiration', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="inspiration, gallery, ideas" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'blog',
+                label: 'Blog Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'blog', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Blog - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
           </Col>
-          
-          <Col xs={24} lg={8}>
-            <Card title="Live Preview" className="settings-card">
-              <div className="theme-preview-container">
-                <div className="preview-header">
-                  <Text strong>Website Preview</Text>
-                </div>
-                <div className="preview-content">
-                  <div className="preview-hero">
-                    <div className="preview-title"></div>
-                    <div className="preview-subtitle"></div>
-                    <div className="preview-buttons">
-                      <div className="preview-button primary"></div>
-                      <div className="preview-button secondary"></div>
-                    </div>
-                  </div>
-                  <div className="preview-section">
-                    <div className="preview-card"></div>
-                    <div className="preview-card"></div>
-                    <div className="preview-card"></div>
-                  </div>
-                </div>
-              </div>
-              
-              <Divider />
-              
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Button 
-                  type="primary" 
-                  icon={<EyeOutlined />}
-                  onClick={previewTheme}
-                  block
-                >
-                  Preview Theme
-                </Button>
-                <Button 
-                  icon={<ReloadOutlined />}
-                  onClick={resetTheme}
-                  block
-                >
-                  Reset to Default
-                </Button>
-              </Space>
-            </Card>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'blog', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'blog', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Blog page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'blog', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="blog, articles, news" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'privacy',
+                label: 'Privacy Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'privacy', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Privacy Policy - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'privacy', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
           </Col>
         </Row>
+                    <Form.Item
+                      name={['pages', 'privacy', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Privacy policy page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'privacy', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="privacy, policy, legal" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              },
+              {
+                key: 'terms',
+                label: 'Terms Page',
+                children: (
+                  <Form layout="vertical">
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'terms', 'title']}
+                          label="Page Title"
+                          style={formItemStyle}
+                        >
+                          <Input placeholder="Terms of Service - Australian Engineering Solutions" style={inputStyle} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          name={['pages', 'terms', 'isActive']}
+                          label="Page Active"
+                          valuePropName="checked"
+                          style={formItemStyle}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Form.Item
+                      name={['pages', 'terms', 'description']}
+                      label="Meta Description"
+                      style={formItemStyle}
+                    >
+                      <TextArea rows={3} placeholder="Terms of service page meta description..." style={inputStyle} />
+                    </Form.Item>
+                    <Form.Item
+                      name={['pages', 'terms', 'keywords']}
+                      label="Meta Keywords"
+                      style={formItemStyle}
+                    >
+                      <Input placeholder="terms, service, legal" style={inputStyle} />
+                    </Form.Item>
+                  </Form>
+                )
+              }
+            ]}
+          />
+          <div style={{ textAlign: 'right', marginTop: '24px' }}>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading} 
+              icon={<SaveOutlined />}
+              style={primaryButtonStyle}
+            >
+              Save Page Settings
+            </Button>
+          </div>
+        </Card>
       )
-    }
+    },
+
   ];
 
   return (

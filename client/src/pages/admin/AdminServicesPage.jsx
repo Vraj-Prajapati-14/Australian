@@ -25,7 +25,7 @@ import {
   Tooltip,
   Image
 } from 'antd';
-import ImageUpload from '../../components/ImageUpload';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
 import GalleryUpload from '../../components/GalleryUpload';
 import { 
   PlusOutlined, 
@@ -38,7 +38,8 @@ import {
   SearchOutlined,
   FilterOutlined,
   ReloadOutlined,
-  PlusCircleOutlined
+  PlusCircleOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -53,6 +54,10 @@ export default function AdminServicesPage() {
   const [editingService, setEditingService] = useState(null);
   const [selectedMainService, setSelectedMainService] = useState(null);
   const [activeTab, setActiveTab] = useState('main');
+  const [uploadedHeroImage, setUploadedHeroImage] = useState(null);
+  const [uploadedGallery, setUploadedGallery] = useState([]);
+  const [uploadedSubHeroImage, setUploadedSubHeroImage] = useState(null);
+  const [uploadedSubGallery, setUploadedSubGallery] = useState([]);
   const [form] = Form.useForm();
   const [subServiceForm] = Form.useForm();
   const queryClient = useQueryClient();
@@ -75,6 +80,8 @@ export default function AdminServicesPage() {
       queryClient.invalidateQueries(['services']);
       message.success('Service created successfully');
       setIsModalVisible(false);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -89,6 +96,8 @@ export default function AdminServicesPage() {
       message.success('Service updated successfully');
       setIsModalVisible(false);
       setEditingService(null);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -113,6 +122,8 @@ export default function AdminServicesPage() {
       queryClient.invalidateQueries(['services']);
       message.success('Sub-service created successfully');
       setIsSubServiceModalVisible(false);
+      setUploadedSubHeroImage(null);
+      setUploadedSubGallery([]);
       subServiceForm.resetFields();
     },
     onError: (error) => {
@@ -129,6 +140,8 @@ export default function AdminServicesPage() {
   // Modal handlers
   const showModal = (service = null) => {
     setEditingService(service);
+    setUploadedHeroImage(service?.heroImage || null);
+    setUploadedGallery(service?.gallery || []);
     if (service) {
       form.setFieldsValue({
         ...service,
@@ -142,6 +155,8 @@ export default function AdminServicesPage() {
 
   const showSubServiceModal = (mainService) => {
     setSelectedMainService(mainService);
+    setUploadedSubHeroImage(null);
+    setUploadedSubGallery([]);
     subServiceForm.resetFields();
     setIsSubServiceModalVisible(true);
   };
@@ -149,12 +164,16 @@ export default function AdminServicesPage() {
   const handleCancel = () => {
     setIsModalVisible(false);
     setEditingService(null);
+    setUploadedHeroImage(null);
+    setUploadedGallery([]);
     form.resetFields();
   };
 
   const handleSubServiceCancel = () => {
     setIsSubServiceModalVisible(false);
     setSelectedMainService(null);
+    setUploadedSubHeroImage(null);
+    setUploadedSubGallery([]);
     subServiceForm.resetFields();
   };
 
@@ -165,10 +184,21 @@ export default function AdminServicesPage() {
   };
 
   const handleSubmit = (values) => {
+    // Handle image data
+    const heroImageData = uploadedHeroImage || editingService?.heroImage || values.heroImage;
+    const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingService?.gallery || values.gallery || [];
+
+    // Prepare the data object with proper image structure
+    const formData = {
+      ...values,
+      heroImage: heroImageData,
+      gallery: galleryData
+    };
+
     if (editingService) {
-      updateServiceMutation.mutate({ id: editingService._id, data: values });
+      updateServiceMutation.mutate({ id: editingService._id, data: formData });
     } else {
-      createServiceMutation.mutate(values);
+      createServiceMutation.mutate(formData);
     }
   };
 
@@ -179,11 +209,17 @@ export default function AdminServicesPage() {
       slug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
     
+    // Handle image data for sub-service
+    const heroImageData = uploadedSubHeroImage || values.heroImage;
+    const galleryData = uploadedSubGallery.length > 0 ? uploadedSubGallery : values.gallery || [];
+    
     const subServiceData = {
       ...values,
       slug: slug,
       isMainService: false,
-      parentService: selectedMainService._id
+      parentService: selectedMainService._id,
+      heroImage: heroImageData,
+      gallery: galleryData
     };
     console.log('Submitting sub-service data:', subServiceData);
     createSubServiceMutation.mutate(subServiceData);
@@ -411,10 +447,52 @@ export default function AdminServicesPage() {
       title: 'Featured',
       dataIndex: 'isFeatured',
       key: 'isFeatured',
-      render: (featured) => (
-        <Tag color={featured ? 'gold' : 'default'} style={statusTagStyle}>
-          {featured ? 'Yes' : 'No'}
+      render: (isFeatured) => (
+        <Tag color={isFeatured ? 'gold' : 'default'}>
+          {isFeatured ? 'Featured' : 'Regular'}
         </Tag>
+      )
+    },
+    {
+      title: 'Gallery',
+      key: 'gallery',
+      render: (_, record) => (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {record.gallery && record.gallery.length > 0 ? (
+            record.gallery.slice(0, 3).map((image, index) => (
+              <div key={index} style={{ position: 'relative' }}>
+                <Image
+                  src={image.url}
+                  alt={image.alt || `Gallery ${index + 1}`}
+                  width={40}
+                  height={30}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                />
+                {index === 2 && record.gallery.length > 3 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    borderRadius: 4
+                  }}>
+                    +{record.gallery.length - 3}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
+          )}
+        </div>
       )
     },
     {
@@ -527,6 +605,48 @@ export default function AdminServicesPage() {
         <Tag color={featured ? 'gold' : 'default'} style={statusTagStyle}>
           {featured ? 'Yes' : 'No'}
         </Tag>
+      )
+    },
+    {
+      title: 'Gallery',
+      key: 'gallery',
+      render: (_, record) => (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {record.gallery && record.gallery.length > 0 ? (
+            record.gallery.slice(0, 3).map((image, index) => (
+              <div key={index} style={{ position: 'relative' }}>
+                <Image
+                  src={image.url}
+                  alt={image.alt || `Gallery ${index + 1}`}
+                  width={40}
+                  height={30}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                />
+                {index === 2 && record.gallery.length > 3 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    borderRadius: 4
+                  }}>
+                    +{record.gallery.length - 3}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
+          )}
+        </div>
       )
     },
     {
@@ -828,11 +948,15 @@ export default function AdminServicesPage() {
             label="Hero Image"
             style={formItemStyle}
           >
-            <ImageUpload 
+            <SimpleImageUpload 
+              value={uploadedHeroImage}
+              onChange={(image) => {
+                setUploadedHeroImage(image);
+                form.setFieldsValue({ heroImage: image });
+              }}
               folder="services/hero"
               maxSize={5}
-              aspectRatio="16:9"
-              style={{ marginBottom: 16 }}
+              required={true}
             />
           </Form.Item>
 
@@ -842,10 +966,14 @@ export default function AdminServicesPage() {
             style={formItemStyle}
           >
             <GalleryUpload 
+              value={uploadedGallery}
+              onChange={(gallery) => {
+                setUploadedGallery(gallery);
+                form.setFieldsValue({ gallery: gallery });
+              }}
               folder="services/gallery"
               maxSize={5}
               maxCount={10}
-              style={{ marginBottom: 16 }}
             />
           </Form.Item>
 
@@ -998,11 +1126,15 @@ export default function AdminServicesPage() {
             label="Hero Image"
             style={formItemStyle}
           >
-            <ImageUpload 
+            <SimpleImageUpload 
+              value={uploadedSubHeroImage}
+              onChange={(image) => {
+                setUploadedSubHeroImage(image);
+                subServiceForm.setFieldsValue({ heroImage: image });
+              }}
               folder="services/sub-hero"
               maxSize={5}
-              aspectRatio="16:9"
-              style={{ marginBottom: 16 }}
+              required={true}
             />
           </Form.Item>
 
@@ -1012,10 +1144,14 @@ export default function AdminServicesPage() {
             style={formItemStyle}
           >
             <GalleryUpload 
+              value={uploadedSubGallery}
+              onChange={(gallery) => {
+                setUploadedSubGallery(gallery);
+                subServiceForm.setFieldsValue({ gallery: gallery });
+              }}
               folder="services/sub-gallery"
               maxSize={5}
               maxCount={8}
-              style={{ marginBottom: 16 }}
             />
           </Form.Item>
 

@@ -51,8 +51,6 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 export default function AdminContactsPage() {
-  console.log('AdminContactsPage component loaded'); // Debug log
-  
   const [selectedContact, setSelectedContact] = useState(null);
   const [replyModalVisible, setReplyModalVisible] = useState(false);
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);

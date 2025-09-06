@@ -1,248 +1,248 @@
-import { Row, Col, Card, Button, Typography, Space, Divider, Image, Tag } from 'antd';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import Hero from '../components/Hero';
-import Section from '../components/Section';
-import { ContainerOutlined, ToolOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
+import { Container, Section, Button, Card, Badge } from '../components/ui';
 
-const { Title, Paragraph, Text } = Typography;
-
-export default function TrailerPage() {
+const TrailerPage = () => {
   const { data: services } = useQuery({ queryKey: ['services'], queryFn: async () => (await api.get('/services')).data })
 
   const trailerServices = services?.filter(s => s.category?.includes('trailer')) || []
 
+  const trailerTypes = [
+    {
+      name: 'Service Body Trailers',
+      description: 'Professional-grade trailers with integrated storage and workspace solutions. Perfect for mobile service operations.',
+      icon: '🚛',
+      color: 'primary'
+    },
+    {
+      name: 'Trailer Packs',
+      description: 'Complete trailer solutions with pre-configured storage and equipment. Ready to work straight from delivery.',
+      icon: '📦',
+      color: 'success'
+    },
+    {
+      name: 'All-Rounder Packs',
+      description: 'Versatile trailer configurations that adapt to multiple applications. The perfect solution for diverse operational needs.',
+      icon: '🔄',
+      color: 'warning'
+    }
+  ];
+
+  const features = [
+    {
+      title: 'Heavy-Duty Construction',
+      description: 'Built to withstand the toughest conditions. Our trailer service bodies are constructed using premium materials and proven engineering principles.',
+      icon: '🏗️'
+    },
+    {
+      title: 'Modular Design',
+      description: 'Customize your trailer with our modular system. Add or remove components as your needs change over time.',
+      icon: '🧩'
+    },
+    {
+      title: 'Integrated Storage',
+      description: 'Every inch of space is optimized for efficiency. Custom drawers, shelves, and compartments keep everything organized and accessible.',
+      icon: '🗄️'
+    },
+    {
+      title: 'Easy Towing',
+      description: 'Designed for optimal weight distribution and towing stability. Get to your destination safely and efficiently.',
+      icon: '🚗'
+    }
+  ];
+
+  const industryApplications = [
+    {
+      name: 'Construction',
+      description: 'Mobile workshops and tool storage for construction sites. Keep your team equipped and productive.',
+      badges: ['Tools', 'Equipment']
+    },
+    {
+      name: 'Maintenance',
+      description: 'Service trailers for maintenance operations. Complete mobile workshops with all necessary equipment.',
+      badges: ['Workshop', 'Service']
+    },
+    {
+      name: 'Emergency Response',
+      description: 'Rapid response trailers for emergency services. Quick deployment with essential equipment and supplies.',
+      badges: ['Emergency', 'Response']
+    }
+  ];
+
   return (
-    <div>
-      <Hero
-        title="Trailer Service Bodies & Canopies"
-        subtitle="Versatile, customizable solutions for any industry. Built for performance and reliability."
-        ctaText="Get Quote"
-        ctaLink="/contact"
-        showSubtitle={true}
-      />
+    <>
+      <Helmet>
+        <title>Trailer Service Bodies & Canopies - Australian Equipment Solutions</title>
+        <meta name="description" content="Versatile, customizable solutions for any industry. Built for performance and reliability." />
+      </Helmet>
+
+      {/* Hero Section */}
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Trailer Service Bodies & Canopies
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Versatile, customizable solutions for any industry. Built for performance and reliability.
+            </p>
+            <Button variant="secondary" size="lg" as={Link} to="/contact">
+              Get Quote
+            </Button>
+          </div>
+        </Container>
+      </Section>
 
       {/* Trailer Types */}
-      <Section title="Trailer Service Body Types" subtitle="Choose the perfect solution for your needs">
-        <Row gutter={[24, 24]}>
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <ContainerOutlined />
-                </div>
-              }
-            >
-              <Title level={3}>Service Body Trailers</Title>
-              <Paragraph>
-                Professional-grade trailers with integrated storage and workspace solutions. Perfect for mobile service operations.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Trailer Service Body Types"
+            subtitle="Choose the perfect solution for your needs"
+            align="center"
+            className="mb-12"
+          />
           
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <CheckCircleOutlined />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {trailerTypes.map((type, index) => (
+              <Card key={index} variant="elevated" hover className="text-center">
+                <div className={`h-48 bg-gradient-to-br from-${type.color}-500 to-${type.color}-700 flex items-center justify-center text-white text-6xl`}>
+                  {type.icon}
                 </div>
-              }
-            >
-              <Title level={3}>Trailer Packs</Title>
-              <Paragraph>
-                Complete trailer solutions with pre-configured storage and equipment. Ready to work straight from delivery.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
-          
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <ToolOutlined />
-                </div>
-              }
-            >
-              <Title level={3}>All-Rounder Packs</Title>
-              <Paragraph>
-                Versatile trailer configurations that adapt to multiple applications. The perfect solution for diverse operational needs.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
-        </Row>
+                <Card.Body>
+                  <Card.Title className="text-xl mb-3">{type.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {type.description}
+                  </Card.Text>
+                  <Button variant="primary" size="lg">
+                    Learn More
+                  </Button>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Key Features */}
-      <Section title="Why Choose HIDRIVE Trailer Solutions" subtitle="Engineered for versatility and durability">
-        <Row gutter={[32, 32]} style={{ marginTop: 48 }}>
-          <Col xs={24} md={12}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Heavy-Duty Construction
-                </Title>
-                <Paragraph>
-                  Built to withstand the toughest conditions. Our trailer service bodies are constructed using premium materials and proven engineering principles.
-                </Paragraph>
-              </div>
-              
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Modular Design
-                </Title>
-                <Paragraph>
-                  Customize your trailer with our modular system. Add or remove components as your needs change over time.
-                </Paragraph>
-              </div>
-            </Space>
-          </Col>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Why Choose HIDRIVE Trailer Solutions"
+            subtitle="Engineered for versatility and durability"
+            align="center"
+            className="mb-12"
+          />
           
-          <Col xs={24} md={12}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Integrated Storage
-                </Title>
-                <Paragraph>
-                  Every inch of space is optimized for efficiency. Custom drawers, shelves, and compartments keep everything organized and accessible.
-                </Paragraph>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <div className="text-3xl">{feature.icon}</div>
+                <div>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
+                    {feature.title}
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-              
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Easy Towing
-                </Title>
-                <Paragraph>
-                  Designed for optimal weight distribution and towing stability. Get to your destination safely and efficiently.
-                </Paragraph>
-              </div>
-            </Space>
-          </Col>
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Trailer Services */}
-      <Section title="Trailer Service Solutions" subtitle="Professional solutions for every industry">
-        <Row gutter={[16, 16]}>
-          {trailerServices.slice(0, 6).map((service) => (
-            <Col key={service._id} xs={24} sm={12} md={8}>
-              <Card 
-                hoverable
-                cover={
-                  <div style={{ 
-                    height: 200, 
-                    background: '#f0f0f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 48,
-                    color: '#666'
-                  }}>
-                    <ContainerOutlined />
-                  </div>
-                }
-              >
-                <Title level={4}>{service.name}</Title>
-                <Paragraph>{service.description}</Paragraph>
-                <Button type="primary" href={`/services/${service.slug}`}>
-                  View Details
-                </Button>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Trailer Service Solutions"
+            subtitle="Professional solutions for every industry"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {trailerServices.slice(0, 6).map((service) => (
+              <Card key={service._id} variant="elevated" hover>
+                <div className="h-48 bg-gray-100 flex items-center justify-center text-4xl text-gray-600">
+                  🚛
+                </div>
+                <Card.Body>
+                  <Card.Title className="text-lg mb-3">{service.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {service.description}
+                  </Card.Text>
+                  <Button variant="primary" as={Link} to={`/services/${service.slug}`}>
+                    View Details
+                  </Button>
+                </Card.Body>
               </Card>
-            </Col>
-          ))}
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Applications */}
-      <Section title="Industry Applications" subtitle="Trailer solutions for every sector">
-        <Row gutter={[24, 24]} style={{ background: '#f5f5f5', padding: '48px 24px', borderRadius: 12 }}>
-          <Col xs={24} md={8}>
-            <Title level={4}>Construction</Title>
-            <Paragraph>
-              Mobile workshops and tool storage for construction sites. Keep your team equipped and productive.
-            </Paragraph>
-            <Tag color="blue">Tools</Tag>
-            <Tag color="green">Equipment</Tag>
-          </Col>
-          <Col xs={24} md={8}>
-            <Title level={4}>Maintenance</Title>
-            <Paragraph>
-              Service trailers for maintenance operations. Complete mobile workshops with all necessary equipment.
-            </Paragraph>
-            <Tag color="orange">Workshop</Tag>
-            <Tag color="purple">Service</Tag>
-          </Col>
-          <Col xs={24} md={8}>
-            <Title level={4}>Emergency Response</Title>
-            <Paragraph>
-              Rapid response trailers for emergency services. Quick deployment with essential equipment and supplies.
-            </Paragraph>
-            <Tag color="red">Emergency</Tag>
-            <Tag color="cyan">Response</Tag>
-          </Col>
-        </Row>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Industry Applications"
+            subtitle="Trailer solutions for every sector"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="bg-white rounded-lg p-8 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {industryApplications.map((application, index) => (
+                <div key={index}>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
+                    {application.name}
+                  </h4>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {application.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {application.badges.map(badge => (
+                      <Badge key={badge} variant="primary" size="sm">
+                        {badge}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Container>
       </Section>
 
       {/* CTA Section */}
-      <Section title="" subtitle="">
-        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <Title level={2}>Ready for Your Perfect Trailer Solution?</Title>
-          <Paragraph style={{ fontSize: 18, marginBottom: 32 }}>
-            Get a custom quote for your trailer service body or canopy.
-          </Paragraph>
-          <Space size="large">
-            <Button type="primary" size="large" href="/contact">
-              Get Quote
-            </Button>
-            <Button size="large" href="/inspiration">
-              View Inspiration Gallery
-            </Button>
-          </Space>
-        </div>
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready for Your Perfect Trailer Solution?
+            </h2>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Get a custom quote for your trailer service body or canopy.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="secondary" size="lg" as={Link} to="/contact">
+                Get Quote
+              </Button>
+              <Button variant="outline" size="lg" as={Link} to="/inspiration">
+                View Inspiration Gallery
+              </Button>
+            </div>
+          </div>
+        </Container>
       </Section>
-    </div>
-  )
-} 
+    </>
+  );
+};
+
+export default TrailerPage; 

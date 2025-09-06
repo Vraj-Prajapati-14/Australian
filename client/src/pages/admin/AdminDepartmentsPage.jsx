@@ -34,9 +34,27 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
+// Helper function to calculate contrast color (black or white) based on background color
+const getContrastColor = (hexColor) => {
+  // Remove the # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Return black for light backgrounds, white for dark backgrounds
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+};
+
 export default function AdminDepartmentsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
+  const [currentColor, setCurrentColor] = useState('#1677ff');
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -113,21 +131,34 @@ export default function AdminDepartmentsPage() {
 
   const handleAddDepartment = () => {
     setEditingDepartment(null);
+    setCurrentColor('#1677ff');
     form.resetFields();
     form.setFieldsValue({ 
       status: 'active',
-      order: 0
+      order: 0,
+      color: '#1677ff'
     });
     setModalVisible(true);
   };
 
   const handleEditDepartment = (department) => {
     setEditingDepartment(department);
-    form.setFieldsValue({
-      ...department,
-      parent: department.parent?._id
-    });
+    const departmentColor = department.color || '#1677ff';
+    setCurrentColor(departmentColor);
     setModalVisible(true);
+    
+    // Small delay to ensure form is ready
+    setTimeout(() => {
+      // Pre-fill form fields with only the fields that exist in the database
+      const formValues = {
+        name: department.name,
+        description: department.description,
+        order: department.order || 0,
+        status: department.status || 'active',
+        color: departmentColor
+      };
+      form.setFieldsValue(formValues);
+    }, 100);
   };
 
   const handleDeleteDepartment = async (departmentId) => {
@@ -156,8 +187,6 @@ export default function AdminDepartmentsPage() {
         message.error('Please log in to continue');
         return;
       }
-
-      console.log('Submitting department data:', values);
       
       if (editingDepartment) {
         await updateDepartmentMutation.mutateAsync({ id: editingDepartment._id, data: values });
@@ -184,20 +213,19 @@ export default function AdminDepartmentsPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold'
+              color: getContrastColor(record.color || '#1677ff'),
+              fontWeight: 'bold',
+              fontSize: '16px',
+              border: '2px solid #f0f0f0'
             }}
           >
             {record.name.charAt(0).toUpperCase()}
           </div>
           <div>
             <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.name}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>{record.shortDescription}</div>
-            {record.parent && (
-              <div style={{ fontSize: 11, color: '#999' }}>
-                Parent: {record.parent.name}
-              </div>
-            )}
+            <div style={{ fontSize: 12, color: '#666' }}>
+              {record.description ? record.description.substring(0, 50) + (record.description.length > 50 ? '...' : '') : 'No description'}
+            </div>
           </div>
         </div>
       )
@@ -220,12 +248,24 @@ export default function AdminDepartmentsPage() {
       render: (order) => <Tag color="blue">{order}</Tag>
     },
     {
-      title: 'Team Size',
-      key: 'teamSize',
-      render: (_, record) => (
-        <Tag color="green" icon={<TeamOutlined />}>
-          {record.teamSize || 0} members
-        </Tag>
+      title: 'Color',
+      dataIndex: 'color',
+      key: 'color',
+      render: (color) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div 
+            style={{ 
+              width: '20px', 
+              height: '20px', 
+              borderRadius: '4px', 
+              backgroundColor: color || '#1677ff',
+              border: '1px solid #d9d9d9'
+            }}
+          />
+          <Text style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+            {color || '#1677ff'}
+          </Text>
+        </div>
       )
     },
     {
@@ -326,60 +366,25 @@ export default function AdminDepartmentsPage() {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="slug"
-                label="Slug"
-                rules={[{ required: true, message: 'Please enter slug' }]}
+                name="order"
+                label="Display Order"
+                initialValue={0}
               >
-                <Input placeholder="e.g., installation-team" />
+                <InputNumber min={0} placeholder="0" style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           </Row>
           
           <Form.Item
-            name="shortDescription"
-            label="Short Description"
-            rules={[{ required: true, message: 'Please enter short description' }]}
-          >
-            <Input placeholder="Brief description of the department" />
-          </Form.Item>
-          
-          <Form.Item
             name="description"
-            label="Full Description"
+            label="Description"
+            rules={[{ required: true, message: 'Please enter description' }]}
           >
             <TextArea 
               rows={4} 
               placeholder="Detailed description of the department's responsibilities and functions"
             />
           </Form.Item>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="parent"
-                label="Parent Department"
-              >
-                <Select placeholder="Select parent department (optional)">
-                  {departments
-                    .filter(dept => dept._id !== editingDepartment?._id)
-                    .map(dept => (
-                      <Option key={dept._id} value={dept._id}>
-                        {dept.name}
-                      </Option>
-                    ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="order"
-                label="Display Order"
-                initialValue={0}
-              >
-                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
           
           <Row gutter={16}>
             <Col span={12}>
@@ -400,31 +405,60 @@ export default function AdminDepartmentsPage() {
                 label="Department Color"
                 initialValue="#1677ff"
               >
-                <Input type="color" style={{ width: '100%', height: '40px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Input 
+                    type="color" 
+                    value={currentColor}
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      setCurrentColor(color);
+                      form.setFieldValue('color', color);
+                    }}
+                    style={{ 
+                      width: '60px', 
+                      height: '40px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }} 
+                  />
+                  <Input 
+                    value={currentColor}
+                    placeholder="#1677ff"
+                    style={{ flex: 1 }}
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      setCurrentColor(color);
+                      if (color.match(/^#[0-9A-F]{6}$/i)) {
+                        form.setFieldValue('color', color);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const color = e.target.value;
+                      if (color && !color.startsWith('#')) {
+                        const newColor = `#${color}`;
+                        setCurrentColor(newColor);
+                        form.setFieldValue('color', newColor);
+                      }
+                    }}
+                  />
+                </div>
+                <div style={{ 
+                  marginTop: '8px', 
+                  padding: '8px', 
+                  borderRadius: '4px', 
+                  border: '1px solid #d9d9d9',
+                  backgroundColor: currentColor,
+                  color: getContrastColor(currentColor),
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  fontWeight: 'bold'
+                }}>
+                  Preview: {currentColor}
+                </div>
               </Form.Item>
             </Col>
           </Row>
-          
-          <Form.Item
-            name="responsibilities"
-            label="Responsibilities"
-          >
-            <Select
-              mode="tags"
-              placeholder="Add department responsibilities"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-          
-          <Form.Item
-            name="contactInfo"
-            label="Contact Information"
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="Department contact information, office location, etc."
-            />
-          </Form.Item>
           
           <div style={{ textAlign: 'right', marginTop: 24 }}>
             <Space>

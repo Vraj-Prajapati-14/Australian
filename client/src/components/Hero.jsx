@@ -80,7 +80,7 @@ export default function Hero({
                 color: '#1677ff',
                 backdropFilter: 'blur(10px)'
               }}>
-                Ute canopies INSTALLED in 4 Weeks
+                Professional Vehicle Solutions
               </div>
               
               {/* Main Title */}
@@ -96,7 +96,7 @@ export default function Hero({
                   letterSpacing: '-0.02em'
                 }}
               >
-                {title}
+                {title || 'Australian Equipment Solutions'}
               </Title>
               
               {/* Subtitle */}
@@ -185,7 +185,7 @@ export default function Hero({
                   icon={<PhoneOutlined />}
                   style={{
                     height: 60,
-                    padding: '0 32px',
+                    padding: '0 40px',
                     fontSize: 18,
                     fontWeight: 600,
                     borderRadius: 12,
@@ -204,7 +204,7 @@ export default function Hero({
                     e.target.style.background = 'rgba(255,255,255,0.1)';
                   }}
                 >
-                  1300 368 161
+                  Call Now
                 </Button>
               </div>
               

@@ -1,9 +1,6 @@
 const router = require('express').Router();
 const { requireAdmin } = require('../middleware/auth');
-const { uploadMiddleware, uploadImage, deleteImage, testCloudinaryConfig } = require('../controllers/mediaController');
-
-// Test Cloudinary configuration
-router.get('/test', requireAdmin, testCloudinaryConfig);
+const { uploadMiddleware, uploadImage, deleteImage } = require('../controllers/mediaController');
 
 // Image upload endpoint
 router.post('/upload', requireAdmin, uploadMiddleware('image'), uploadImage);

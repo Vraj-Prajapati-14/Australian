@@ -39,7 +39,8 @@ export default function GalleryUpload({
         return false;
       }
       
-      return false; // Prevent default upload
+      // Return true to allow the upload to proceed
+      return true;
     },
     onChange: async (info) => {
       if (info.file.status === 'uploading') {
@@ -54,21 +55,16 @@ export default function GalleryUpload({
     customRequest: async ({ file, onSuccess, onError }) => {
       try {
         setUploading(true);
-        console.log('Starting gallery upload for file:', file.name, file.size);
         
         const formData = new FormData();
         formData.append('image', file);
         formData.append('folder', folder);
-        
-        console.log('Uploading to folder:', folder);
         
         const response = await api.post('/media/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-        
-        console.log('Gallery upload response:', response.data);
         
         // Check if upload was successful
         if (response.data.success === false) {
@@ -77,8 +73,6 @@ export default function GalleryUpload({
         
         const uploadedImage = response.data;
         const currentImages = value || [];
-        
-        console.log('Calling onChange with updated gallery:', [...currentImages, uploadedImage]);
         
         if (typeof onChange === 'function') {
           onChange([...currentImages, uploadedImage]);

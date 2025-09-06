@@ -1,246 +1,284 @@
 import React, { useState } from 'react';
-import {
-  Typography,
-  Card,
-  Form,
-  Input,
-  Rate,
-  Upload,
-  Button,
-  message,
-  Row,
-  Col,
-  Alert,
-  Spin
-} from 'antd';
-import {
-  UserOutlined,
-  UploadOutlined,
-  StarOutlined,
-  SendOutlined
-} from '@ant-design/icons';
+import { Helmet } from 'react-helmet-async';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Helmet } from 'react-helmet-async';
+import { Container, Section, Button, Card, Input, Alert } from '../components/ui';
 
-const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
-
-export default function TestimonialSubmitPage() {
-  const [form] = Form.useForm();
-  const [fileList, setFileList] = useState([]);
+const TestimonialSubmitPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    position: '',
+    company: '',
+    email: '',
+    phone: '',
+    rating: 5,
+    content: '',
+    avatar: null
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
 
   const submitMutation = useMutation({
     mutationFn: async (values) => {
-      const formData = new FormData();
+      const formDataToSend = new FormData();
       
       // Add form fields
       Object.keys(values).forEach(key => {
         if (values[key] !== undefined && values[key] !== null) {
-          if (key === 'avatar' && values[key]?.fileList?.[0]) {
-            formData.append('avatar', values[key].fileList[0].originFileObj);
+          if (key === 'avatar' && values[key]) {
+            formDataToSend.append('avatar', values[key]);
           } else if (key !== 'avatar') {
-            formData.append(key, values[key]);
+            formDataToSend.append(key, values[key]);
           }
         }
       });
 
-      const response = await api.post('/testimonials', formData, {
+      const response = await api.post('/testimonials', formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       return response.data;
     },
     onSuccess: () => {
-      message.success('Thank you! Your testimonial has been submitted successfully. It will be reviewed before being published.');
-      form.resetFields();
-      setFileList([]);
+      setSubmitStatus('success');
+      setFormData({
+        name: '',
+        position: '',
+        company: '',
+        email: '',
+        phone: '',
+        rating: 5,
+        content: '',
+        avatar: null
+      });
+      setErrors({});
     },
     onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to submit testimonial. Please try again.');
+      setSubmitStatus('error');
+      console.error('Form submission error:', error);
     }
   });
 
-  const handleSubmit = async (values) => {
-    try {
-      await submitMutation.mutateAsync(values);
-    } catch (error) {
-      console.error('Form submission error:', error);
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Please enter your full name';
+    }
+
+    if (!formData.position.trim()) {
+      newErrors.position = 'Please enter your job position';
+    }
+
+    if (!formData.company.trim()) {
+      newErrors.company = 'Please enter your company name';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Please enter your email address';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.content.trim()) {
+      newErrors.content = 'Please share your experience';
+    } else if (formData.content.length < 20) {
+      newErrors.content = 'Please provide at least 20 characters';
+    } else if (formData.content.length > 500) {
+      newErrors.content = 'Testimonial cannot exceed 500 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    if (validateForm()) {
+      try {
+        await submitMutation.mutateAsync(formData);
+      } catch (error) {
+        console.error('Form submission error:', error);
+      }
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
-  const uploadProps = {
-    name: 'avatar',
-    fileList,
-    beforeUpload: () => false,
-    onChange: ({ fileList: newFileList }) => {
-      setFileList(newFileList);
-    },
-    accept: 'image/*',
-    maxCount: 1
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, avatar: file }));
+    }
+  };
+
+  const renderStars = () => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map(star => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => handleInputChange('rating', star)}
+            className={`text-2xl ${star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
     <>
       <Helmet>
-        <title>Submit Your Testimonial - HIDRIVE</title>
-        <meta name="description" content="Share your experience with HIDRIVE. Submit your testimonial and help others discover our quality mobile workspace solutions." />
+        <title>Submit Your Testimonial - Australian Equipment Solutions</title>
+        <meta name="description" content="Share your experience with Australian Equipment Solutions. Submit your testimonial and help others discover our quality mobile workspace solutions." />
       </Helmet>
 
-      <div className="testimonial-submit-page">
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <Title level={1}>Share Your Experience</Title>
-            <Paragraph style={{ fontSize: '18px', color: '#666' }}>
-              We'd love to hear about your experience with HIDRIVE. Your feedback helps us improve and helps others discover our services.
-            </Paragraph>
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Share Your Experience
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              We'd love to hear about your experience with Australian Equipment Solutions. Your feedback helps us improve and helps others discover our services.
+            </p>
           </div>
+        </Container>
+      </Section>
 
-          <Row justify="center">
-            <Col xs={24} md={16} lg={12}>
-              <Card className="testimonial-form-card">
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onFinish={handleSubmit}
-                  initialValues={{
-                    rating: 5
-                  }}
-                >
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="name"
-                        label="Full Name"
-                        rules={[{ required: true, message: 'Please enter your full name' }]}
-                      >
-                        <Input 
-                          placeholder="Your full name" 
-                          prefix={<UserOutlined />}
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="position"
-                        label="Job Position"
-                        rules={[{ required: true, message: 'Please enter your job position' }]}
-                      >
-                        <Input 
-                          placeholder="e.g., Fleet Manager, CEO" 
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+      <Section padding="4xl">
+        <Container>
+          <div className="max-w-2xl mx-auto">
+            {submitStatus === 'success' && (
+              <Alert variant="success" className="mb-6">
+                Thank you! Your testimonial has been submitted successfully. It will be reviewed before being published.
+              </Alert>
+            )}
 
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="company"
-                        label="Company"
-                        rules={[{ required: true, message: 'Please enter your company name' }]}
-                      >
-                        <Input 
-                          placeholder="Your company name" 
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="email"
-                        label="Email Address"
-                        rules={[
-                          { required: true, message: 'Please enter your email address' },
-                          { type: 'email', message: 'Please enter a valid email address' }
-                        ]}
-                      >
-                        <Input 
-                          placeholder="your.email@company.com" 
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+            {submitStatus === 'error' && (
+              <Alert variant="error" className="mb-6">
+                Failed to submit testimonial. Please try again.
+              </Alert>
+            )}
 
-                  <Form.Item
-                    name="phone"
+            <Card variant="elevated">
+              <Card.Body>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Full Name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      error={errors.name}
+                      required
+                      placeholder="Your full name"
+                    />
+
+                    <Input
+                      label="Job Position"
+                      value={formData.position}
+                      onChange={(e) => handleInputChange('position', e.target.value)}
+                      error={errors.position}
+                      required
+                      placeholder="e.g., Fleet Manager, CEO"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Company"
+                      value={formData.company}
+                      onChange={(e) => handleInputChange('company', e.target.value)}
+                      error={errors.company}
+                      required
+                      placeholder="Your company name"
+                    />
+
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      error={errors.email}
+                      required
+                      placeholder="your.email@company.com"
+                    />
+                  </div>
+
+                  <Input
                     label="Phone Number (Optional)"
-                  >
-                    <Input 
-                      placeholder="Your phone number" 
-                      size="large"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="rating"
-                    label="Overall Rating"
-                    rules={[{ required: true, message: 'Please provide a rating' }]}
-                  >
-                    <Rate 
-                      style={{ fontSize: '24px' }}
-                      tooltips={['Poor', 'Fair', 'Good', 'Very Good', 'Excellent']}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="content"
-                    label="Your Testimonial"
-                    rules={[
-                      { required: true, message: 'Please share your experience' },
-                      { min: 20, message: 'Please provide at least 20 characters' },
-                      { max: 500, message: 'Testimonial cannot exceed 500 characters' }
-                    ]}
-                  >
-                    <TextArea
-                      rows={6}
-                      placeholder="Tell us about your experience with HIDRIVE. What services did you use? How did we help you? What would you say to others considering our services?"
-                      maxLength={500}
-                      showCount
-                      size="large"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="avatar"
-                    label="Profile Photo (Optional)"
-                  >
-                    <Upload {...uploadProps} listType="picture-card">
-                      <div>
-                        <UploadOutlined />
-                        <div style={{ marginTop: 8 }}>Upload Photo</div>
-                      </div>
-                    </Upload>
-                  </Form.Item>
-
-                  <Alert
-                    message="Privacy Notice"
-                    description="Your testimonial will be reviewed before publication. We may contact you to verify your submission. Your email address will not be published publicly."
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 24 }}
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="Your phone number"
                   />
 
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      size="large"
-                      icon={<SendOutlined />}
-                      loading={submitMutation.isPending}
-                      style={{ width: '100%', height: '48px' }}
-                    >
-                      Submit Testimonial
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Overall Rating <span className="text-red-500">*</span>
+                    </label>
+                    {renderStars()}
+                    {errors.rating && (
+                      <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
+                    )}
+                  </div>
+
+                  <Input.Textarea
+                    label="Your Testimonial"
+                    value={formData.content}
+                    onChange={(e) => handleInputChange('content', e.target.value)}
+                    error={errors.content}
+                    required
+                    rows={6}
+                    maxLength={500}
+                    placeholder="Tell us about your experience with Australian Equipment Solutions. What services did you use? How did we help you? What would you say to others considering our services?"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Profile Photo (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                    />
+                  </div>
+
+                  <Alert variant="info">
+                    <strong>Privacy Notice:</strong> Your testimonial will be reviewed before publication. We may contact you to verify your submission. Your email address will not be published publicly.
+                  </Alert>
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                  >
+                    Submit Testimonial
+                  </Button>
+                </form>
+              </Card.Body>
+            </Card>
+          </div>
+        </Container>
+      </Section>
     </>
   );
-} 
+};
+
+export default TestimonialSubmitPage; 

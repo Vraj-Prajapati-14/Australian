@@ -39,7 +39,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Helmet } from 'react-helmet-async';
-import './AdminTestimonialsPage.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -85,7 +84,6 @@ export default function AdminTestimonialsPage() {
           params.append('search', filters.search);
         }
         const response = await api.get(`/testimonials/admin?${params}`);
-        console.log('Testimonials API response:', response.data);
         return response.data; // This returns { success: true, data: [...], pagination: {...} }
       } catch (error) {
         console.error('Error fetching testimonials:', error);
@@ -99,7 +97,6 @@ export default function AdminTestimonialsPage() {
     queryKey: ['testimonialStats'],
     queryFn: async () => {
       const response = await api.get('/testimonials/admin/stats');
-      console.log('Stats API response:', response.data);
       return response.data;
     }
   });
@@ -107,7 +104,6 @@ export default function AdminTestimonialsPage() {
   // Create/Update mutation
   const testimonialMutation = useMutation({
     mutationFn: async (values) => {
-      console.log('Form values:', values);
       const formData = new FormData();
       
       Object.keys(values).forEach(key => {
@@ -120,22 +116,15 @@ export default function AdminTestimonialsPage() {
         }
       });
 
-      // Log FormData contents
-      for (let [key, value] of formData.entries()) {
-        console.log('FormData:', key, value);
-      }
-
       if (editingTestimonial) {
         const response = await api.put(`/testimonials/admin/${editingTestimonial._id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
       } else {
-        console.log('Creating new testimonial...');
         const response = await api.post('/testimonials/admin', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        console.log('Create response:', response.data);
         return response.data;
       }
     },

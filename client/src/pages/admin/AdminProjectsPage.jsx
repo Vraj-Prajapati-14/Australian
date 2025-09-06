@@ -34,7 +34,8 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
-import ImageUpload from '../../components/ImageUpload';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
+import GalleryUpload from '../../components/GalleryUpload';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
@@ -44,6 +45,8 @@ const { Option } = Select;
 export default function AdminProjectsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [uploadedHeroImage, setUploadedHeroImage] = useState(null);
+  const [uploadedGallery, setUploadedGallery] = useState([]);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -54,11 +57,6 @@ export default function AdminProjectsPage() {
     queryFn: async () => {
       try {
         const response = await api.get('/projects');
-        console.log('Projects API response:', response);
-        console.log('Projects data:', response.data);
-        console.log('Projects data type:', typeof response.data);
-        console.log('Projects data length:', response.data?.data?.length);
-        // The API returns { data: [...] }, so we need to access response.data.data
         return response.data?.data || [];
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -67,17 +65,16 @@ export default function AdminProjectsPage() {
     }
   });
 
-  // Fetch services for dropdown
+  // Fetch sub-services for dropdown (not main services)
   const { data: services = [], error: servicesError } = useQuery({ 
-    queryKey: ['services'], 
+    queryKey: ['sub-services'], 
     queryFn: async () => {
       try {
-        const response = await api.get('/services');
-        console.log('Services API response:', response);
-        // The API returns the data directly, so we access response.data
+        const response = await api.get('/services?type=sub&status=all');
+        console.log('Sub-services response:', response.data);
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching sub-services:', error);
         return [];
       }
     }
@@ -85,10 +82,11 @@ export default function AdminProjectsPage() {
 
   // Fetch departments for dropdown
   const { data: departments = [], error: departmentsError } = useQuery({ 
-    queryKey: ['departments'], 
+    queryKey: ['all-departments'], 
     queryFn: async () => {
       try {
         const response = await api.get('/departments');
+        console.log('Departments response:', response.data);
         return response.data || [];
       } catch (error) {
         console.error('Error fetching departments:', error);
@@ -104,6 +102,8 @@ export default function AdminProjectsPage() {
       queryClient.invalidateQueries(['projects']);
       message.success('Project created successfully');
       setModalVisible(false);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -126,6 +126,8 @@ export default function AdminProjectsPage() {
       message.success('Project updated successfully');
       setModalVisible(false);
       setEditingProject(null);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -160,6 +162,8 @@ export default function AdminProjectsPage() {
 
   const handleAddProject = () => {
     setEditingProject(null);
+    setUploadedHeroImage(null);
+    setUploadedGallery([]);
     form.resetFields();
     form.setFieldsValue({ 
       status: 'in-progress',
@@ -171,6 +175,8 @@ export default function AdminProjectsPage() {
 
   const handleEditProject = (project) => {
     setEditingProject(project);
+    setUploadedHeroImage(project.heroImage || null);
+    setUploadedGallery(project.gallery || []);
     form.setFieldsValue({
       ...project,
       service: project.service?._id,
@@ -220,12 +226,21 @@ export default function AdminProjectsPage() {
         values.completionDate = values.completionDate.toISOString();
       }
 
-      console.log('Submitting project data:', values);
+      // Handle image data
+      const heroImageData = uploadedHeroImage || editingProject?.heroImage || values.heroImage;
+      const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingProject?.gallery || values.gallery || [];
+
+      // Prepare the data object with proper image structure
+      const formData = {
+        ...values,
+        heroImage: heroImageData,
+        gallery: galleryData
+      };
       
       if (editingProject) {
-        await updateProjectMutation.mutateAsync({ id: editingProject._id, data: values });
+        await updateProjectMutation.mutateAsync({ id: editingProject._id, data: formData });
       } else {
-        await createProjectMutation.mutateAsync(values);
+        await createProjectMutation.mutateAsync(formData);
       }
     } catch (error) {
       console.error('Error saving project:', error);
@@ -323,6 +338,48 @@ export default function AdminProjectsPage() {
       )
     },
     {
+      title: 'Gallery',
+      key: 'gallery',
+      render: (_, record) => (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {record.gallery && record.gallery.length > 0 ? (
+            record.gallery.slice(0, 3).map((image, index) => (
+              <div key={index} style={{ position: 'relative' }}>
+                <AntdImage
+                  src={image.url}
+                  alt={image.alt || `Gallery ${index + 1}`}
+                  width={40}
+                  height={30}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                />
+                {index === 2 && record.gallery.length > 3 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    borderRadius: 4
+                  }}>
+                    +{record.gallery.length - 3}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
+          )}
+        </div>
+      )
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
@@ -398,7 +455,11 @@ export default function AdminProjectsPage() {
       <Modal
         title={editingProject ? 'Edit Project' : 'Add New Project'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setUploadedHeroImage(null);
+          setUploadedGallery([]);
+        }}
         footer={null}
         width={900}
         style={{ top: 20 }}
@@ -460,12 +521,18 @@ export default function AdminProjectsPage() {
             <Col span={8}>
               <Form.Item
                 name="service"
-                label="Related Service"
+                label="Related Sub-Service"
               >
-                <Select placeholder="Select related service" allowClear>
+                <Select placeholder="Select related sub-service" allowClear>
+                  {console.log('Rendering sub-services:', services)}
                   {services.map(service => (
                     <Option key={service._id} value={service._id}>
-                      {service.title}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{service.title}</span>
+                        <Tag size="small" color={service.status === 'active' ? 'green' : 'red'}>
+                          {service.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -477,9 +544,15 @@ export default function AdminProjectsPage() {
                 label="Department"
               >
                 <Select placeholder="Select department" allowClear>
+                  {console.log('Rendering departments:', departments)}
                   {departments.map(dept => (
                     <Option key={dept._id} value={dept._id}>
-                      {dept.name}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{dept.name}</span>
+                        <Tag size="small" color={dept.status === 'active' ? 'green' : 'red'}>
+                          {dept.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -492,8 +565,29 @@ export default function AdminProjectsPage() {
               <Form.Item
                 name="heroImage"
                 label="Hero Image"
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      const hasImage = uploadedHeroImage || editingProject?.heroImage || value;
+                      if (!hasImage) {
+                        return Promise.reject(new Error('Please upload a hero image'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
-                <ImageUpload folder="projects/hero" />
+                <SimpleImageUpload 
+                  value={uploadedHeroImage}
+                  onChange={(image) => {
+                    setUploadedHeroImage(image);
+                    form.setFieldsValue({ heroImage: image });
+                    form.validateFields(['heroImage']);
+                  }}
+                  folder="projects/hero"
+                  maxSize={5}
+                  required={true}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -592,7 +686,16 @@ export default function AdminProjectsPage() {
             name="gallery"
             label="Project Gallery"
           >
-            <ImageUpload folder="projects/gallery" multiple={true} />
+            <GalleryUpload 
+              value={uploadedGallery}
+              onChange={(gallery) => {
+                setUploadedGallery(gallery);
+                form.setFieldsValue({ gallery: gallery });
+              }}
+              folder="projects/gallery"
+              maxSize={5}
+              maxCount={10}
+            />
           </Form.Item>
           
           <Form.Item

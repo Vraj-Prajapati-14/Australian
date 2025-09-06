@@ -32,7 +32,8 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
-import ImageUpload from '../../components/ImageUpload';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
+import GalleryUpload from '../../components/GalleryUpload';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -42,18 +43,18 @@ const { Option } = Select;
 export default function AdminCaseStudiesPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCaseStudy, setEditingCaseStudy] = useState(null);
+  const [uploadedHeroImage, setUploadedHeroImage] = useState(null);
+  const [uploadedGallery, setUploadedGallery] = useState([]);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
   // Fetch case studies data
   const { data: caseStudies = [], isLoading: loading, error: caseStudiesError } = useQuery({ 
-    queryKey: ['case-studies'], 
+    queryKey: ['caseStudies'], 
     queryFn: async () => {
       try {
         const response = await api.get('/case-studies');
-        console.log('Case studies API response:', response);
-        // The API returns { data: [...] }, so we need to access response.data.data
         return response.data?.data || [];
       } catch (error) {
         console.error('Error fetching case studies:', error);
@@ -62,17 +63,15 @@ export default function AdminCaseStudiesPage() {
     }
   });
 
-  // Fetch services for dropdown
+  // Fetch sub-services for dropdown (not main services)
   const { data: services = [], error: servicesError } = useQuery({ 
-    queryKey: ['services'], 
+    queryKey: ['sub-services'], 
     queryFn: async () => {
       try {
-        const response = await api.get('/services');
-        console.log('Services API response:', response);
-        // The API returns the data directly, so we access response.data
+        const response = await api.get('/services?type=sub&status=all');
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching sub-services:', error);
         return [];
       }
     }
@@ -99,6 +98,8 @@ export default function AdminCaseStudiesPage() {
       queryClient.invalidateQueries(['case-studies']);
       message.success('Case study created successfully');
       setModalVisible(false);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -121,6 +122,8 @@ export default function AdminCaseStudiesPage() {
       message.success('Case study updated successfully');
       setModalVisible(false);
       setEditingCaseStudy(null);
+      setUploadedHeroImage(null);
+      setUploadedGallery([]);
       form.resetFields();
     },
     onError: (error) => {
@@ -155,6 +158,8 @@ export default function AdminCaseStudiesPage() {
 
   const handleAddCaseStudy = () => {
     setEditingCaseStudy(null);
+    setUploadedHeroImage(null);
+    setUploadedGallery([]);
     form.resetFields();
     form.setFieldsValue({ 
       status: 'active',
@@ -166,6 +171,8 @@ export default function AdminCaseStudiesPage() {
 
   const handleEditCaseStudy = (caseStudy) => {
     setEditingCaseStudy(caseStudy);
+    setUploadedHeroImage(caseStudy.heroImage || null);
+    setUploadedGallery(caseStudy.gallery || []);
     form.setFieldsValue({
       ...caseStudy,
       service: caseStudy.service?._id,
@@ -207,12 +214,21 @@ export default function AdminCaseStudiesPage() {
         values.completionDate = values.completionDate.toISOString();
       }
 
-      console.log('Submitting case study data:', values);
+      // Handle image data
+      const heroImageData = uploadedHeroImage || editingCaseStudy?.heroImage || values.heroImage;
+      const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingCaseStudy?.gallery || values.gallery || [];
+
+      // Prepare the data object with proper image structure
+      const formData = {
+        ...values,
+        heroImage: heroImageData,
+        gallery: galleryData
+      };
       
       if (editingCaseStudy) {
-        await updateCaseStudyMutation.mutateAsync({ id: editingCaseStudy._id, data: values });
+        await updateCaseStudyMutation.mutateAsync({ id: editingCaseStudy._id, data: formData });
       } else {
-        await createCaseStudyMutation.mutateAsync(values);
+        await createCaseStudyMutation.mutateAsync(formData);
       }
     } catch (error) {
       console.error('Error saving case study:', error);
@@ -301,6 +317,48 @@ export default function AdminCaseStudiesPage() {
       )
     },
     {
+      title: 'Gallery',
+      key: 'gallery',
+      render: (_, record) => (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {record.gallery && record.gallery.length > 0 ? (
+            record.gallery.slice(0, 3).map((image, index) => (
+              <div key={index} style={{ position: 'relative' }}>
+                <AntdImage
+                  src={image.url}
+                  alt={image.alt || `Gallery ${index + 1}`}
+                  width={40}
+                  height={30}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                />
+                {index === 2 && record.gallery.length > 3 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    borderRadius: 4
+                  }}>
+                    +{record.gallery.length - 3}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
+          )}
+        </div>
+      )
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
@@ -374,7 +432,11 @@ export default function AdminCaseStudiesPage() {
       <Modal
         title={editingCaseStudy ? 'Edit Case Study' : 'Add New Case Study'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setUploadedHeroImage(null);
+          setUploadedGallery([]);
+        }}
         footer={null}
         width={900}
         style={{ top: 20 }}
@@ -436,12 +498,17 @@ export default function AdminCaseStudiesPage() {
             <Col span={8}>
               <Form.Item
                 name="service"
-                label="Related Service"
+                label="Related Sub-Service"
               >
-                <Select placeholder="Select related service" allowClear>
+                <Select placeholder="Select related sub-service" allowClear>
                   {services.map(service => (
                     <Option key={service._id} value={service._id}>
-                      {service.title}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{service.title}</span>
+                        <Tag size="small" color={service.status === 'active' ? 'green' : 'red'}>
+                          {service.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -455,7 +522,12 @@ export default function AdminCaseStudiesPage() {
                 <Select placeholder="Select department" allowClear>
                   {departments.map(dept => (
                     <Option key={dept._id} value={dept._id}>
-                      {dept.name}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{dept.name}</span>
+                        <Tag size="small" color={dept.status === 'active' ? 'green' : 'red'}>
+                          {dept.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -468,8 +540,29 @@ export default function AdminCaseStudiesPage() {
               <Form.Item
                 name="heroImage"
                 label="Hero Image"
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      const hasImage = uploadedHeroImage || editingCaseStudy?.heroImage || value;
+                      if (!hasImage) {
+                        return Promise.reject(new Error('Please upload a hero image'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
-                <ImageUpload folder="case-studies/hero" />
+                <SimpleImageUpload 
+                  value={uploadedHeroImage}
+                  onChange={(image) => {
+                    setUploadedHeroImage(image);
+                    form.setFieldsValue({ heroImage: image });
+                    form.validateFields(['heroImage']);
+                  }}
+                  folder="case-studies/hero"
+                  maxSize={5}
+                  required={true}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -524,7 +617,16 @@ export default function AdminCaseStudiesPage() {
             name="gallery"
             label="Case Study Gallery"
           >
-            <ImageUpload folder="case-studies/gallery" multiple={true} />
+            <GalleryUpload 
+              value={uploadedGallery}
+              onChange={(gallery) => {
+                setUploadedGallery(gallery);
+                form.setFieldsValue({ gallery: gallery });
+              }}
+              folder="case-studies/gallery"
+              maxSize={5}
+              maxCount={10}
+            />
           </Form.Item>
           
           <Divider>Project Details</Divider>

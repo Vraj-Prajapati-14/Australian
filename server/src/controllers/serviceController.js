@@ -2,8 +2,13 @@ const Service = require('../models/Service');
 
 async function list(req, res) {
   try {
-    const { type, department, featured } = req.query;
-    let query = { status: 'active' };
+    const { type, department, featured, status } = req.query;
+    let query = {};
+
+    // Only filter by status if not requesting all
+    if (status !== 'all') {
+      query.status = 'active';
+    }
 
     if (type === 'main') {
       query.isMainService = true;

@@ -82,7 +82,65 @@ async function updateSection(req, res) {
   try {
     const { section } = req.params;
     const updateData = {};
-    updateData[section] = req.body;
+    
+    // Process the data to handle color picker objects
+    let processedData = req.body;
+    
+    // If this is the appearance section, handle color picker objects
+    if (section === 'appearance') {
+      processedData = { ...req.body };
+      
+      // Convert color picker objects to hex strings
+      const colorFields = ['primaryColor', 'secondaryColor', 'accentColor', 'textColor', 'backgroundColor'];
+      colorFields.forEach(field => {
+        if (processedData[field] && typeof processedData[field] === 'object') {
+          try {
+            // Handle color picker object format
+            if (processedData[field].metaColor) {
+              const { r, g, b, a } = processedData[field].metaColor;
+              if (typeof r === 'number' && typeof g === 'number' && typeof b === 'number') {
+                if (a === 1 || a === undefined) {
+                  // Convert RGB to hex
+                  processedData[field] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                } else {
+                  // Convert RGBA to hex
+                  processedData[field] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${Math.round(a * 255).toString(16).padStart(2, '0')}`;
+                }
+              }
+            } else if (processedData[field].hex) {
+              // Handle hex format
+              processedData[field] = processedData[field].hex;
+            } else if (processedData[field].rgb) {
+              // Handle RGB format
+              const { r, g, b } = processedData[field].rgb;
+              if (typeof r === 'number' && typeof g === 'number' && typeof b === 'number') {
+                processedData[field] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+              }
+            } else if (processedData[field].toHexString) {
+              // Handle Ant Design ColorPicker format
+              processedData[field] = processedData[field].toHexString();
+            } else if (typeof processedData[field] === 'string' && processedData[field].startsWith('#')) {
+              // Already a hex string, keep as is
+              // No conversion needed
+            } else {
+              console.warn(`Unknown color format for field ${field}:`, processedData[field]);
+              // Set a default color if we can't parse it
+              processedData[field] = '#000000';
+            }
+          } catch (colorError) {
+            console.error(`Error processing color for field ${field}:`, colorError);
+            // Set a default color if there's an error
+            processedData[field] = '#000000';
+          }
+        }
+      });
+    }
+    
+    updateData[section] = processedData;
+    
+    console.log('Updating settings section:', section);
+    console.log('Original data:', req.body);
+    console.log('Processed data:', processedData);
     
     const updated = await SiteSettings.findOneAndUpdate({}, updateData, {
       new: true,
@@ -91,10 +149,20 @@ async function updateSection(req, res) {
       runValidators: true
     });
     
+    if (!updated) {
+      return res.status(404).json({ error: 'Settings not found' });
+    }
+    
+    // Check if the section exists in the updated document
+    if (!updated[section]) {
+      return res.status(404).json({ error: `Section '${section}' not found in settings` });
+    }
+    
+    console.log('Settings updated successfully:', updated[section]);
     res.json(updated[section]);
   } catch (error) {
     console.error('Error updating settings section:', error);
-    res.status(500).json({ error: 'Failed to update settings section' });
+    res.status(500).json({ error: 'Failed to update settings section: ' + error.message });
   }
 }
 

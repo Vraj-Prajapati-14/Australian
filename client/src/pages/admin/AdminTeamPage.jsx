@@ -37,7 +37,7 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
-import ImageUpload from '../../components/ImageUpload';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -56,14 +56,9 @@ export default function AdminTeamPage() {
     queryFn: async () => {
       try {
         const response = await api.get('/team');
-        console.log('Team API response:', response);
-        console.log('Team data:', response.data);
-        console.log('Team data type:', typeof response.data);
-        console.log('Team data length:', Array.isArray(response.data) ? response.data.length : 'Not an array');
         
         // Return raw array for antd Table
         const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
-        console.log('Processed team data:', data);
         return data;
       } catch (error) {
         console.error('Error fetching team data:', error);
@@ -78,7 +73,6 @@ export default function AdminTeamPage() {
     queryFn: async () => {
       try {
         const response = await api.get('/departments');
-        console.log('Departments API response:', response);
         return Array.isArray(response.data) ? response.data : (response.data?.data || []);
       } catch (error) {
         console.error('Error fetching departments:', error);
@@ -274,6 +268,43 @@ export default function AdminTeamPage() {
         <div style={{ fontSize: 12 }}>
           <div>{record.email || 'N/A'}</div>
           <div>{record.phone || 'N/A'}</div>
+        </div>
+      )
+    },
+    {
+      title: 'Specialties & Qualifications',
+      key: 'specialties-qualifications',
+      render: (_, record) => (
+        <div style={{ fontSize: 12, maxWidth: 200 }}>
+          {record.specialties && record.specialties.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontWeight: 'bold', color: '#3b82f6', marginBottom: 4 }}>Specialties:</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {record.specialties.slice(0, 3).map((specialty, index) => (
+                  <Tag key={index} size="small" color="blue">{specialty}</Tag>
+                ))}
+                {record.specialties.length > 3 && (
+                  <Tag size="small" color="blue">+{record.specialties.length - 3} more</Tag>
+                )}
+              </div>
+            </div>
+          )}
+          {record.qualifications && record.qualifications.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 'bold', color: '#10b981', marginBottom: 4 }}>Qualifications:</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {record.qualifications.slice(0, 2).map((qual, index) => (
+                  <Tag key={index} size="small" color="green">{qual}</Tag>
+                ))}
+                {record.qualifications.length > 2 && (
+                  <Tag size="small" color="green">+{record.qualifications.length - 2} more</Tag>
+                )}
+              </div>
+            </div>
+          )}
+          {(!record.specialties || record.specialties.length === 0) && (!record.qualifications || record.qualifications.length === 0) && (
+            <div style={{ color: '#9ca3af', fontStyle: 'italic' }}>No specialties or qualifications added</div>
+          )}
         </div>
       )
     },
@@ -524,7 +555,7 @@ export default function AdminTeamPage() {
             name="avatar"
             label="Profile Photo"
           >
-            <ImageUpload folder="team/avatars" />
+            <SimpleImageUpload folder="team/avatars" />
           </Form.Item>
           
           <Form.Item
@@ -568,24 +599,60 @@ export default function AdminTeamPage() {
           <Divider>Skills & Expertise</Divider>
           
           <Form.Item
-            name="skills"
-            label="Skills"
+            name="specialties"
+            label="Specialties & Skills"
+            rules={[
+              {
+                validator: (_, value) => {
+                  if (!value || value.length === 0) {
+                    return Promise.resolve();
+                  }
+                  if (Array.isArray(value) && value.some(specialty => !specialty || specialty.trim().length < 2)) {
+                    return Promise.reject(new Error('Each specialty must be at least 2 characters long'));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
             <Select
               mode="tags"
-              placeholder="Add skills (e.g., Ute Canopies, Trailer Modifications, Customer Service)"
+              placeholder="Add specialties (e.g., Ute Canopies, Trailer Modifications, Customer Service)"
               style={{ width: '100%' }}
+              maxTagCount={10}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </Form.Item>
           
           <Form.Item
-            name="certifications"
-            label="Certifications"
+            name="qualifications"
+            label="Qualifications & Certifications"
+            rules={[
+              {
+                validator: (_, value) => {
+                  if (!value || value.length === 0) {
+                    return Promise.resolve();
+                  }
+                  if (Array.isArray(value) && value.some(qual => !qual || qual.trim().length < 2)) {
+                    return Promise.reject(new Error('Each qualification must be at least 2 characters long'));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
             <Select
               mode="tags"
-              placeholder="Add certifications"
+              placeholder="Add qualifications (e.g., ISO 9001 Lead Auditor, Six Sigma Green Belt, Trade Certificate)"
               style={{ width: '100%' }}
+              maxTagCount={10}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </Form.Item>
           
@@ -598,6 +665,36 @@ export default function AdminTeamPage() {
               max={50} 
               placeholder="5" 
               style={{ width: '100%' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="startDate"
+            label="Start Date"
+          >
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item
+            name="region"
+            label="Region/Location"
+          >
+            <Input placeholder="e.g., Sydney, Melbourne, Brisbane" />
+          </Form.Item>
+
+          <Form.Item
+            name="achievements"
+            label="Key Achievements"
+          >
+            <Select
+              mode="tags"
+              placeholder="Add achievements (e.g., Employee of the Year 2023, Project Excellence Award)"
+              style={{ width: '100%' }}
+              maxTagCount={5}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </Form.Item>
           

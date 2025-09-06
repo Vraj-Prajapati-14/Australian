@@ -1,265 +1,271 @@
-import { Row, Col, Card, Button, Typography, Space, Divider, Image as AntdImage, Tag } from 'antd';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import Hero from '../components/Hero';
-import Section from '../components/Section';
-import { TruckOutlined, ToolOutlined, CheckCircleOutlined, BuildOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
+import { Container, Section, Button, Card, Badge } from '../components/ui';
 
-const { Title, Paragraph, Text } = Typography;
-
-export default function TruckPage() {
+const TruckPage = () => {
   const { data: services } = useQuery({ queryKey: ['services'], queryFn: async () => (await api.get('/services')).data })
 
   const truckServices = services?.filter(s => s.category?.includes('truck')) || []
 
+  const truckTypes = [
+    {
+      name: 'Service Body Trucks',
+      description: 'Heavy-duty service bodies designed for maximum payload and durability. Perfect for demanding industrial applications.',
+      icon: '🚚',
+      color: 'primary'
+    },
+    {
+      name: 'Crane Mounted',
+      description: 'Service bodies with integrated crane systems. Handle heavy loads and equipment with precision and safety.',
+      icon: '🏗️',
+      color: 'success'
+    },
+    {
+      name: 'Specialized Configurations',
+      description: 'Custom truck service bodies for specific industries. Tailored solutions that meet your exact requirements.',
+      icon: '⚙️',
+      color: 'warning'
+    }
+  ];
+
+  const features = [
+    {
+      title: 'Aircraft-Grade Construction',
+      description: 'Our aluminium service bodies are engineered using the same techniques as aircraft construction. Polyurethane adhesives and oven bonding ensure years of vibration resistance.',
+      icon: '✈️'
+    },
+    {
+      title: 'Integrated Manufacturing',
+      description: 'We design, manufacture and install everything in-house. From shelves and benches to towbars and accessories - complete control over quality and delivery.',
+      icon: '🏭'
+    },
+    {
+      title: 'Comprehensive Support',
+      description: 'National installation network with dedicated customer care. We coordinate with dealers, fleet managers and all stakeholders for seamless delivery.',
+      icon: '🛠️'
+    },
+    {
+      title: 'GVM Upgrades & Compliance',
+      description: 'Handle your compliant GVM upgrade, bullbar, towbar and fleet branding. One-stop solution for all your truck modification needs.',
+      icon: '📋'
+    }
+  ];
+
+  const industrySolutions = [
+    {
+      name: 'Government Fleet',
+      description: 'Compliant truck service bodies for government operations. Built to meet all standards and requirements.',
+      badges: ['ISO Certified', 'Compliant']
+    },
+    {
+      name: 'Mining & Construction',
+      description: 'Heavy-duty solutions for the toughest environments. Built to withstand extreme conditions and heavy loads.',
+      badges: ['Heavy-Duty', 'Durable']
+    },
+    {
+      name: 'Utility & Service',
+      description: 'Professional service bodies for utility companies and service providers. Maximum efficiency and reliability.',
+      badges: ['Utility', 'Service']
+    }
+  ];
+
   return (
-    <div>
-      <Hero
-        title="Truck Service Bodies & Canopies"
-        subtitle="Heavy-duty solutions engineered for maximum performance and durability. Built different to be light & strong."
-        ctaText="Get Quote"
-        ctaLink="/contact"
-        showSubtitle={true}
-      />
+    <>
+      <Helmet>
+        <title>Truck Service Bodies & Canopies - Australian Equipment Solutions</title>
+        <meta name="description" content="Heavy-duty solutions engineered for maximum performance and durability. Built different to be light & strong." />
+      </Helmet>
+
+      {/* Hero Section */}
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Truck Service Bodies & Canopies
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Heavy-duty solutions engineered for maximum performance and durability. Built different to be light & strong.
+            </p>
+            <Button variant="secondary" size="lg" as={Link} to="/contact">
+              Get Quote
+            </Button>
+          </div>
+        </Container>
+      </Section>
 
       {/* Truck Types */}
-      <Section title="Truck Service Body Types" subtitle="Professional solutions for heavy-duty applications">
-        <Row gutter={[24, 24]}>
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <TruckOutlined />
-                </div>
-              }
-            >
-              <Title level={3}>Service Body Trucks</Title>
-              <Paragraph>
-                Heavy-duty service bodies designed for maximum payload and durability. Perfect for demanding industrial applications.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Truck Service Body Types"
+            subtitle="Professional solutions for heavy-duty applications"
+            align="center"
+            className="mb-12"
+          />
           
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <BuildOutlined />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {truckTypes.map((type, index) => (
+              <Card key={index} variant="elevated" hover className="text-center">
+                <div className={`h-48 bg-gradient-to-br from-${type.color}-500 to-${type.color}-700 flex items-center justify-center text-white text-6xl`}>
+                  {type.icon}
                 </div>
-              }
-            >
-              <Title level={3}>Crane Mounted</Title>
-              <Paragraph>
-                Service bodies with integrated crane systems. Handle heavy loads and equipment with precision and safety.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
-          
-          <Col xs={24} md={8}>
-            <Card 
-              hoverable 
-              style={{ textAlign: 'center', height: '100%' }}
-              cover={
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)', 
-                  height: 200, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: 64
-                }}>
-                  <ToolOutlined />
-                </div>
-              }
-            >
-              <Title level={3}>Specialized Configurations</Title>
-              <Paragraph>
-                Custom truck service bodies for specific industries. Tailored solutions that meet your exact requirements.
-              </Paragraph>
-              <Button type="primary" size="large">
-                Learn More
-              </Button>
-            </Card>
-          </Col>
-        </Row>
+                <Card.Body>
+                  <Card.Title className="text-xl mb-3">{type.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {type.description}
+                  </Card.Text>
+                  <Button variant="primary" size="lg">
+                    Learn More
+                  </Button>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Key Features */}
-      <Section title="Why Choose HIDRIVE Truck Solutions" subtitle="Built different to be light & strong">
-        <Row gutter={[32, 32]} style={{ marginTop: 48 }}>
-          <Col xs={24} md={12}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Aircraft-Grade Construction
-                </Title>
-                <Paragraph>
-                  Our aluminium service bodies are engineered using the same techniques as aircraft construction. Polyurethane adhesives and oven bonding ensure years of vibration resistance.
-                </Paragraph>
-              </div>
-              
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Integrated Manufacturing
-                </Title>
-                <Paragraph>
-                  We design, manufacture and install everything in-house. From shelves and benches to towbars and accessories - complete control over quality and delivery.
-                </Paragraph>
-              </div>
-            </Space>
-          </Col>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Why Choose HIDRIVE Truck Solutions"
+            subtitle="Built different to be light & strong"
+            align="center"
+            className="mb-12"
+          />
           
-          <Col xs={24} md={12}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}> 
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  Comprehensive Support
-                </Title>
-                <Paragraph>
-                  National installation network with dedicated customer care. We coordinate with dealers, fleet managers and all stakeholders for seamless delivery.
-                </Paragraph>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <div className="text-3xl">{feature.icon}</div>
+                <div>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
+                    {feature.title}
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-              
-              <div>
-                <Title level={4}>
-                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                  GVM Upgrades & Compliance
-                </Title>
-                <Paragraph>
-                  Handle your compliant GVM upgrade, bullbar, towbar and fleet branding. One-stop solution for all your truck modification needs.
-                </Paragraph>
-              </div>
-            </Space>
-          </Col>
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Truck Services */}
-      <Section title="Truck Service Solutions" subtitle="Heavy-duty solutions for every industry">
-        <Row gutter={[16, 16]}>
-          {truckServices.slice(0, 6).map((service) => (
-            <Col key={service._id} xs={24} sm={12} md={8}>
-              <Card 
-                hoverable
-                cover={
-                  <div style={{ 
-                    height: 200, 
-                    background: '#f0f0f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 48,
-                    color: '#666'
-                  }}>
-                    <TruckOutlined />
-                  </div>
-                }
-              >
-                <Title level={4}>{service.name}</Title>
-                <Paragraph>{service.description}</Paragraph>
-                <Button type="primary" href={`/services/${service.slug}`}>
-                  View Details
-                </Button>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Truck Service Solutions"
+            subtitle="Heavy-duty solutions for every industry"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {truckServices.slice(0, 6).map((service) => (
+              <Card key={service._id} variant="elevated" hover>
+                <div className="h-48 bg-gray-100 flex items-center justify-center text-4xl text-gray-600">
+                  🚚
+                </div>
+                <Card.Body>
+                  <Card.Title className="text-lg mb-3">{service.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {service.description}
+                  </Card.Text>
+                  <Button variant="primary" as={Link} to={`/services/${service.slug}`}>
+                    View Details
+                  </Button>
+                </Card.Body>
               </Card>
-            </Col>
-          ))}
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Government & Industry */}
-      <Section title="Government & Industry Solutions" subtitle="Compliant solutions for demanding applications">
-        <Row gutter={[24, 24]} style={{ background: '#f5f5f5', padding: '48px 24px', borderRadius: 12 }}>
-          <Col xs={24} md={8}>
-            <Title level={4}>Government Fleet</Title>
-            <Paragraph>
-              Compliant truck service bodies for government operations. Built to meet all standards and requirements.
-            </Paragraph>
-            <Tag color="blue">ISO Certified</Tag>
-            <Tag color="green">Compliant</Tag>
-          </Col>
-          <Col xs={24} md={8}>
-            <Title level={4}>Mining & Construction</Title>
-            <Paragraph>
-              Heavy-duty solutions for the toughest environments. Built to withstand extreme conditions and heavy loads.
-            </Paragraph>
-            <Tag color="orange">Heavy-Duty</Tag>
-            <Tag color="red">Durable</Tag>
-          </Col>
-          <Col xs={24} md={8}>
-            <Title level={4}>Utility & Service</Title>
-            <Paragraph>
-              Professional service bodies for utility companies and service providers. Maximum efficiency and reliability.
-            </Paragraph>
-            <Tag color="purple">Utility</Tag>
-            <Tag color="cyan">Service</Tag>
-          </Col>
-        </Row>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Government & Industry Solutions"
+            subtitle="Compliant solutions for demanding applications"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="bg-white rounded-lg p-8 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {industrySolutions.map((solution, index) => (
+                <div key={index}>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
+                    {solution.name}
+                  </h4>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {solution.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {solution.badges.map(badge => (
+                      <Badge key={badge} variant="primary" size="sm">
+                        {badge}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Container>
       </Section>
 
       {/* Finance Section */}
-      <Section title="Finance Options" subtitle="Flexible payment solutions for your truck service body">
-        <Row gutter={[24, 24]} style={{ background: '#e6f7ff', padding: '48px 24px', borderRadius: 12 }}>
-          <Col xs={24} md={16}>
-            <Title level={3}>Finance for HIDRIVE Service Bodies</Title>
-            <Paragraph style={{ fontSize: 16 }}>
-              Now available from $104 per week. Flexible payment terms to suit your business needs and cash flow requirements.
-            </Paragraph>
-          </Col>
-          <Col xs={24} md={8} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Button type="primary" size="large" style={{ height: 56, padding: '0 32px' }}>
-              Find Out More
-            </Button>
-          </Col>
-        </Row>
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="bg-white rounded-lg p-8 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+              <div className="md:col-span-2">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                  Finance for HIDRIVE Service Bodies
+                </h3>
+                <p className="text-lg text-gray-600">
+                  Now available from $104 per week. Flexible payment terms to suit your business needs and cash flow requirements.
+                </p>
+              </div>
+              <div className="flex justify-center md:justify-end">
+                <Button variant="primary" size="lg">
+                  Find Out More
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Container>
       </Section>
 
       {/* CTA Section */}
-      <Section title="" subtitle="">
-        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <Title level={2}>Ready for Your Heavy-Duty Solution?</Title>
-          <Paragraph style={{ fontSize: 18, marginBottom: 32 }}>
-            Get a custom quote for your truck service body or canopy.
-          </Paragraph>
-          <Space size="large">
-            <Button type="primary" size="large" href="/contact">
-              Get Quote
-            </Button>
-            <Button size="large" href="/inspiration">
-              View Inspiration Gallery
-            </Button>
-          </Space>
-        </div>
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready for Your Heavy-Duty Solution?
+            </h2>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Get a custom quote for your truck service body or canopy.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="secondary" size="lg" as={Link} to="/contact">
+                Get Quote
+              </Button>
+              <Button variant="outline" size="lg" as={Link} to="/inspiration">
+                View Inspiration Gallery
+              </Button>
+            </div>
+          </div>
+        </Container>
       </Section>
-    </div>
-  )
-} 
+    </>
+  );
+};
+
+export default TruckPage; 

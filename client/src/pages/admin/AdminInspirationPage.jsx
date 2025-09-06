@@ -50,15 +50,15 @@ export default function AdminInspirationPage() {
     }
   });
 
-  // Fetch services for dropdown
+  // Fetch main services for dropdown (not sub-services)
   const { data: services = [], error: servicesError } = useQuery({ 
-    queryKey: ['services'], 
+    queryKey: ['main-services'], 
     queryFn: async () => {
       try {
-        const response = await api.get('/services');
+        const response = await api.get('/services?type=main&status=all');
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching main services:', error);
         return [];
       }
     }
@@ -158,13 +158,8 @@ export default function AdminInspirationPage() {
 
   const handleSubmit = async (values) => {
     try {
-      console.log('Form values:', values);
-      console.log('Uploaded image:', uploadedImage);
-      console.log('Editing item image:', editingItem?.image);
-
       // Check if we have an image - check all possible sources
       const imageData = uploadedImage || editingItem?.image || values.image;
-      console.log('Final image data:', imageData);
       
       if (!imageData) {
         message.error('Please upload an image before submitting');
@@ -199,8 +194,6 @@ export default function AdminInspirationPage() {
         tags: values.tags || [],
         image: finalImageData
       };
-      
-      console.log('Submitting form data:', formData);
       
       if (editingItem) {
         updateMutation.mutate({ id: editingItem._id, formData });
@@ -434,12 +427,17 @@ export default function AdminInspirationPage() {
             <Col span={12}>
               <Form.Item
                 name="service"
-                label="Service"
+                label="Main Service"
               >
-                <Select placeholder="Select service" allowClear>
+                <Select placeholder="Select main service" allowClear>
                   {services.map(service => (
                     <Option key={service._id} value={service._id}>
-                      {service.title}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{service.title}</span>
+                        <Tag size="small" color={service.status === 'active' ? 'green' : 'red'}>
+                          {service.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -453,7 +451,12 @@ export default function AdminInspirationPage() {
                 <Select placeholder="Select department" allowClear>
                   {departments.map(dept => (
                     <Option key={dept._id} value={dept._id}>
-                      {dept.name}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{dept.name}</span>
+                        <Tag size="small" color={dept.status === 'active' ? 'green' : 'red'}>
+                          {dept.status}
+                        </Tag>
+                      </div>
                     </Option>
                   ))}
                 </Select>
@@ -502,7 +505,6 @@ export default function AdminInspirationPage() {
             <SimpleImageUpload 
               value={uploadedImage}
               onChange={(image) => {
-                console.log('ImageUpload onChange called with:', image);
                 setUploadedImage(image);
                 // Also set the form field value
                 form.setFieldsValue({ image: image });

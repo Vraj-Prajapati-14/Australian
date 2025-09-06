@@ -26,6 +26,7 @@ export default function AdminLoginPage() {
         setError('Invalid credentials');
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -64,12 +65,7 @@ export default function AdminLoginPage() {
     backdropFilter: 'blur(10px)',
     position: 'relative',
     zIndex: 10,
-    padding: '40px',
-    '@media (max-width: 480px)': {
-      padding: '24px',
-      margin: '16px',
-      borderRadius: '16px'
-    }
+    padding: '40px'
   };
 
   const logoStyle = {
@@ -82,10 +78,7 @@ export default function AdminLoginPage() {
     marginBottom: '8px',
     fontWeight: '800',
     fontSize: '32px',
-    letterSpacing: '-0.5px',
-    '@media (max-width: 480px)': {
-      fontSize: '28px'
-    }
+    letterSpacing: '-0.5px'
   };
 
   const subtitleStyle = {
@@ -105,14 +98,7 @@ export default function AdminLoginPage() {
     border: '2px solid #f0f0f0',
     fontSize: '16px',
     padding: '0 16px',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      borderColor: '#1677ff'
-    },
-    '&:focus': {
-      borderColor: '#1677ff',
-      boxShadow: '0 0 0 3px rgba(22, 119, 255, 0.1)'
-    }
+    transition: 'all 0.3s ease'
   };
 
   const buttonStyle = {
@@ -124,14 +110,7 @@ export default function AdminLoginPage() {
     background: 'linear-gradient(135deg, #1677ff 0%, #0958d9 100%)',
     border: 'none',
     boxShadow: '0 4px 12px rgba(22, 119, 255, 0.3)',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 8px 20px rgba(22, 119, 255, 0.4)'
-    },
-    '&:active': {
-      transform: 'translateY(0)'
-    }
+    transition: 'all 0.3s ease'
   };
 
   const alertStyle = {
@@ -229,7 +208,7 @@ export default function AdminLoginPage() {
               icon={!loading && <LoginOutlined />}
               style={buttonStyle}
             >
-              {loading ? <Spin size="small" /> : 'Sign In'}
+              {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </Form.Item>
         </Form>

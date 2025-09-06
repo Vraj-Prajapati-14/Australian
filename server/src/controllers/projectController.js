@@ -2,7 +2,7 @@ const Project = require('../models/Project');
 
 async function list(req, res) {
   try {
-    const { service, department, status, featured } = req.query;
+    const { service, department, status, featured, limit } = req.query;
     let query = {};
 
     if (service) query.service = service;
@@ -10,11 +10,16 @@ async function list(req, res) {
     if (status) query.status = status;
     if (featured === 'true') query.isFeatured = true;
 
-    const projects = await Project.find(query)
+    let projectQuery = Project.find(query)
       .populate('service', 'title slug')
       .populate('department', 'name color')
       .sort({ createdAt: -1 });
     
+    if (limit) {
+      projectQuery = projectQuery.limit(parseInt(limit));
+    }
+    
+    const projects = await projectQuery;
     res.json({ data: projects });
   } catch (error) {
     console.error('Error fetching projects:', error);

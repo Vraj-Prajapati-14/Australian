@@ -23,49 +23,6 @@ function uploadMiddleware(fieldName = 'image') {
   return upload.single(fieldName);
 }
 
-// Test Cloudinary configuration
-function testCloudinaryConfig(req, res) {
-  try {
-    const config = cloudinary.config();
-    console.log('Cloudinary config check:', config);
-    
-    const hasCloudName = !!config.cloud_name;
-    const hasApiKey = !!config.api_key;
-    const hasApiSecret = !!config.api_secret;
-    
-    if (hasCloudName && hasApiKey && hasApiSecret) {
-      res.json({ 
-        success: true, 
-        message: 'Cloudinary is properly configured',
-        cloudName: config.cloud_name,
-        hasApiKey: true,
-        hasApiSecret: true
-      });
-    } else {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Cloudinary is not properly configured',
-        missing: {
-          cloudName: !hasCloudName,
-          apiKey: !hasApiKey,
-          apiSecret: !hasApiSecret
-        },
-        config: {
-          cloudName: hasCloudName ? 'SET' : 'MISSING',
-          apiKey: hasApiKey ? 'SET' : 'MISSING',
-          apiSecret: hasApiSecret ? 'SET' : 'MISSING'
-        }
-      });
-    }
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error checking Cloudinary configuration',
-      error: error.message
-    });
-  }
-}
-
 // Upload image function
 async function uploadImage(req, res) {
   try {
@@ -186,50 +143,27 @@ async function uploadImage(req, res) {
   }
 }
 
-// Delete image function
+// Delete image from Cloudinary
 async function deleteImage(req, res) {
   try {
     const { publicId } = req.body;
     
     if (!publicId) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Public ID is required' 
-      });
+      return res.status(400).json({ success: false, message: 'Public ID is required' });
     }
 
-    // Check Cloudinary configuration
-    const config = cloudinary.config();
-    if (!config.cloud_name || !config.api_key || !config.api_secret) {
-      return res.status(500).json({ 
-        success: false,
-        message: 'Image upload service not configured' 
-      });
-    }
-
-    // Delete from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
     
-    if (result.result === 'ok') {
-      res.json({ 
-        success: true,
-        message: 'Image deleted successfully' 
-      });
-    } else {
-      res.status(400).json({ 
-        success: false,
-        message: 'Failed to delete image' 
-      });
-    }
-
-  } catch (error) {
-    console.error('Delete image error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Delete failed: ' + error.message 
+    res.json({ 
+      success: true, 
+      message: 'Image deleted successfully',
+      result 
     });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ success: false, message: 'Error deleting image' });
   }
 }
 
-module.exports = { uploadMiddleware, uploadImage, deleteImage, testCloudinaryConfig };
+module.exports = { uploadMiddleware, uploadImage, deleteImage };
 

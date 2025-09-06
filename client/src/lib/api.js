@@ -14,7 +14,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
     return config;
   },
   (error) => {
@@ -26,7 +25,6 @@ api.interceptors.request.use(
 // Response interceptor for better error handling
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.config.url, response.data);
     return response;
   },
   (error) => {
@@ -43,6 +41,90 @@ export function setAuthToken(token) {
   }
 }
 
+// Site Settings API
+export const getSiteSettings = () => api.get('/settings').then(r => r.data);
+
+// Services API
+export const getServices = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.type) queryParams.append('type', params.type);
+  if (params.category) queryParams.append('category', params.category);
+  if (params.featured) queryParams.append('featured', params.featured);
+  
+  return api.get(`/services?${queryParams.toString()}`).then(r => r.data);
+};
+
+export const getServiceBySlug = (slug) => api.get(`/services/${slug}`).then(r => r.data);
+
+// Service Categories API
+export const getServiceCategories = () => api.get('/service-categories').then(r => r.data);
+export const getServiceCategoryTree = () => api.get('/service-categories/tree').then(r => r.data);
+export const getServiceCategoryBySlug = (slug) => api.get(`/service-categories/${slug}`).then(r => r.data);
+
+// Testimonials API
+export const getTestimonials = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.featured) queryParams.append('featured', params.featured);
+  if (params.limit) queryParams.append('limit', params.limit);
+  
+  return api.get(`/testimonials?${queryParams.toString()}`).then(r => r.data);
+};
+
+// Team API
+export const getTeam = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.department) queryParams.append('department', params.department);
+  if (params.limit) queryParams.append('limit', params.limit);
+  
+  return api.get(`/team?${queryParams.toString()}`).then(r => r.data);
+};
+
+// Projects API
+export const getProjects = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.featured) queryParams.append('featured', params.featured);
+  if (params.category) queryParams.append('category', params.category);
+  if (params.limit) queryParams.append('limit', params.limit);
+  
+  return api.get(`/projects?${queryParams.toString()}`).then(r => r.data);
+};
+
+export const getProjectBySlug = (slug) => api.get(`/projects/${slug}`).then(r => r.data);
+
+// Case Studies API
+export const getCaseStudies = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.featured) queryParams.append('featured', params.featured);
+  if (params.category) queryParams.append('category', params.category);
+  if (params.limit) queryParams.append('limit', params.limit);
+  
+  return api.get(`/case-studies?${queryParams.toString()}`).then(r => r.data);
+};
+
+export const getCaseStudyBySlug = (slug) => api.get(`/case-studies/${slug}`).then(r => r.data);
+
+// Inspiration Gallery API
+export const getInspiration = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.category) queryParams.append('category', params.category);
+  if (params.limit) queryParams.append('limit', params.limit);
+  
+  return api.get(`/inspiration?${queryParams.toString()}`).then(r => r.data);
+};
+
+// Departments API
+export const getDepartments = () => api.get('/departments').then(r => r.data);
+
+// Analytics API
+export const getAnalyticsStats = () => api.get('/analytics/stats').then(r => r.data);
+
+// Contact API
+export const submitContact = (data) => api.post('/contact', data).then(r => r.data);
+
+// Testimonial Submission API
+export const submitTestimonial = (data) => api.post('/testimonials', data).then(r => r.data);
+
+// Legacy API functions for backward compatibility
 export const servicesApi = {
   list: () => api.get('/services').then(r => r.data),
   bySlug: (slug) => api.get(`/services/${slug}`).then(r => r.data),

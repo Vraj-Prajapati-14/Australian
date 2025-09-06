@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button, Typography, Space, Divider, Image as AntdImage, Tag, Empty } from 'antd';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import Hero from '../components/Hero';
-import Section from '../components/Section';
-import { CheckCircleOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { Container, Section, Button, Card, Badge } from '../components/ui';
 
-const { Title, Paragraph, Text } = Typography;
-
-export default function UtePage() {
+const UtePage = () => {
   // Fetch services and sub-services data
   const { data: services = [] } = useQuery({ 
     queryKey: ['services'], 
@@ -29,22 +25,22 @@ export default function UtePage() {
     {
       title: 'Lightweight & Strong',
       description: 'Our aluminium construction provides the perfect balance of strength and weight, ensuring your vehicle maintains optimal performance.',
-      icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+      icon: '⚡'
     },
     {
       title: 'Fast Installation',
       description: 'Professional installation completed in just 2-3 hours, minimizing downtime and getting you back on the road quickly.',
-      icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+      icon: '⚡'
     },
     {
       title: 'Customizable Design',
       description: 'Tailor your canopy with custom storage solutions, lighting, and accessories to match your specific needs.',
-      icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+      icon: '⚡'
     },
     {
       title: 'Perfect Fit',
       description: 'Precisely engineered for your specific vehicle model, ensuring a seamless fit and professional appearance.',
-      icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 24 }} />
+      icon: '⚡'
     }
   ];
 
@@ -92,193 +88,239 @@ export default function UtePage() {
 
   if (!uteService) {
     return (
-      <div style={{ padding: '48px', textAlign: 'center' }}>
-        <Empty description="No ute services available" />
-      </div>
+      <Section padding="4xl">
+        <Container>
+          <Card variant="elevated" className="text-center py-12">
+            <Card.Body>
+              <div className="text-6xl mb-4">🚗</div>
+              <Card.Title className="text-xl text-gray-600 mb-4">
+                No ute services available
+              </Card.Title>
+              <Card.Text className="text-gray-500">
+                Please check back later or contact us for assistance.
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </Container>
+      </Section>
     );
   }
 
   return (
-    <div>
-      <Hero
-        title="Ute Canopies & Service Bodies"
-        subtitle="Professional ute solutions engineered for performance and durability. Lightweight, strong, and perfectly fitted for your vehicle."
-        ctaText="Get Quote"
-        ctaLink="/contact"
-        showSubtitle={true}
-      />
+    <>
+      <Helmet>
+        <title>Ute Canopies & Service Bodies - Australian Equipment Solutions</title>
+        <meta name="description" content="Professional ute solutions engineered for performance and durability. Lightweight, strong, and perfectly fitted for your vehicle." />
+      </Helmet>
+
+      {/* Hero Section */}
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Ute Canopies & Service Bodies
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Professional ute solutions engineered for performance and durability. Lightweight, strong, and perfectly fitted for your vehicle.
+            </p>
+            <Button variant="secondary" size="lg" as={Link} to="/contact">
+              Get Quote
+            </Button>
+          </div>
+        </Container>
+      </Section>
 
       {/* Canopy Types */}
-      <Section title="Canopy Types" subtitle="Choose the perfect solution for your needs">
-        <Row gutter={[24, 24]}>
-          {uteSubServices.map(subService => (
-            <Col xs={24} md={8} key={subService._id}>
-              <Card 
-                hoverable 
-                style={{ textAlign: 'center', height: '100%' }}
-                cover={
-                  <div style={{ position: 'relative' }}>
-                    <AntdImage
-                      alt={subService.name}
-                      src={subService.image}
-                      style={{ height: 200, objectFit: 'cover' }}
-                    />
-                    {subService.featured && (
-                      <Tag 
-                        color="gold" 
-                        style={{ 
-                          position: 'absolute', 
-                          top: 16, 
-                          right: 16,
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        Featured
-                      </Tag>
-                    )}
-                  </div>
-                }
-              >
-                <Title level={3}>{subService.name}</Title>
-                <Paragraph>
-                  {subService.shortDescription}
-                </Paragraph>
-                
-                <div style={{ marginBottom: 16 }}>
-                  <Space wrap>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Canopy Types"
+            subtitle="Choose the perfect solution for your needs"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {uteSubServices.map(subService => (
+              <Card key={subService._id} variant="elevated" hover className="text-center">
+                <div className="relative">
+                  <Card.Image
+                    src={subService.image}
+                    alt={subService.name}
+                    className="h-48 object-cover"
+                  />
+                  {subService.featured && (
+                    <Badge 
+                      variant="warning" 
+                      size="lg"
+                      className="absolute top-4 right-4"
+                    >
+                      Featured
+                    </Badge>
+                  )}
+                </div>
+                <Card.Body>
+                  <Card.Title className="text-xl mb-3">{subService.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {subService.shortDescription}
+                  </Card.Text>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {subService.features?.slice(0, 3).map(feature => (
-                      <Tag key={feature} color="blue" size="small">
+                      <Badge key={feature} variant="info" size="sm">
                         {feature}
-                      </Tag>
+                      </Badge>
                     ))}
-                  </Space>
-                </div>
+                  </div>
 
-                <div style={{ marginBottom: 16 }}>
-                  <Text strong style={{ fontSize: 18 }}>
-                    From ${subService.pricing?.base?.toLocaleString()}
-                  </Text>
-                </div>
+                  <div className="mb-4">
+                    <span className="text-lg font-semibold text-gray-800">
+                      From ${subService.pricing?.base?.toLocaleString()}
+                    </span>
+                  </div>
 
-                <Button type="primary" size="large" block>
-                  Get Quote
-                </Button>
+                  <Button variant="primary" size="lg" fullWidth>
+                    Get Quote
+                  </Button>
+                </Card.Body>
               </Card>
-            </Col>
-          ))}
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Key Features */}
-      <Section title="Why Choose HIDRIVE Ute Solutions" subtitle="Engineered for performance and reliability">
-        <Row gutter={[32, 32]} style={{ marginTop: 48 }}>
-          {features.map((feature, index) => (
-            <Col xs={24} md={12} key={index}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                <div style={{ marginTop: 4 }}>
-                  {feature.icon}
-                </div>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Why Choose HIDRIVE Ute Solutions"
+            subtitle="Engineered for performance and reliability"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <div className="text-3xl">{feature.icon}</div>
                 <div>
-                  <Title level={4} style={{ marginBottom: 8 }}>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
                     {feature.title}
-                  </Title>
-                  <Paragraph style={{ margin: 0, color: '#666' }}>
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed">
                     {feature.description}
-                  </Paragraph>
+                  </p>
                 </div>
               </div>
-            </Col>
-          ))}
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Service Body Variations */}
-      <Section title="Service Body Variations" subtitle="Complete solutions for every application">
-        <Row gutter={[24, 24]}>
-          {serviceBodyVariations.map((variation, index) => (
-            <Col xs={24} md={8} key={index}>
-              <Card 
-                hoverable 
-                style={{ height: '100%' }}
-                cover={
-                  <AntdImage
-                    alt={variation.name}
-                    src={variation.image}
-                    style={{ height: 200, objectFit: 'cover' }}
-                  />
-                }
-              >
-                <Title level={4}>{variation.name}</Title>
-                <Paragraph style={{ marginBottom: 16 }}>
-                  {variation.description}
-                </Paragraph>
-                
-                <div style={{ marginBottom: 16 }}>
-                  <Space wrap>
+      <Section padding="4xl">
+        <Container>
+          <Section.Header
+            title="Service Body Variations"
+            subtitle="Complete solutions for every application"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {serviceBodyVariations.map((variation, index) => (
+              <Card key={index} variant="elevated" hover>
+                <Card.Image
+                  src={variation.image}
+                  alt={variation.name}
+                  className="h-48 object-cover"
+                />
+                <Card.Body>
+                  <Card.Title className="text-xl mb-3">{variation.name}</Card.Title>
+                  <Card.Text className="mb-4">
+                    {variation.description}
+                  </Card.Text>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {variation.features.map(feature => (
-                      <Tag key={feature} color="green" size="small">
+                      <Badge key={feature} variant="success" size="sm">
                         {feature}
-                      </Tag>
+                      </Badge>
                     ))}
-                  </Space>
-                </div>
+                  </div>
 
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center'
-                }}>
-                  <Text strong style={{ fontSize: 18 }}>
-                    {variation.price}
-                  </Text>
-                  <Button type="primary" size="small">
-                    Learn More
-                  </Button>
-                </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-800">
+                      {variation.price}
+                    </span>
+                    <Button variant="primary" size="sm">
+                      Learn More
+                    </Button>
+                  </div>
+                </Card.Body>
               </Card>
-            </Col>
-          ))}
-        </Row>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Government Sector Solutions */}
-      <Section title="Government Sector Solutions" subtitle="Compliant solutions for government operations">
-        <Row gutter={[24, 24]} style={{ background: '#f5f5f5', padding: '48px 24px', borderRadius: 12 }}>
-          {governmentSolutions.map((solution, index) => (
-            <Col xs={24} md={8} key={index}>
-              <Title level={4}>{solution.name}</Title>
-              <Paragraph style={{ marginBottom: 16 }}>
-                {solution.description}
-              </Paragraph>
-              <Space wrap>
-                {solution.features.map(feature => (
-                  <Tag key={feature} color="blue">
-                    {feature}
-                  </Tag>
-                ))}
-              </Space>
-            </Col>
-          ))}
-        </Row>
+      <Section background="light" padding="4xl">
+        <Container>
+          <Section.Header
+            title="Government Sector Solutions"
+            subtitle="Compliant solutions for government operations"
+            align="center"
+            className="mb-12"
+          />
+          
+          <div className="bg-white rounded-lg p-8 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {governmentSolutions.map((solution, index) => (
+                <div key={index}>
+                  <h4 className="text-xl font-bold text-gray-800 mb-3">
+                    {solution.name}
+                  </h4>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {solution.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {solution.features.map(feature => (
+                      <Badge key={feature} variant="primary" size="sm">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Container>
       </Section>
 
       {/* CTA Section */}
-      <Section title="" subtitle="">
-        <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <Title level={2}>Ready for Your Perfect Ute Solution?</Title>
-          <Paragraph style={{ fontSize: 18, marginBottom: 32 }}>
-            Get a custom quote for your ute canopy or service body.
-          </Paragraph>
-          <Space size="large">
-            <Button type="primary" size="large" href="/contact">
-              Get Quote
-            </Button>
-            <Button size="large" href="/inspiration">
-              View Inspiration Gallery
-            </Button>
-          </Space>
-        </div>
+      <Section background="primary" padding="4xl">
+        <Container>
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready for Your Perfect Ute Solution?
+            </h2>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Get a custom quote for your ute canopy or service body.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="secondary" size="lg" as={Link} to="/contact">
+                Get Quote
+              </Button>
+              <Button variant="outline" size="lg" as={Link} to="/inspiration">
+                View Inspiration Gallery
+              </Button>
+            </div>
+          </div>
+        </Container>
       </Section>
-    </div>
+    </>
   );
-} 
+};
+
+export default UtePage; 

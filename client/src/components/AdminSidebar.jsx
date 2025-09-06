@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Typography, Avatar, Divider } from 'antd';
+import { Menu, Typography, Avatar, Divider } from 'antd';
 import { 
   DashboardOutlined,
   CarOutlined,
@@ -21,7 +21,6 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getToken, removeToken } from '../lib/auth';
 
-const { Sider } = Layout;
 const { Title, Text } = Typography;
 
 export default function AdminSidebar({ isMobile = false, onClose }) {
@@ -116,7 +115,6 @@ export default function AdminSidebar({ isMobile = false, onClose }) {
   // Get the current active key based on location
   const getActiveKey = () => {
     const path = location.pathname;
-    console.log('Current path:', path); // Debug log
     
     if (path === '/admin') return '/admin';
     if (path.startsWith('/admin/services')) return '/admin/services';
@@ -207,17 +205,16 @@ export default function AdminSidebar({ isMobile = false, onClose }) {
   );
 
   if (isMobile) {
-    return sidebarContent;
+    return (
+      <div className="admin-sidebar-mobile">
+        {sidebarContent}
+      </div>
+    );
   }
 
   return (
-    <Sider
-      width={280}
-      className="admin-sidebar-sider"
-      breakpoint="lg"
-      collapsedWidth="0"
-    >
+    <div className="admin-sidebar">
       {sidebarContent}
-    </Sider>
+    </div>
   );
 }

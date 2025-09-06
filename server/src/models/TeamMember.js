@@ -9,6 +9,7 @@ const imageSchema = new mongoose.Schema({
 const teamMemberSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    slug: { type: String, unique: true, sparse: true },
     // Admin expects 'role'; keep 'position' as optional alias for public site
     role: { type: String, required: true },
     position: { type: String },
@@ -45,6 +46,18 @@ const teamMemberSchema = new mongoose.Schema(
 // Index for better query performance
 teamMemberSchema.index({ department: 1, isLeadership: 1, isActive: 1 });
 teamMemberSchema.index({ order: 1, isActive: 1 });
+
+// Pre-save middleware to generate slug from name
+teamMemberSchema.pre('save', function(next) {
+  if (this.isModified('name') && !this.slug) {
+    // Generate slug from name
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+  next();
+});
 
 const TeamMember = mongoose.model('TeamMember', teamMemberSchema);
 module.exports = TeamMember;
