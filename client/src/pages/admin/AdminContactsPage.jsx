@@ -41,7 +41,8 @@ import {
   SendOutlined,
   FileTextOutlined,
   CarOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -689,9 +690,22 @@ export default function AdminContactsPage() {
         open={detailDrawerVisible}
         onClose={() => setDetailDrawerVisible(false)}
         className="admin-detail-drawer"
+        closeIcon={<CloseOutlined />}
       >
         {selectedContact && (
           <div>
+            {/* Mobile Close Button - Only visible on mobile */}
+            <div className="mobile-drawer-close-button">
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={() => setDetailDrawerVisible(false)}
+                className="mobile-close-btn"
+              >
+                Close
+              </Button>
+            </div>
+            
             {/* Contact Header */}
             <div className="admin-contact-header">
               <Avatar size={64} icon={<UserOutlined />} className="admin-contact-avatar" />

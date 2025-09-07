@@ -19,16 +19,19 @@ import {
   StarOutlined
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getToken, removeToken } from '../lib/auth';
+import { getToken, removeToken, getUser, logout } from '../lib/auth';
 
 const { Title, Text } = Typography;
 
 export default function AdminSidebar({ isMobile = false, onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Get current user information
+  const currentUser = getUser();
 
   const handleLogout = () => {
-    removeToken();
+    logout();
     navigate('/admin/login');
     if (onClose) onClose();
   };
@@ -150,7 +153,7 @@ export default function AdminSidebar({ isMobile = false, onClose }) {
       <div className="sidebar-header">
         <div className="logo-section">
           <div className="logo-icon">
-            <TrophyOutlined style={{ fontSize: '24px', color: '#1677ff' }} />
+            <TrophyOutlined style={{ fontSize: '24px', color: '#ffffff' }} />
           </div>
           <div className="logo-text">
             <Title level={4} className="brand-title">HIDRIVE</Title>
@@ -164,14 +167,14 @@ export default function AdminSidebar({ isMobile = false, onClose }) {
       {/* User Profile Section */}
       <div className="user-profile-section">
         <Avatar 
-          size={40} 
+          size={32} 
           style={{ backgroundColor: '#1677ff' }}
           className="user-avatar"
         >
-          A
+          {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
         </Avatar>
         <div className="user-info">
-          <Text className="user-name">Admin User</Text>
+          <Text className="user-name">{currentUser?.name || 'Admin User'}</Text>
           <Text className="user-role">Administrator</Text>
         </div>
       </div>

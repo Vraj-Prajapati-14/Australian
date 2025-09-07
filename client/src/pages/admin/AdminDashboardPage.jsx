@@ -195,14 +195,9 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div style={{ 
-        padding: '48px', 
-        textAlign: 'center', 
-        background: '#ffffff',
-        minHeight: '100vh'
-      }}>
-        <Spin size="large" style={{ color: '#1677ff' }} />
-        <div style={{ marginTop: 16 }}>
+      <div className="admin-loading">
+        <Spin size="large" />
+        <div className="admin-mt-2">
           <Text style={{ color: '#666', fontSize: '16px' }}>Loading dashboard data...</Text>
         </div>
       </div>
@@ -211,17 +206,13 @@ export default function AdminDashboardPage() {
 
   if (hasError) {
     return (
-      <div style={{ 
-        padding: '48px', 
-        background: '#ffffff',
-        minHeight: '100vh'
-      }}>
+      <div className="admin-p-4">
         <Alert
           message="Error Loading Dashboard"
           description="There was an error loading the dashboard data. Please try refreshing the page."
           type="error"
           showIcon
-          style={{ marginBottom: 24 }}
+          className="admin-mb-3"
         />
         <Button type="primary" onClick={() => window.location.reload()}>
           Refresh Page
@@ -277,26 +268,31 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div style={containerStyle}>
-      <Title level={2} style={pageTitleStyle}>
-        Dashboard Overview
-      </Title>
+    <div>
+      <div className="admin-page-header">
+        <Title level={2} className="admin-page-title">
+          Dashboard Overview
+        </Title>
+        <Text type="secondary" className="admin-page-subtitle">
+          Welcome to the HIDRIVE Admin Panel
+        </Text>
+      </div>
       
       {/* Statistics Cards */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+      <Row gutter={[24, 24]} className="admin-mb-4">
         {stats.map((stat, index) => (
           <Col xs={24} sm={12} md={6} key={index}>
-            <Card style={statCardStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={statTitleStyle}>{stat.title}</div>
-                  <div style={{ ...statValueStyle, color: stat.color }}>
-                    {stat.value}
-                  </div>
-                </div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-icon" style={{ color: stat.color, background: `${stat.color}15` }}>
                 {stat.icon}
               </div>
-            </Card>
+              <div className="admin-stat-value" style={{ color: stat.color }}>
+                {stat.value}
+              </div>
+              <div className="admin-stat-label">
+                {stat.title}
+              </div>
+            </div>
           </Col>
         ))}
       </Row>
@@ -304,61 +300,65 @@ export default function AdminDashboardPage() {
       <Row gutter={[24, 24]}>
         {/* Quick Actions */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Quick Actions"
-            style={cardStyle}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Button 
-                type="primary" 
-                block 
-                icon={<PlusOutlined />} 
-                style={{ height: '44px', borderRadius: '8px' }}
-                onClick={() => handleQuickAction('add-service')}
-              >
-                Add New Service
-              </Button>
-              <Button 
-                block 
-                icon={<ContainerOutlined />} 
-                style={{ height: '44px', borderRadius: '8px' }}
-                onClick={() => handleQuickAction('add-project')}
-              >
-                Add New Project
-              </Button>
-              <Button 
-                block 
-                icon={<FileTextOutlined />} 
-                style={{ height: '44px', borderRadius: '8px' }}
-                onClick={() => handleQuickAction('add-case-study')}
-              >
-                Create Case Study
-              </Button>
-              <Button 
-                block 
-                icon={<PictureOutlined />} 
-                style={{ height: '44px', borderRadius: '8px' }}
-                onClick={() => handleQuickAction('add-inspiration')}
-              >
-                Add Inspiration Item
-              </Button>
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-card-title">Quick Actions</div>
             </div>
-          </Card>
+            <div className="admin-card-body">
+              <div className="admin-flex admin-flex-col admin-gap-2">
+                <Button 
+                  type="primary" 
+                  block 
+                  icon={<PlusOutlined />} 
+                  className="admin-btn admin-btn-primary"
+                  onClick={() => handleQuickAction('add-service')}
+                >
+                  Add New Service
+                </Button>
+                <Button 
+                  block 
+                  icon={<ContainerOutlined />} 
+                  className="admin-btn admin-btn-secondary"
+                  onClick={() => handleQuickAction('add-project')}
+                >
+                  Add New Project
+                </Button>
+                <Button 
+                  block 
+                  icon={<FileTextOutlined />} 
+                  className="admin-btn admin-btn-secondary"
+                  onClick={() => handleQuickAction('add-case-study')}
+                >
+                  Create Case Study
+                </Button>
+                <Button 
+                  block 
+                  icon={<PictureOutlined />} 
+                  className="admin-btn admin-btn-secondary"
+                  onClick={() => handleQuickAction('add-inspiration')}
+                >
+                  Add Inspiration Item
+                </Button>
+              </div>
+            </div>
+          </div>
         </Col>
 
         {/* Featured Items */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Featured Items" 
-            extra={<Button type="link" style={{ color: '#1677ff' }}>View All</Button>}
-            style={cardStyle}
-          >
-            <div>
-              <div style={{ marginBottom: 16 }}>
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-flex admin-justify-between admin-items-center">
+                <div className="admin-card-title">Featured Items</div>
+                <Button type="link" style={{ color: '#1677ff' }}>View All</Button>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <div className="admin-mb-2">
                 <Text strong style={{ color: '#262626' }}>Featured Services:</Text>
-                <div style={{ marginTop: 8 }}>
+                <div className="admin-mt-1">
                   {mainServices.filter(s => s.isFeatured).slice(0, 3).map(service => (
-                    <Tag key={service._id} color="blue" style={{ marginBottom: 8 }}>
+                    <Tag key={service._id} color="blue" className="admin-tag admin-mb-1">
                       {service.title}
                     </Tag>
                   ))}
@@ -368,11 +368,11 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               
-              <div style={{ marginBottom: 16 }}>
+              <div className="admin-mb-2">
                 <Text strong style={{ color: '#262626' }}>Featured Projects:</Text>
-                <div style={{ marginTop: 8 }}>
+                <div className="admin-mt-1">
                   {activeProjects.filter(p => p.isFeatured).slice(0, 3).map(project => (
-                    <Tag key={project._id} color="green" style={{ marginBottom: 8 }}>
+                    <Tag key={project._id} color="green" className="admin-tag admin-mb-1">
                       {project.title}
                     </Tag>
                   ))}
@@ -382,20 +382,23 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
 
       {/* Data Tables */}
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+      <Row gutter={[24, 24]} className="admin-mt-3">
         {/* Services Hierarchy */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Services Hierarchy" 
-            extra={<Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/services')}>Manage Services</Button>}
-            style={cardStyle}
-          >
-            <div>
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-flex admin-justify-between admin-items-center">
+                <div className="admin-card-title">Services Hierarchy</div>
+                <Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/services')}>Manage Services</Button>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <div>
               {mainServices.slice(0, 5).map((service, index) => (
                 <div key={service._id} style={{ 
                   marginBottom: index < mainServices.slice(0, 5).length - 1 ? '16px' : '0',
@@ -450,20 +453,24 @@ export default function AdminDashboardPage() {
                   <Text type="secondary">No main services found</Text>
                 </div>
               )}
+              </div>
             </div>
-          </Card>
+          </div>
         </Col>
 
         {/* Services Table */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Main Services Overview" 
-            extra={<Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/services')}>View All</Button>}
-            style={cardStyle}
-          >
-            <Table
-              dataSource={mainServices.slice(0, 5)}
-              columns={[
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-flex admin-justify-between admin-items-center">
+                <div className="admin-card-title">Main Services Overview</div>
+                <Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/services')}>View All</Button>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <Table
+                dataSource={mainServices.slice(0, 5)}
+                columns={[
                 {
                   title: 'Main Service',
                   dataIndex: 'title',
@@ -516,21 +523,25 @@ export default function AdminDashboardPage() {
               ]}
               pagination={false}
               size="small"
-              style={tableStyle}
+              className="admin-table"
             />
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
 
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         {/* Projects Table */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Recent Projects" 
-            extra={<Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/projects')}>View All</Button>}
-            style={cardStyle}
-          >
-            <Table
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-flex admin-justify-between admin-items-center">
+                <div className="admin-card-title">Recent Projects</div>
+                <Button type="link" style={{ color: '#1677ff' }} onClick={() => navigate('/admin/projects')}>View All</Button>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <Table
               dataSource={activeProjects.slice(0, 5)}
               columns={[
                 {
@@ -569,20 +580,24 @@ export default function AdminDashboardPage() {
               ]}
               pagination={false}
               size="small"
-              style={tableStyle}
+              className="admin-table"
             />
-          </Card>
+            </div>
+          </div>
         </Col>
 
         {/* Sub-Services Table */}
         <Col xs={24} lg={12}>
-          <Card 
-            title="Sub-Services Overview" 
-            extra={<Button type="link" style={{ color: '#52c41a' }} onClick={() => navigate('/admin/services')}>Manage Services</Button>}
-            style={cardStyle}
-          >
-            <Table
-              dataSource={subServices.slice(0, 5)}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div className="admin-flex admin-justify-between admin-items-center">
+                <div className="admin-card-title">Sub-Services Overview</div>
+                <Button type="link" style={{ color: '#52c41a' }} onClick={() => navigate('/admin/services')}>Manage Services</Button>
+              </div>
+            </div>
+            <div className="admin-card-body">
+              <Table
+                dataSource={subServices.slice(0, 5)}
               columns={[
                 {
                   title: 'Sub-Service',
@@ -620,9 +635,10 @@ export default function AdminDashboardPage() {
               ]}
               pagination={false}
               size="small"
-              style={tableStyle}
+              className="admin-table"
             />
-          </Card>
+            </div>
+          </div>
         </Col>
       </Row>
     </div>

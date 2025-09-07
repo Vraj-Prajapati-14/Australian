@@ -3,7 +3,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { MenuOutlined, CloseOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Button, Drawer, Spin, Avatar, Dropdown } from 'antd';
 import AdminSidebar from '../components/AdminSidebar';
-import { getToken, removeToken } from '../lib/auth';
+import { getToken, removeToken, getUser, logout } from '../lib/auth';
 
 // Custom hook to detect mobile screen size
 const useIsMobile = () => {
@@ -32,6 +32,9 @@ const AdminLayout = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
+  
+  // Get current user information
+  const currentUser = getUser();
 
   useEffect(() => {
     const token = getToken();
@@ -39,10 +42,20 @@ const AdminLayout = () => {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
+    
+    // Add admin-page class to body for consistent white background
+    document.body.classList.add('admin-page');
+    document.documentElement.classList.add('admin-page');
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('admin-page');
+      document.documentElement.classList.remove('admin-page');
+    };
   }, []);
 
   const handleLogout = () => {
-    removeToken();
+    logout();
     window.location.href = '/admin/login';
   };
 
@@ -68,7 +81,9 @@ const AdminLayout = () => {
     {
       key: 'profile',
       label: 'Profile',
-      icon: <Avatar size="small" style={{ backgroundColor: '#1677ff' }}>A</Avatar>
+      icon: <Avatar size="small" style={{ backgroundColor: '#1677ff' }}>
+        {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+      </Avatar>
     },
     {
       key: 'logout',
@@ -79,7 +94,7 @@ const AdminLayout = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f5f5' }}>
+    <div className="admin-layout-container">
       {/* Desktop Sidebar - Always visible on desktop */}
       <div className="admin-sidebar-desktop">
         <AdminSidebar />
@@ -104,7 +119,7 @@ const AdminLayout = () => {
               size={32} 
               style={{ backgroundColor: '#1677ff', cursor: 'pointer' }}
             >
-              A
+              {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
             </Avatar>
           </Dropdown>
         </div>
@@ -131,7 +146,9 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <main className="admin-main-content">
-        <Outlet />
+        <div className="admin-page-content">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

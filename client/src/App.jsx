@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import './styles/design-system.css';
 import './styles/components.css';
 import './styles/animations.css';
+import './styles/admin.css';
 import { queryClient } from './lib/queryClient';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';

@@ -17,10 +17,11 @@ export default function AdminLoginPage() {
 
     try {
       const response = await api.post('/auth/login', values);
-      const { token } = response.data;
+      const { token, admin } = response.data;
       
-      if (token) {
+      if (token && admin) {
         localStorage.setItem('aes_admin_token', token);
+        localStorage.setItem('aes_admin_user', JSON.stringify(admin));
         navigate('/admin');
       } else {
         setError('Invalid credentials');
