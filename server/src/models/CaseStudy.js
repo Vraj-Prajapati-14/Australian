@@ -13,6 +13,8 @@ const caseStudySchema = new mongoose.Schema(
     shortDescription: String,
     description: String,
     clientName: String,
+    clientPosition: String,
+    clientCompany: String,
     
     // Associations
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
@@ -27,20 +29,64 @@ const caseStudySchema = new mongoose.Schema(
     },
     isFeatured: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
+    
+    // Project Details - Enhanced
     completionDate: Date,
+    startDate: Date,
+    duration: String, // e.g., "6 months", "3 weeks"
+    teamSize: Number,
+    budget: String,
+    location: String,
+    
+    // Content Sections
     projectScope: String,
     challenges: String,
     solutions: String,
+    
+    // Project Stats - Portfolio Style
+    projectStats: {
+      stat1: { label: String, value: String }, // e.g., "Patients: 10K+"
+      stat2: { label: String, value: String }, // e.g., "Appointments: 25K+"
+      stat3: { label: String, value: String }, // e.g., "Efficiency: 50%+"
+      stat4: { label: String, value: String }  // e.g., "Satisfaction: 95%"
+    },
+    
+    // Key Results - Enhanced
     results: {
       vehiclesUpgraded: Number,
       costSavings: Number,
-      efficiencyImprovement: Number
+      efficiencyImprovement: Number,
+      // Additional result metrics
+      customResults: [{
+        label: String,
+        value: String,
+        icon: String // e.g., "📈", "💰", "⚡"
+      }]
     },
+    
+    // Key Features - Portfolio Style
+    keyFeatures: [String], // e.g., ["Patient portal with secure access", "Automated appointment scheduling"]
+    
+    // Development Process - Portfolio Style
+    developmentProcess: [{
+      step: Number,
+      title: String,
+      description: String,
+      duration: String
+    }],
+    
     testimonial: String,
     technologies: [String],
     tags: [String],
+    
+    // SEO
     seoTitle: String,
     seoDescription: String,
+    
+    // Additional Portfolio Fields
+    industry: String,
+    projectType: String,
+    methodology: String
   },
   { timestamps: true }
 );

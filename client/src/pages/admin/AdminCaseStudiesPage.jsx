@@ -173,11 +173,19 @@ export default function AdminCaseStudiesPage() {
     setEditingCaseStudy(caseStudy);
     setUploadedHeroImage(caseStudy.heroImage || null);
     setUploadedGallery(caseStudy.gallery || []);
+    
+    // Process keyFeatures - convert from array to text
+    const keyFeaturesText = caseStudy.keyFeatures && Array.isArray(caseStudy.keyFeatures) 
+      ? caseStudy.keyFeatures.join('\n') 
+      : caseStudy.keyFeatures || '';
+    
     form.setFieldsValue({
       ...caseStudy,
       service: caseStudy.service?._id,
       department: caseStudy.department?._id,
-      completionDate: caseStudy.completionDate ? dayjs(caseStudy.completionDate) : null
+      completionDate: caseStudy.completionDate ? dayjs(caseStudy.completionDate) : null,
+      startDate: caseStudy.startDate ? dayjs(caseStudy.startDate) : null,
+      keyFeatures: keyFeaturesText
     });
     setModalVisible(true);
   };
@@ -212,6 +220,18 @@ export default function AdminCaseStudiesPage() {
       // Convert dayjs to ISO string if present
       if (values.completionDate && values.completionDate.isValid()) {
         values.completionDate = values.completionDate.toISOString();
+      }
+      
+      if (values.startDate && values.startDate.isValid()) {
+        values.startDate = values.startDate.toISOString();
+      }
+
+      // Process keyFeatures - convert from text to array
+      if (values.keyFeatures && typeof values.keyFeatures === 'string') {
+        values.keyFeatures = values.keyFeatures
+          .split('\n')
+          .map(feature => feature.trim())
+          .filter(feature => feature.length > 0);
       }
 
       // Handle image data
@@ -485,6 +505,8 @@ export default function AdminCaseStudiesPage() {
             <TextArea rows={4} placeholder="Detailed description of the case study" />
           </Form.Item>
           
+          <Divider>Client Information</Divider>
+          
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
@@ -492,15 +514,34 @@ export default function AdminCaseStudiesPage() {
                 label="Client Name"
                 rules={[{ required: true, message: 'Please enter client name' }]}
               >
-                <Input placeholder="e.g., City Council" />
+                <Input placeholder="e.g., Dr. Michael Chen" />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
-                name="service"
-                label="Related Sub-Service"
+                name="clientPosition"
+                label="Client Position"
               >
-                <Select placeholder="Select related sub-service" allowClear>
+                <Input placeholder="e.g., Medical Director" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="clientCompany"
+                label="Client Company"
+              >
+                <Input placeholder="e.g., MediCare Plus" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="service"
+                label="Related Service"
+              >
+                <Select placeholder="Select related service" allowClear>
                   {services.map(service => (
                     <Option key={service._id} value={service._id}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -531,6 +572,14 @@ export default function AdminCaseStudiesPage() {
                     </Option>
                   ))}
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="industry"
+                label="Industry"
+              >
+                <Input placeholder="e.g., Healthcare, Construction" />
               </Form.Item>
             </Col>
           </Row>
@@ -629,7 +678,50 @@ export default function AdminCaseStudiesPage() {
             />
           </Form.Item>
           
-          <Divider>Project Details</Divider>
+          <Divider>Project Timeline & Details</Divider>
+          
+          <Row gutter={16}>
+            <Col span={6}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+              >
+                <DatePicker 
+                  placeholder="Project start date" 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="duration"
+                label="Duration"
+              >
+                <Input placeholder="e.g., 6 months, 3 weeks" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="teamSize"
+                label="Team Size"
+              >
+                <InputNumber 
+                  min={1} 
+                  placeholder="8" 
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="location"
+                label="Location"
+              >
+                <Input placeholder="e.g., Sydney, NSW" />
+              </Form.Item>
+            </Col>
+          </Row>
           
           <Row gutter={16}>
             <Col span={12}>
@@ -663,6 +755,88 @@ export default function AdminCaseStudiesPage() {
             <TextArea 
               rows={3} 
               placeholder="Describe the solutions implemented to address challenges"
+            />
+          </Form.Item>
+          
+          <Divider>Project Stats (Hero Section)</Divider>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name={['projectStats', 'stat1', 'label']}
+                label="Stat 1 Label"
+              >
+                <Input placeholder="e.g., Team Size" />
+              </Form.Item>
+              <Form.Item
+                name={['projectStats', 'stat1', 'value']}
+                label="Stat 1 Value"
+              >
+                <Input placeholder="e.g., 8 developers" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name={['projectStats', 'stat2', 'label']}
+                label="Stat 2 Label"
+              >
+                <Input placeholder="e.g., Duration" />
+              </Form.Item>
+              <Form.Item
+                name={['projectStats', 'stat2', 'value']}
+                label="Stat 2 Value"
+              >
+                <Input placeholder="e.g., 6 months" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name={['projectStats', 'stat3', 'label']}
+                label="Stat 3 Label"
+              >
+                <Input placeholder="e.g., Client" />
+              </Form.Item>
+              <Form.Item
+                name={['projectStats', 'stat3', 'value']}
+                label="Stat 3 Value"
+              >
+                <Input placeholder="e.g., MediCare Plus" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name={['projectStats', 'stat4', 'label']}
+                label="Stat 4 Label"
+              >
+                <Input placeholder="e.g., Industry" />
+              </Form.Item>
+              <Form.Item
+                name={['projectStats', 'stat4', 'value']}
+                label="Stat 4 Value"
+              >
+                <Input placeholder="e.g., Healthcare" />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Divider>Key Features</Divider>
+          
+          <Form.Item
+            name="keyFeatures"
+            label="Key Features (One per line)"
+            tooltip="Enter each key feature on a new line"
+          >
+            <TextArea 
+              rows={6} 
+              placeholder="Patient portal with secure access
+Automated appointment scheduling
+Electronic health records (EHR)
+Billing and insurance integration
+HIPAA-compliant security
+Telemedicine integration"
             />
           </Form.Item>
           

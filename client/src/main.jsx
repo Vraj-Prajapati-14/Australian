@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { App as AntdApp } from 'antd';
 import 'antd/dist/reset.css';
 import './styles/design-system.css';
-import './styles/components.css';
+import './styles/header-clean.css';
 import './styles/animations.css';
+import './styles/components.css';
+import './styles/admin.css';
 import App from './App.jsx';
 import { setAuthToken } from './lib/api';
 import { getToken } from './lib/auth';
@@ -35,6 +37,8 @@ const globalStyles = `
     display: flex;
     flex-direction: column;
   }
+  
+  /* Header styles now loaded from header-clean.css */
   
   /* Custom scrollbar */
   ::-webkit-scrollbar {

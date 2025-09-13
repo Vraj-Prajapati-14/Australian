@@ -41,9 +41,17 @@ exports.getBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
     
-    const caseStudy = await CaseStudy.findOne({ slug, status: 'active' })
+    // First try to find active case study
+    let caseStudy = await CaseStudy.findOne({ slug, status: 'active' })
       .populate('service', 'title slug')
       .populate('department', 'name color');
+    
+    // If not found, try to find any case study with this slug (including inactive)
+    if (!caseStudy) {
+      caseStudy = await CaseStudy.findOne({ slug })
+        .populate('service', 'title slug')
+        .populate('department', 'name color');
+    }
     
     if (!caseStudy) {
       return res.status(404).json({ message: 'Case study not found' });

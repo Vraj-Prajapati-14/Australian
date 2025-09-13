@@ -256,26 +256,89 @@ const ContactPage = () => {
       )}
 
       {/* Hero Section */}
-      <Section background="primary" padding="4xl">
-        <Container>
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Contact Us
-            </h1>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
-              Get in touch with our team of experts for professional automotive services and solutions.
-            </p>
-          </div>
-        </Container>
-      </Section>
+      <div className="contact-hero">
+        <div className="container">
+          <h1>Contact Us</h1>
+          <p>
+            Get in touch with our team of experts for professional automotive services and solutions.
+          </p>
+        </div>
+      </div>
 
       {/* Contact Form & Info */}
-      <Section padding="4xl" className="contact-page-layout">
-        <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
+      <div className="contact-page-layout">
+        <div className="container">
+          <div className="contact-info-form-grid">
+            {/* Contact Information - 2x2 Grid */}
+            <div>
+              <div className="contact-info-grid">
+                {/* Phone */}
+                <div className="contact-info-card">
+                  <div className="flex">
+                    <div className="contact-info-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <div className="contact-info-content">
+                      <h3>Phone</h3>
+                      <a href="tel:+61212345678">+61 2 1234 5678</a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="contact-info-card">
+                  <div className="flex">
+                    <div className="contact-info-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="contact-info-content">
+                      <h3>Email</h3>
+                      <a href="mailto:info@australianengineering.com.au">info@australianengineering.com.au</a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="contact-info-card">
+                  <div className="flex">
+                    <div className="contact-info-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div className="contact-info-content">
+                      <h3>Address</h3>
+                      <p>123 Engineering Street, Sydney NSW 2000</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Hours */}
+                <div className="contact-info-card">
+                  <div className="flex">
+                    <div className="contact-info-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="contact-info-content">
+                      <h3>Business Hours</h3>
+                      <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Form - Second */}
             <div className="contact-form-container">
-              <h2 className="text-3xl font-bold mb-6">Send us a Message</h2>
+              <h2>Send us a Message</h2>
+              <p className="contact-form-subtitle">Fill out the form below and we'll get back to you within 24 hours</p>
               
               {submitStatus === 'success' && (
                 <Alert variant="success" className="mb-6">
@@ -479,350 +542,64 @@ const ContactPage = () => {
                 </Button>
               </form>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Contact Information */}
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Get in Touch</h2>
-              
-              <div className="space-y-6">
-                {/* Phone */}
-                {contact.phone && (
-                  <div className="contact-info-card">
-                    <div className="flex items-center">
-                      <div className="contact-info-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                      </div>
-                      <div className="contact-info-content">
-                        <h3>Phone</h3>
-                        <a href={`tel:${contact.phone}`}>
-                          {contact.phone}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Email */}
-                {contact.email && (
-                  <div className="contact-info-card">
-                    <div className="flex items-center">
-                      <div className="contact-info-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div className="contact-info-content">
-                        <h3>Email</h3>
-                        <a href={`mailto:${contact.email}`}>
-                          {contact.email}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Address */}
-                {contact.address && (
-                  <div className="contact-info-card">
-                    <div className="flex items-center">
-                      <div className="contact-info-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div className="contact-info-content">
-                        <h3>Address</h3>
-                        <p>{contact.address}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Business Hours */}
-                {contact.businessHours && (
-                  <div className="contact-info-card">
-                    <div className="flex items-center">
-                      <div className="contact-info-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="contact-info-content">
-                        <h3>Business Hours</h3>
-                        <p>{contact.businessHours}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Australia Map with Locations */}
-                <div className="contact-info-card map-card">
-                  <div className="flex items-center mb-4">
-                    <div className="contact-info-icon">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <div className="contact-info-content">
-                      <h3>Our Locations Across Australia</h3>
-                      <p>Find us in major cities nationwide</p>
-                    </div>
-                  </div>
-                  
-                  <div className="australia-map-container">
-                    <svg viewBox="0 0 600 400" className="australia-map">
-                      {/* Australia outline with dots - more detailed */}
-                      <g className="australia-outline">
-                        {/* Mainland Australia - more comprehensive dot pattern */}
-                        <circle cx="50" cy="300" r="2" fill="#6b7280"/>
-                        <circle cx="70" cy="280" r="2" fill="#6b7280"/>
-                        <circle cx="90" cy="260" r="2" fill="#6b7280"/>
-                        <circle cx="110" cy="240" r="2" fill="#6b7280"/>
-                        <circle cx="130" cy="220" r="2" fill="#6b7280"/>
-                        <circle cx="150" cy="200" r="2" fill="#6b7280"/>
-                        <circle cx="170" cy="180" r="2" fill="#6b7280"/>
-                        <circle cx="190" cy="160" r="2" fill="#6b7280"/>
-                        <circle cx="210" cy="140" r="2" fill="#6b7280"/>
-                        <circle cx="230" cy="120" r="2" fill="#6b7280"/>
-                        <circle cx="250" cy="100" r="2" fill="#6b7280"/>
-                        <circle cx="270" cy="80" r="2" fill="#6b7280"/>
-                        <circle cx="290" cy="60" r="2" fill="#6b7280"/>
-                        <circle cx="310" cy="40" r="2" fill="#6b7280"/>
-                        <circle cx="330" cy="20" r="2" fill="#6b7280"/>
-                        <circle cx="350" cy="0" r="2" fill="#6b7280"/>
-                        <circle cx="370" cy="20" r="2" fill="#6b7280"/>
-                        <circle cx="390" cy="40" r="2" fill="#6b7280"/>
-                        <circle cx="410" cy="60" r="2" fill="#6b7280"/>
-                        <circle cx="430" cy="80" r="2" fill="#6b7280"/>
-                        <circle cx="450" cy="100" r="2" fill="#6b7280"/>
-                        <circle cx="470" cy="120" r="2" fill="#6b7280"/>
-                        <circle cx="490" cy="140" r="2" fill="#6b7280"/>
-                        <circle cx="510" cy="160" r="2" fill="#6b7280"/>
-                        <circle cx="530" cy="180" r="2" fill="#6b7280"/>
-                        <circle cx="550" cy="200" r="2" fill="#6b7280"/>
-                        
-                        {/* Western coast */}
-                        <circle cx="30" cy="280" r="2" fill="#6b7280"/>
-                        <circle cx="10" cy="260" r="2" fill="#6b7280"/>
-                        <circle cx="0" cy="240" r="2" fill="#6b7280"/>
-                        <circle cx="10" cy="220" r="2" fill="#6b7280"/>
-                        <circle cx="30" cy="200" r="2" fill="#6b7280"/>
-                        <circle cx="50" cy="180" r="2" fill="#6b7280"/>
-                        <circle cx="70" cy="160" r="2" fill="#6b7280"/>
-                        <circle cx="90" cy="140" r="2" fill="#6b7280"/>
-                        <circle cx="110" cy="120" r="2" fill="#6b7280"/>
-                        <circle cx="130" cy="100" r="2" fill="#6b7280"/>
-                        <circle cx="150" cy="80" r="2" fill="#6b7280"/>
-                        <circle cx="170" cy="60" r="2" fill="#6b7280"/>
-                        <circle cx="190" cy="40" r="2" fill="#6b7280"/>
-                        <circle cx="210" cy="20" r="2" fill="#6b7280"/>
-                        <circle cx="230" cy="0" r="2" fill="#6b7280"/>
-                        
-                        {/* Tasmania */}
-                        <circle cx="300" cy="350" r="2" fill="#6b7280"/>
-                        <circle cx="320" cy="330" r="2" fill="#6b7280"/>
-                        <circle cx="340" cy="310" r="2" fill="#6b7280"/>
-                        <circle cx="360" cy="290" r="2" fill="#6b7280"/>
-                        <circle cx="380" cy="270" r="2" fill="#6b7280"/>
-                        <circle cx="400" cy="250" r="2" fill="#6b7280"/>
-                        <circle cx="420" cy="230" r="2" fill="#6b7280"/>
-                        <circle cx="440" cy="210" r="2" fill="#6b7280"/>
-                        <circle cx="460" cy="190" r="2" fill="#6b7280"/>
-                        <circle cx="480" cy="170" r="2" fill="#6b7280"/>
-                        <circle cx="500" cy="150" r="2" fill="#6b7280"/>
-                        <circle cx="520" cy="130" r="2" fill="#6b7280"/>
-                        <circle cx="540" cy="110" r="2" fill="#6b7280"/>
-                        <circle cx="560" cy="90" r="2" fill="#6b7280"/>
-                        <circle cx="580" cy="70" r="2" fill="#6b7280"/>
-                        <circle cx="600" cy="50" r="2" fill="#6b7280"/>
-                      </g>
-                      
-                      {/* Location Markers */}
-                      {/* Perth - Manufacturing */}
-                      <g className="location-marker" data-location="Perth">
-                        <circle cx="80" cy="280" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="80" cy="280" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(80, 280)">
-                          <rect x="-6" y="-6" width="12" height="12" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="2" fill="#1e293b"/>
-                        </g>
-                      </g>
-                      
-                      {/* Sydney - Installation & Showroom */}
-                      <g className="location-marker" data-location="Sydney">
-                        <circle cx="350" cy="200" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="350" cy="200" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(350, 200)">
-                          <polygon points="-6,-2 -2,-6 2,-6 6,-2 6,2 2,6 -2,6 -6,2" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <polygon points="-4,-2 -2,-4 2,-4 4,-2 4,2 2,4 -2,4 -4,2" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="1.5" fill="#1e293b"/>
-                        </g>
-                      </g>
-                      
-                      {/* Melbourne - Installation & Showroom */}
-                      <g className="location-marker" data-location="Melbourne">
-                        <circle cx="320" cy="250" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="320" cy="250" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(320, 250)">
-                          <polygon points="-6,-2 -2,-6 2,-6 6,-2 6,2 2,6 -2,6 -6,2" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <polygon points="-4,-2 -2,-4 2,-4 4,-2 4,2 2,4 -2,4 -4,2" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="1.5" fill="#1e293b"/>
-                        </g>
-                      </g>
-                      
-                      {/* Brisbane - Installation & Showroom */}
-                      <g className="location-marker" data-location="Brisbane">
-                        <circle cx="380" cy="150" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="380" cy="150" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(380, 150)">
-                          <polygon points="-6,-2 -2,-6 2,-6 6,-2 6,2 2,6 -2,6 -6,2" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <polygon points="-4,-2 -2,-4 2,-4 4,-2 4,2 2,4 -2,4 -4,2" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="1.5" fill="#1e293b"/>
-                        </g>
-                      </g>
-                      
-                      {/* Adelaide - Installation & Showroom */}
-                      <g className="location-marker" data-location="Adelaide">
-                        <circle cx="280" cy="280" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="280" cy="280" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(280, 280)">
-                          <polygon points="-6,-2 -2,-6 2,-6 6,-2 6,2 2,6 -2,6 -6,2" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <polygon points="-4,-2 -2,-4 2,-4 4,-2 4,2 2,4 -2,4 -4,2" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="1.5" fill="#1e293b"/>
-                        </g>
-                      </g>
-                      
-                      {/* Hobart - Installation & Showroom */}
-                      <g className="location-marker" data-location="Hobart">
-                        <circle cx="320" cy="350" r="25" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" strokeWidth="2"/>
-                        <circle cx="320" cy="350" r="15" fill="rgba(255, 193, 7, 0.5)"/>
-                        <g transform="translate(320, 350)">
-                          <polygon points="-6,-2 -2,-6 2,-6 6,-2 6,2 2,6 -2,6 -6,2" fill="#ffffff" stroke="#1e293b" strokeWidth="1"/>
-                          <polygon points="-4,-2 -2,-4 2,-4 4,-2 4,2 2,4 -2,4 -4,2" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                          <circle cx="0" cy="0" r="1.5" fill="#1e293b"/>
-                        </g>
+      {/* Google Map Section - Full Width */}
+      <div className="contact-map-section">
+        <div className="container">
+          <div className="contact-info-card map-card">
+            <div className="flex">
+              <div className="contact-info-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div className="contact-info-content">
+                <h3>Our Location</h3>
+                <p>123 Engineering Street, Sydney NSW 2000</p>
+              </div>
+            </div>
+            
+            <div className="map-container">
+              <img 
+                src="https://staticmap.openstreetmap.de/staticmap.php?center=-33.8688,151.2093&zoom=15&size=600x300&maptype=mapnik&markers=-33.8688,151.2093,red-pushpin"
+                alt="Our location in Sydney"
+                className="map-image"
+                onError={(e) => {
+                  e.target.src = `data:image/svg+xml;base64,${btoa(`
+                    <svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="600" height="300" fill="#f8fafc"/>
+                      <g transform="translate(300, 150)">
+                        <circle cx="0" cy="0" r="8" fill="#175490"/>
+                        <text x="0" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#333333">
+                          Our Location
+                        </text>
+                        <text x="0" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#666666">
+                          123 Engineering Street, Sydney NSW 2000
+                        </text>
                       </g>
                     </svg>
-                    
-                    {/* Legend */}
-                    <div className="map-legend">
-                      <div className="legend-item">
-                        <div className="legend-icon gear-icon">
-                          <svg viewBox="0 0 16 16" width="16" height="16">
-                            <rect x="2" y="2" width="12" height="12" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                            <circle cx="8" cy="8" r="2" fill="#1e293b"/>
-                          </svg>
-                        </div>
-                        <span>Manufacturing, Installation & Showroom</span>
-                      </div>
-                      <div className="legend-item">
-                        <div className="legend-icon wrench-icon">
-                          <svg viewBox="0 0 16 16" width="16" height="16">
-                            <polygon points="2,6 6,2 10,2 14,6 14,10 10,14 6,14 2,10" fill="none" stroke="#1e293b" strokeWidth="1"/>
-                            <circle cx="8" cy="8" r="1.5" fill="#1e293b"/>
-                          </svg>
-                        </div>
-                        <span>Installation & Showroom</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Google Maps Integration */}
-                <div className="contact-info-card map-card">
-                  <div className="flex items-center mb-4">
-                    <div className="contact-info-icon">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <div className="contact-info-content">
-                      <h3>Our Main Location</h3>
-                      <p>Forth Avenue, Blacktown NSW 2148</p>
-                    </div>
-                  </div>
-                  
-                  <div className="map-container">
-                    <img 
-                      src="https://staticmap.openstreetmap.de/staticmap.php?center=-33.775,150.925&zoom=15&size=600x300&maptype=mapnik&markers=-33.775,150.925,red-pushpin"
-                      alt="Our location at Forth Avenue, Blacktown NSW 2148"
-                      className="map-image"
-                      onError={(e) => {
-                        // Fallback to a better placeholder if Google Maps API key is not available
-                        e.target.src = `data:image/svg+xml;base64,${btoa(`
-                          <svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
-                              </linearGradient>
-                            </defs>
-                            <rect width="600" height="300" fill="url(#bg)" rx="8"/>
-                            <g transform="translate(300, 120)">
-                              <circle cx="0" cy="0" r="12" fill="#ef4444" stroke="#ffffff" stroke-width="3"/>
-                              <text x="0" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#1e293b">
-                                Our Location
-                              </text>
-                              <text x="0" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">
-                                Forth Avenue, Blacktown NSW 2148
-                              </text>
-                            </g>
-                            <g transform="translate(50, 250)">
-                              <rect x="0" y="0" width="500" height="30" fill="rgba(255,255,255,0.8)" rx="4"/>
-                              <text x="250" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#64748b">
-                                Click "Open in Google Maps" to view interactive map
-                              </text>
-                            </g>
-                          </svg>
-                        `)}`;
-                      }}
-                    />
-                    <div className="map-overlay">
-                      <button 
-                        className="map-button"
-                        onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=Forth+Avenue,Blacktown,NSW,2148,Australia', '_blank')}
-                      >
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        Open in Google Maps
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  `)}`;
+                }}
+              />
+              <div className="map-overlay">
+                <button 
+                  className="map-button"
+                  onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=123+Engineering+Street,Sydney,NSW,2000,Australia', '_blank')}
+                >
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Open in Google Maps
+                </button>
               </div>
             </div>
           </div>
-        </Container>
-      </Section>
-
-      {/* CTA Section */}
-      <Section background="light" padding="4xl">
-        <Container>
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Contact us today for a free consultation and quote on your automotive needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="primary">
-                Get Free Quote
-              </Button>
-              <Button size="lg" variant="outline">
-                View Services
-              </Button>
-            </div>
-          </div>
-        </Container>
-      </Section>
+        </div>
+      </div>
     </>
   );
 };

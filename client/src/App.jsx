@@ -2,10 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, theme, App as AntApp } from 'antd';
 import { HelmetProvider } from 'react-helmet-async';
-import './styles/design-system.css';
-import './styles/components.css';
-import './styles/animations.css';
-import './styles/admin.css';
+// CSS imports moved to main.jsx to prevent conflicts
 import { queryClient } from './lib/queryClient';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';

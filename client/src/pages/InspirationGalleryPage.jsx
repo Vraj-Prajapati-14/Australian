@@ -105,13 +105,15 @@ const InspirationGalleryPage = () => {
     // Check if item has service or department data
     if (item.service) {
       const serviceTitle = item.service.title?.toLowerCase() || '';
-      if (serviceTitle.includes('ute') || serviceTitle.includes('pickup')) return '🚗';
-      if (serviceTitle.includes('trailer')) return '🚛';
-      if (serviceTitle.includes('truck')) return '🚚';
-      if (serviceTitle.includes('fleet')) return '🏢';
-      if (serviceTitle.includes('van')) return '🚐';
-      if (serviceTitle.includes('bus')) return '🚌';
-      return '🚗'; // Default for services
+      if (serviceTitle.includes('hvac') || serviceTitle.includes('building')) return '⚙️';
+      if (serviceTitle.includes('mechanical') || serviceTitle.includes('design')) return '🔧';
+      if (serviceTitle.includes('engineering')) return '📐';
+      if (serviceTitle.includes('construction')) return '🏗️';
+      if (serviceTitle.includes('electrical')) return '⚡';
+      if (serviceTitle.includes('plumbing')) return '🔩';
+      if (serviceTitle.includes('maintenance')) return '🛠️';
+      if (serviceTitle.includes('consulting')) return '📊';
+      return '⚙️'; // Default for services
     }
     
     if (item.department) {
@@ -120,11 +122,12 @@ const InspirationGalleryPage = () => {
       if (deptName.includes('emergency') || deptName.includes('fire') || deptName.includes('police')) return '🚨';
       if (deptName.includes('health') || deptName.includes('medical')) return '🏥';
       if (deptName.includes('education') || deptName.includes('school')) return '🎓';
-      if (deptName.includes('transport') || deptName.includes('logistics')) return '🚛';
+      if (deptName.includes('transport') || deptName.includes('logistics')) return '📦';
+      if (deptName.includes('engineering')) return '📐';
       return '🏢'; // Default for departments
     }
     
-    return '🚗'; // Ultimate fallback
+    return '⚙️'; // Ultimate fallback
   };
 
   const getCategoryColor = (item) => {
@@ -194,194 +197,164 @@ const InspirationGalleryPage = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <div className="gallery-hero">
-        <div className="gallery-hero-content">
-          <h1>Inspiration Gallery</h1>
-          <p>
-            Discover how HIDRIVE transforms vehicles into mobile workspaces. Browse our collection of successful builds and get inspired for your next project.
+      <div className="inspiration-hero">
+        <div className="hero-content">
+          <div className="inspiration-tag">
+            🇦🇺 Australian Engineering Excellence
+          </div>
+          <h1 className="hero-title">Inspiration Gallery</h1>
+          <p className="hero-subtitle">
+            Discover how we transform vehicles into mobile workspaces. Browse our collection of successful builds and get inspired for your next project.
           </p>
-          <Button variant="secondary" size="lg" as={Link} to="/contact" className="btn">
-            Get Quote
-          </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="gallery-filters">
-        <div className="filter-container">
-          <div className="filter-grid">
-            <div className="filter-select">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="search-container">
-              <div className="search-icon">🔍</div>
-              <input
-                type="text"
-                placeholder="Search inspiration gallery..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+       {/* Filters - Service-based Pills */}
+       <div className="inspiration-filters">
+         <div className="filter-container">
+           <div className="filter-pills">
+             <button
+               className={`filter-pill ${selectedCategory === 'all' ? 'active' : ''}`}
+               onClick={() => setSelectedCategory('all')}
+             >
+               All Projects
+             </button>
+             {services.slice(0, 6).map((service) => (
+               <button
+                 key={service._id}
+                 className={`filter-pill ${selectedCategory === `service_${service._id}` ? 'active' : ''}`}
+                 onClick={() => setSelectedCategory(`service_${service._id}`)}
+               >
+                 {service.title}
+               </button>
+             ))}
+           </div>
+           
+           <div className="search-container">
+             <div className="search-icon">🔍</div>
+             <input
+               type="text"
+               placeholder="Search case studies..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="search-input"
+             />
+           </div>
+         </div>
+       </div>
 
       {/* Gallery Grid */}
-      <div className="gallery-main">
-        <div className="gallery-header">
+      <div className="inspiration-gallery-main">
+        {/* <div className="inspiration-gallery-header">
           <h2>Inspiration Gallery</h2>
           <p>Showing {filteredItems.length} items</p>
-        </div>
+        </div> */}
         
         {isLoading ? (
           <div className="gallery-loading">
             <div className="loading-spinner"></div>
           </div>
         ) : (
-          <div className="gallery-grid">
-            {filteredItems.map((item) => (
-              <div key={item._id} className="gallery-card">
-                <div className="gallery-card-image">
-                  {item.image && item.image.url ? (
-                    <img
-                      src={item.image.url}
-                      alt={item.image.alt || item.title}
-                    />
-                  ) : (
-                    <div className="placeholder-image">
-                      <span>{getCategoryIcon(item.category)}</span>
-                    </div>
-                  )}
-                  
-                  <div className="gallery-card-overlay">
-                    <div className="overlay-content">
-                      <h3 className="overlay-title">{item.title}</h3>
-                      <div className="overlay-actions">
-                        <a href="#" className="overlay-btn">View Details</a>
-                        <a href="#" className="overlay-btn">Get Quote</a>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="gallery-card-actions">
-                    <button 
-                      className="action-btn" 
-                      title="View Details"
-                      onClick={() => handleImageClick(item)}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="gallery-card-content">
-                  <h3 className="gallery-card-title">{item.title}</h3>
-                  <p className="gallery-card-description">
-                    {item.description}
-                  </p>
-                  
-                  <div className="gallery-card-tags">
-                    {item.tags?.map((tag, index) => (
-                      <span key={index} className="gallery-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="gallery-card-footer">
-                    <a href="#" className="gallery-card-btn gallery-card-btn-primary">
-                      View Project
-                    </a>
-                    <a href="#" className="gallery-card-btn gallery-card-btn-secondary">
-                      Get Quote
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="inspiration-gallery-grid">
+             {filteredItems.map((item) => (
+               <div key={item._id} className="inspiration-gallery-card" onClick={() => handleImageClick(item)}>
+                 <div className="inspiration-gallery-card-image">
+                   {item.image && item.image.url ? (
+                     <img
+                       src={item.image.url}
+                       alt={item.image.alt || item.title}
+                     />
+                   ) : (
+                     <div className="placeholder-image">
+                       <span>{getCategoryIcon(item.category)}</span>
+                     </div>
+                   )}
+                 </div>
+                 
+                 <div className="inspiration-gallery-card-content">
+                   <h3 className="inspiration-gallery-card-title">{item.title}</h3>
+                   <p className="inspiration-gallery-card-description">
+                     {item.description}
+                   </p>
+                   
+                   {item.tags && item.tags.length > 0 && (
+                     <div className="inspiration-gallery-card-tags">
+                       {item.tags.slice(0, 2).map((tag, index) => (
+                         <span key={index} className="gallery-tag">
+                           {tag}
+                         </span>
+                       ))}
+                     </div>
+                   )}
+                 </div>
+               </div>
+             ))}
           </div>
         )}
       </div>
 
-      {/* Categories Showcase */}
-      <div className="categories-showcase">
-        <div className="gallery-header">
+      {/* Browse by Category - All Services with Carousel */}
+      <section className="inspiration-categories-section">
+        <div className="inspiration-gallery-header">
           <h2>Browse by Category</h2>
           <p>Find inspiration for your specific needs</p>
         </div>
         
-        <div className="categories-grid">
-          {services.slice(0, 6).map((service) => (
-            <div key={service._id} className="category-card">
-              <div className={`category-icon category-${getCategoryColor({ service })}`}>
-                {getCategoryIcon({ service })}
+        <div className="inspiration-categories-grid">
+          {services.length > 0 ? (
+            services.map((service) => (
+              <div key={service._id} className="inspiration-category-card">
+                <div className="category-icon-wrapper">
+                  <div className="category-icon">
+                    {getCategoryIcon({ service })}
+                  </div>
+                </div>
+                <div className="category-content">
+                  <h3 className="category-title">{service.title}</h3>
+                  <p className="category-description">
+                    {service.description || `Professional ${service.title.toLowerCase()} solutions designed for maximum efficiency and performance.`}
+                  </p>
+                  <a href={`/services/${service.slug || service._id}`} className="category-btn">
+                    LEARN MORE <span className="arrow-icon">→</span>
+                  </a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="inspiration-category-card">
+              <div className="category-icon-wrapper">
+                <div className="category-icon">
+                  🔧
+                </div>
               </div>
               <div className="category-content">
-                <h3 className="category-title">{service.title}</h3>
+                <h3 className="category-title">Our Services</h3>
                 <p className="category-description">
-                  {service.description || `Professional ${service.title.toLowerCase()} solutions designed for maximum efficiency and performance.`}
+                  Professional engineering solutions designed for maximum efficiency and performance.
                 </p>
-                <Button 
-                  variant="primary" 
-                  as={Link} 
-                  to={`/services/${service.slug || service._id}`} 
-                  className="btn"
-                >
-                  Explore {service.title}
-                </Button>
+                <a href="/services" className="category-btn">
+                  LEARN MORE <span className="arrow-icon">→</span>
+                </a>
               </div>
             </div>
-          ))}
-          
-          {departments.slice(0, 3).map((department) => (
-            <div key={department._id} className="category-card">
-              <div className={`category-icon category-${getCategoryColor({ department })}`}>
-                {getCategoryIcon({ department })}
-              </div>
-              <div className="category-content">
-                <h3 className="category-title">{department.name}</h3>
-                <p className="category-description">
-                  {department.description || `Specialized solutions for ${department.name.toLowerCase()} sector requirements.`}
-                </p>
-                <Button 
-                  variant="primary" 
-                  as={Link} 
-                  to={`/departments/${department.slug || department._id}`} 
-                  className="btn"
-                >
-                  Explore {department.name}
-                </Button>
-              </div>
-            </div>
-          ))}
+          )}
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="gallery-cta">
+      <div className="inspiration-cta-section">
         <div className="cta-content">
-          <h2>Ready to Create Your Perfect Mobile Workspace?</h2>
-          <p>
-            Get inspired by our gallery and start building your custom solution today.
+          <h2 className="cta-title">Ready to Get Started?</h2>
+          <p className="cta-subtitle">
+            Contact us today for a free consultation and quote
           </p>
           <div className="cta-buttons">
-            <Button variant="secondary" size="lg" as={Link} to="/contact" className="btn">
-              Get Quote
-            </Button>
-            <Button variant="outline" size="lg" as={Link} to="/case-studies" className="btn">
-              View Case Studies
-            </Button>
+            <Link to="/contact" className="cta-button-primary">
+              CONTACT US
+            </Link>
+            <Link to="/services" className="cta-button-secondary">
+              VIEW SERVICES
+            </Link>
           </div>
         </div>
       </div>

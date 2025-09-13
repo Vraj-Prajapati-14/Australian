@@ -683,7 +683,7 @@ const HomePage = () => {
 
       {/* Our Commitments Section */}
       <section className="commitment-section">
-        <Container>
+        <div className="commitment-container">
           <div className="commitment-header">
             <h2 className="commitment-title">Our Commitments</h2>
             <p className="commitment-subtitle">
@@ -760,42 +760,96 @@ const HomePage = () => {
                 </p>
               </div>
             </div>
-
-            <div className="commitment-card">
-              <div className="commitment-icon">
-                <div className="icon-wrapper support">
-                  <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 5C3 3.89543 3.89543 3 5 3H8.27924C8.70967 3 9.09181 3.27543 9.22792 3.68377L10.7257 8.17721C10.8831 8.64932 10.6694 9.16531 10.2243 9.38787L7.96701 10.5165C9.06925 12.9612 11.0388 14.9308 13.4835 16.033L14.6121 13.7757C14.8347 13.3306 15.3507 13.1169 15.8228 13.2743L20.3162 14.7721C20.7246 14.9082 21 15.2903 21 15.7208V19C21 20.1046 20.1046 21 19 21H18C9.71573 21 3 14.2843 3 6V5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-              <div className="commitment-content">
-                <h3 className="commitment-card-title">24/7 Support</h3>
-                <p className="commitment-description">
-                  Round-the-clock technical support and emergency maintenance services for all mechanical systems and installations.
-                </p>
-              </div>
-            </div>
-
-            <div className="commitment-card">
-              <div className="commitment-icon">
-                <div className="icon-wrapper expertise">
-                  <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                    <path d="M19 15L19.74 12.26L23 12L19.74 11.74L19 9L18.26 11.74L15 12L18.26 12.26L19 15Z" fill="currentColor"/>
-                    <path d="M5 15L5.74 12.26L9 12L5.74 11.74L5 9L4.26 11.74L1 12L4.26 12.26L5 15Z" fill="currentColor"/>
-                  </svg>
-                </div>
-              </div>
-              <div className="commitment-content">
-                <h3 className="commitment-card-title">Expert Team</h3>
-                <p className="commitment-description">
-                  Highly skilled mechanical engineers and technicians with decades of combined experience in industrial and commercial projects.
-                </p>
-              </div>
-            </div>
           </div>
-        </Container>
+        </div>
+      </section>
+
+      {/* Our Services Section */}
+      <section className="services-section">
+        <div className="services-container">
+          <div className="services-header">
+            <h2 className="services-title">Our Services</h2>
+            <p className="services-subtitle">
+              We offer comprehensive mechanical engineering services to help businesses achieve their operational goals and stay ahead of the competition.
+            </p>
+          </div>
+          
+          <div className="services-grid">
+            {featuredServices.length > 0 ? (
+              featuredServices.map((service, index) => (
+                <div key={service._id} className="service-card">
+                  <div className="service-icon">
+                    <div className="icon-wrapper service">
+                      <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="service-content">
+                    <h3 className="service-card-title">{service.title}</h3>
+                    <p className="service-description">
+                      {service.description || 'Professional mechanical engineering solutions tailored to your specific needs and requirements.'}
+                    </p>
+                    <Link to={`/services/${service.slug}`} className="service-link">
+                      Learn More →
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Fallback dummy services if no services from database
+              [
+                {
+                  _id: '1',
+                  title: 'Mechanical Design',
+                  description: 'Comprehensive mechanical design services including CAD modeling, prototyping, and engineering analysis.',
+                  slug: 'mechanical-design'
+                },
+                {
+                  _id: '2', 
+                  title: 'HVAC Systems',
+                  description: 'Complete HVAC design, installation, and maintenance services for commercial and industrial facilities.',
+                  slug: 'hvac-systems'
+                },
+                {
+                  _id: '3',
+                  title: 'Industrial Automation',
+                  description: 'Advanced automation solutions to streamline your manufacturing and production processes.',
+                  slug: 'industrial-automation'
+                },
+                {
+                  _id: '4',
+                  title: 'Equipment Maintenance',
+                  description: 'Preventive and corrective maintenance services to ensure optimal equipment performance.',
+                  slug: 'equipment-maintenance'
+                }
+              ].map((service, index) => (
+                <div key={service._id} className="service-card">
+                  <div className="service-icon">
+                    <div className="icon-wrapper service">
+                      <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="service-content">
+                    <h3 className="service-card-title">{service.title}</h3>
+                    <p className="service-description">
+                      {service.description}
+                    </p>
+                    <Link to={`/services/${service.slug}`} className="service-link">
+                      Learn More →
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Testimonials Section */}
@@ -818,12 +872,16 @@ const HomePage = () => {
               Contact us today for a free consultation and quote
             </p>
             <div className="cta-buttons">
-              <Button variant="primary" size="lg" className="cta-button-primary">
-                Contact Us
-              </Button>
-              <Button variant="outline" size="lg" className="cta-button-secondary">
-                View Services
-              </Button>
+              <Link to="/contact">
+                <Button variant="primary" size="lg" className="cta-button-primary">
+                  Contact Us
+                </Button>
+              </Link>
+              <Link to="/case-studies">
+                <Button variant="outline" size="lg" className="cta-button-secondary">
+                  View Case Studies
+                </Button>
+              </Link>
             </div>
           </div>
         </Container>

@@ -300,8 +300,8 @@ const ServiceDetailPage = () => {
         <meta name="description" content={service.shortDescription || service.summary} />
       </Helmet>
 
-      {/* Simple Header Section */}
-      <div className="service-header">
+      {/* Service Hero Section */}
+      <section className="service-hero">
         <div className="service-breadcrumb">
           <Link to="/services">Services</Link>
           {isSubService && parentService && (
@@ -313,11 +313,11 @@ const ServiceDetailPage = () => {
           <span> / {service.title}</span>
         </div>
         
-        <div className="service-header-content">
+        <div className="service-hero-content">
           <h1>{service.title}</h1>
           <p>{service.summary}</p>
         </div>
-      </div>
+      </section>
 
       {/* Service Content */}
       <div className="service-content">
@@ -947,22 +947,22 @@ const ServiceDetailPage = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="service-cta">
+      <section className="service-cta">
         <div className="cta-content">
-          <h2>Ready to Transform Your Vehicle?</h2>
+          <h2>Ready to Get Started?</h2>
           <p>
-            Get a personalized quote for your {service.title.toLowerCase()} project and see how we can help you achieve your goals.
+            Contact us today for a free consultation and quote for your {service.title.toLowerCase()} project.
           </p>
           <div className="cta-buttons">
-            <Button variant="secondary" size="lg" as={Link} to="/contact" className="btn">
-              Get Quote
-            </Button>
-            <Button variant="outline" size="lg" as={Link} to="/inspiration-gallery" className="btn">
-              View Gallery
-            </Button>
+            <Link to="/contact" className="cta-button-primary">
+              Contact Us
+            </Link>
+            <Link to="/services" className="cta-button-secondary">
+              View Services
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
 
       {/* Lightbox Modal */}

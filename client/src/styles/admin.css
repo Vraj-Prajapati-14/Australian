@@ -374,7 +374,7 @@ html.admin-page {
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
+  z-index: 1001; /* Lower than modals */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -407,6 +407,10 @@ html.admin-page {
 }
 
 /* ===== MOBILE DRAWER ===== */
+.admin-drawer {
+  z-index: 1000 !important; /* Lower than modals */
+}
+
 .admin-drawer .ant-drawer-content {
   background: #ffffff;
 }
@@ -520,42 +524,239 @@ html.admin-page {
 
 /* ===== ADMIN FORMS ===== */
 .admin-form .ant-form-item {
-  margin-bottom: 20px !important;
+  margin-bottom: 20px;
 }
 
 .admin-form .ant-form-item-label {
-  padding-bottom: 6px !important;
+  padding-bottom: 6px;
 }
 
 .admin-form .ant-form-item-label > label {
-  font-weight: 600 !important;
-  color: #374151 !important;
-  font-size: 14px !important;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
 }
 
 .admin-form .ant-input,
 .admin-form .ant-input-number,
 .admin-form .ant-select-selector,
 .admin-form .ant-picker {
-  border-radius: 8px !important;
-  border: 1px solid #d1d5db !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  font-size: 14px !important;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
 }
 
 .admin-form .ant-input:focus,
 .admin-form .ant-input-number:focus,
 .admin-form .ant-select-focused .ant-select-selector,
 .admin-form .ant-picker-focused {
-  border-color: #1677ff !important;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1) !important;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
 }
 
 .admin-form .ant-input:hover,
 .admin-form .ant-input-number:hover,
 .admin-form .ant-select:hover .ant-select-selector,
 .admin-form .ant-picker:hover {
-  border-color: #9ca3af !important;
+  border-color: #9ca3af;
+}
+
+/* ===== CRITICAL: ENSURE FORM INTERACTIONS WORK ===== */
+.admin-modal {
+  z-index: 3000 !important;
+}
+
+.admin-modal .ant-modal-mask {
+  z-index: 2999 !important;
+  pointer-events: auto !important;
+}
+
+.admin-modal .ant-modal-wrap {
+  z-index: 3000 !important;
+  pointer-events: auto !important;
+}
+
+.admin-modal .ant-modal-content {
+  z-index: 3001 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+.admin-modal .ant-btn,
+.admin-modal .ant-input,
+.admin-modal .ant-select,
+.admin-modal .ant-picker,
+.admin-modal .ant-input-number,
+.admin-modal .ant-switch,
+.admin-modal .ant-checkbox,
+.admin-modal .ant-radio {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.admin-modal .ant-modal-body {
+  pointer-events: auto !important;
+}
+
+.admin-modal .ant-form {
+  pointer-events: auto !important;
+}
+
+.admin-modal .ant-form-item {
+  pointer-events: auto !important;
+}
+
+/* Ensure modal close button works */
+.admin-modal .ant-modal-close {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 3002 !important;
+  position: relative !important;
+}
+
+.admin-modal .ant-modal-close:hover {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.admin-modal .ant-modal-close:active {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* ===== CRITICAL: ENSURE ALL ADMIN BUTTONS WORK ===== */
+.ant-btn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.ant-btn:hover {
+  pointer-events: auto !important;
+}
+
+.ant-btn:active {
+  pointer-events: auto !important;
+}
+
+.ant-btn:focus {
+  pointer-events: auto !important;
+}
+
+/* Ensure ALL modal close buttons work - Universal fix */
+.ant-modal-close {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 3002 !important;
+  position: relative !important;
+}
+
+.ant-modal-close:hover {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.ant-modal-close:active {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Ensure ALL modals have proper z-index */
+.ant-modal {
+  z-index: 3000 !important;
+}
+
+.ant-modal-mask {
+  z-index: 2999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.ant-modal-wrap {
+  z-index: 3000 !important;
+  pointer-events: auto !important;
+}
+
+.ant-modal-content {
+  z-index: 3001 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+/* Ensure modal backdrop click works on all devices */
+.ant-modal-mask:hover {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.ant-modal-mask:active {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Comprehensive modal interaction fixes */
+.ant-modal-mask,
+.ant-modal-wrap,
+.ant-modal-content {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure modal content is selectable */
+.ant-modal-content .ant-input,
+.ant-modal-content .ant-textarea,
+.ant-modal-content .ant-select,
+.ant-modal-content .ant-picker,
+.ant-modal-content .ant-input-number {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Fix for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .ant-modal-mask {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+  }
+  
+  .ant-modal-close {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+  }
+  
+  .ant-modal-content .ant-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+  }
+}
+
+/* Ensure form inputs work */
+.ant-input,
+.ant-select,
+.ant-picker,
+.ant-input-number,
+.ant-switch,
+.ant-checkbox,
+.ant-radio {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.ant-input:focus,
+.ant-select:focus,
+.ant-picker:focus,
+.ant-input-number:focus {
+  pointer-events: auto !important;
 }
 
 /* ===== ADMIN TABLES ===== */
@@ -591,97 +792,97 @@ html.admin-page {
 
 /* ===== ADMIN BUTTONS ===== */
 .admin-btn {
-  height: 40px !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  border: none !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .admin-btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .admin-btn-primary {
-  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+  color: #ffffff;
 }
 
 .admin-btn-primary:hover {
-  background: linear-gradient(135deg, #0958d9 0%, #003eb3 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, #0958d9 0%, #003eb3 100%);
+  color: #ffffff;
 }
 
 .admin-btn-secondary {
-  background: #ffffff !important;
-  color: #374151 !important;
-  border: 1px solid #d1d5db !important;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 .admin-btn-secondary:hover {
-  background: #f9fafb !important;
-  color: #1f2937 !important;
-  border-color: #9ca3af !important;
+  background: #f9fafb;
+  color: #1f2937;
+  border-color: #9ca3af;
 }
 
 .admin-btn-danger {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
 }
 
 .admin-btn-danger:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  color: #ffffff;
 }
 
 /* ===== ADMIN MODALS ===== */
 .admin-modal .ant-modal-content {
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .admin-modal .ant-modal-header {
-  background: #f8fafc !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  padding: 20px 24px !important;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
 }
 
 .admin-modal .ant-modal-title {
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .admin-modal .ant-modal-body {
-  padding: 24px !important;
+  padding: 24px;
 }
 
 .admin-modal .ant-modal-footer {
-  background: #f8fafc !important;
-  border-top: 1px solid #e5e7eb !important;
-  padding: 16px 24px !important;
+  background: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  padding: 16px 24px;
 }
 
 /* ===== ADMIN TAGS ===== */
 .admin-tag {
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  padding: 4px 8px !important;
-  border: none !important;
-  transition: all 0.2s ease !important;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border: none;
+  transition: all 0.2s ease;
 }
 
 .admin-tag:hover {
-  transform: scale(1.05) !important;
+  transform: scale(1.05);
 }
 
 /* ===== ADMIN STATISTICS ===== */
@@ -754,6 +955,8 @@ html.admin-page {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     height: calc(100vh - 64px) !important;
+    position: relative !important;
+    z-index: 1 !important;
   }
   
   .admin-page-content {
@@ -811,7 +1014,7 @@ html.admin-page {
   }
   
   .admin-form .ant-form-item {
-    margin-bottom: 16px !important;
+    margin-bottom: 16px;
   }
   
   .admin-table .ant-table-thead > tr > th,
@@ -874,8 +1077,8 @@ html.admin-page {
   }
   
   .admin-btn {
-    height: 36px !important;
-    font-size: 13px !important;
+    height: 36px;
+    font-size: 13px;
   }
   
   .admin-stat-card {
@@ -901,19 +1104,56 @@ html.admin-page {
   /* Universal modal and drawer scrolling */
   .admin-modal .ant-modal-content,
   .admin-drawer .ant-drawer-content {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .admin-modal {
-    width: 95% !important;
-    max-width: 95vw !important;
-    margin: 0 auto !important;
+    width: 95%;
+    max-width: 95vw;
+    margin: 0 auto;
+    z-index: 3000 !important;
+  }
+  
+  .admin-modal .ant-modal-wrap {
+    z-index: 3000 !important;
+    pointer-events: auto !important;
+  }
+  
+  .admin-modal .ant-modal-mask {
+    z-index: 2999 !important;
+    pointer-events: auto !important;
+  }
+  
+  .admin-modal .ant-modal-content {
+    z-index: 3001 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+  }
+  
+  /* Ensure mobile modal buttons work */
+  .admin-modal .ant-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1 !important;
+  }
+  
+  .admin-modal .ant-modal-close {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 3002 !important;
+    position: relative !important;
+  }
+  
+  /* Ensure modal backdrop click works */
+  .admin-modal .ant-modal-mask {
+    pointer-events: auto !important;
+    cursor: pointer !important;
   }
   
   .admin-drawer {
-    width: 100% !important;
-    max-width: 100vw !important;
+    width: 100%;
+    max-width: 100vw;
   }
   
   /* CRITICAL: Force ALL tables to scroll horizontally on mobile */
@@ -980,10 +1220,10 @@ html.admin-page {
   /* Fix button layout in headers */
   .admin-page-header .ant-btn,
   .admin-page-content .ant-btn {
-    font-size: 13px !important;
-    height: 36px !important;
-    padding: 0 12px !important;
-    white-space: nowrap !important;
+    font-size: 13px;
+    height: 36px;
+    padding: 0 12px;
+    white-space: nowrap;
   }
   
   /* Fix header layout with buttons */
@@ -1146,8 +1386,8 @@ html.admin-page {
   /* Fix button positioning in headers */
   .admin-page-content .ant-flex .ant-btn,
   .admin-page-content .ant-space .ant-btn {
-    flex-shrink: 0 !important;
-    min-width: auto !important;
+    flex-shrink: 0;
+    min-width: auto;
   }
 }
 
@@ -1322,54 +1562,54 @@ html.admin-page {
 }
 
 .admin-filter-select .ant-select-selector {
-  border-radius: 8px !important;
-  border: 2px solid #f0f0f0 !important;
-  transition: all 0.3s ease !important;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .admin-filter-select .ant-select-selector:hover {
-  border-color: #d1d5db !important;
+  border-color: #d1d5db;
 }
 
 .admin-filter-select.ant-select-focused .ant-select-selector {
-  border-color: #1677ff !important;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1) !important;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
 }
 
 .admin-search-input .ant-input {
-  border-radius: 8px !important;
-  border: 2px solid #f0f0f0 !important;
-  transition: all 0.3s ease !important;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .admin-search-input .ant-input:hover {
-  border-color: #d1d5db !important;
+  border-color: #d1d5db;
 }
 
 .admin-search-input .ant-input:focus {
-  border-color: #1677ff !important;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1) !important;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
 }
 
 .admin-refresh-button {
-  height: 40px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%) !important;
-  border: none !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3) !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-refresh-button:hover {
-  background: linear-gradient(135deg, #0958d9 0%, #003eb3 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4) !important;
+  background: linear-gradient(135deg, #0958d9 0%, #003eb3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4);
 }
 
 /* Contact Details Drawer Styles */
@@ -1521,51 +1761,51 @@ html.admin-page {
 
 /* Reply Modal Styles */
 .admin-reply-modal .ant-modal-content {
-  border-radius: 16px !important;
-  overflow: hidden !important;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .admin-reply-modal .ant-modal-header {
-  background: #f8fafc !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  padding: 20px 24px !important;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
 }
 
 .admin-reply-modal .ant-modal-title {
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .admin-reply-modal .ant-modal-body {
-  padding: 24px !important;
+  padding: 24px;
 }
 
 .admin-reply-form .ant-form-item-label > label {
-  font-weight: 600 !important;
-  color: #374151 !important;
-  font-size: 14px !important;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
 }
 
 .admin-reply-form .ant-input,
 .admin-reply-form .ant-select-selector,
 .admin-reply-form .ant-input-number {
-  border-radius: 8px !important;
-  border: 2px solid #f0f0f0 !important;
-  transition: all 0.3s ease !important;
+  border-radius: 8px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .admin-reply-form .ant-input:focus,
 .admin-reply-form .ant-select-focused .ant-select-selector,
 .admin-reply-form .ant-input-number:focus {
-  border-color: #1677ff !important;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1) !important;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
 }
 
 .admin-reply-form .ant-input:hover,
 .admin-reply-form .ant-select:hover .ant-select-selector,
 .admin-reply-form .ant-input-number:hover {
-  border-color: #d1d5db !important;
+  border-color: #d1d5db;
 }
 
 /* ===== CONTACTS PAGE SPECIFIC MOBILE STYLES ===== */
@@ -1650,13 +1890,10 @@ html.admin-page {
   }
   
   .admin-reply-modal .ant-modal-body {
-    padding: 16px !important;
+    padding: 16px;
   }
   
   .admin-reply-form .ant-form-item {
-    margin-bottom: 16px !important;
+    margin-bottom: 16px;
   }
 }
-
-/* ===== DARK MODE SUPPORT - DISABLED FOR WHITE THEME ===== */
-/* Dark mode is disabled to maintain consistent white background */

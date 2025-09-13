@@ -8,6 +8,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [expandedService, setExpandedService] = useState(null);
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
   const location = useLocation();
 
   // Fetch settings data
@@ -32,6 +33,9 @@ const Header = () => {
       setScrolled(window.scrollY > 50);
     };
 
+    // Set initial scroll state immediately
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -39,10 +43,16 @@ const Header = () => {
   // Extract settings data
   const general = settings.general || {};
   const contact = settings.contact || {};
+  const appearance = settings.appearance || {};
 
   const handleMobileMenuClose = () => {
     setMobileMenuOpen(false);
     setExpandedService(null);
+  };
+
+  const handleMobileMenuToggle = () => {
+    console.log('Mobile menu toggle clicked, current state:', mobileMenuOpen);
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   const handleServiceClick = (serviceSlug, event) => {
@@ -54,16 +64,29 @@ const Header = () => {
     }
   };
 
+  const handleServicesDropdownToggle = () => {
+    setServicesDropdownOpen(!servicesDropdownOpen);
+  };
+
+  const handleServicesDropdownClose = () => {
+    setServicesDropdownOpen(false);
+  };
+
   const isActive = (path) => {
     return location.pathname === path;
   };
+
+  // Debug mobile menu state
+  useEffect(() => {
+    console.log('Mobile menu state changed:', mobileMenuOpen);
+  }, [mobileMenuOpen]);
 
   return (
     <header className={`header ${scrolled ? 'scrolled' : ''}`}>
       <div className="header-content">
         {/* Logo */}
         <Link to="/" className="header-logo">
-          {general.companyName || 'Australian Automotive'}
+          {general.siteName || general.companyName || 'Australian Engineering Solutions'}
         </Link>
 
         {/* Desktop Navigation */}
@@ -102,13 +125,26 @@ const Header = () => {
 
           {/* Services Dropdown */}
           <div className="dropdown">
-            <button className="header-nav-item flex items-center">
+            <button 
+              className="header-nav-item services-dropdown-trigger"
+              onClick={handleServicesDropdownToggle}
+              onMouseEnter={() => setServicesDropdownOpen(true)}
+            >
               SERVICES
-              <svg className="w-1.5 h-1.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ strokeWidth: 1.5 }}>
+              <svg 
+                className={`dropdown-arrow ${servicesDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div className="dropdown-menu">
+            <div 
+              className={`dropdown-menu services-dropdown ${servicesDropdownOpen ? 'show' : ''}`}
+              onMouseEnter={() => setServicesDropdownOpen(true)}
+              onMouseLeave={() => setServicesDropdownOpen(false)}
+            >
               {mainServices.map((service) => {
                 const subServices = service.subServices || [];
                 const isExpanded = expandedService === service.slug;
@@ -121,17 +157,16 @@ const Header = () => {
                       className="dropdown-item main-service expandable"
                     >
                       <span>{service.title}</span>
-                                                {subServices.length > 0 && (
-                            <svg 
-                              className={`w-1 h-1 ml-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                              style={{ strokeWidth: 1 }}
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                            </svg>
-                          )}
+                      {subServices.length > 0 && (
+                        <svg 
+                          className={`sub-dropdown-arrow ${isExpanded ? 'rotate-90' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      )}
                     </button>
                     
                     {/* Sub Services - Show only when expanded */}
@@ -144,7 +179,7 @@ const Header = () => {
                               key={sub.slug}
                               to={`/services/${service.slug}/${sub.slug}`}
                               className="dropdown-item sub-service"
-                              onClick={handleMobileMenuClose}
+                              onClick={handleServicesDropdownClose}
                             >
                               {sub.title}
                             </Link>
@@ -176,15 +211,17 @@ const Header = () => {
               <span className="phone-number">{contact.phone}</span>
             </a>
           )}
-          <Button variant="primary" size="sm">
-            Get Quote
-          </Button>
+          <Link to="/contact">
+            <Button variant="primary" size="sm" className="get-quote-btn">
+              Get Quote
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
         <button
           className="header-mobile-toggle"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={handleMobileMenuToggle}
           aria-label="Toggle mobile menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,122 +235,92 @@ const Header = () => {
       </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="header-mobile-menu show">
-          <div className="header-mobile-nav">
+      <div className={`header-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
+        <ul className="header-mobile-nav">
             {/* Home */}
-            <Link
-              to="/"
-              className={`header-mobile-item ${isActive('/') ? 'text-primary-600' : ''}`}
-              onClick={handleMobileMenuClose}
-            >
-              HOME
-            </Link>
+            <li>
+              <Link
+                to="/"
+                className={`header-mobile-item ${isActive('/') ? 'active' : ''}`}
+                onClick={handleMobileMenuClose}
+              >
+                HOME
+              </Link>
+            </li>
 
             {/* About */}
-            <Link
-              to="/about"
-              className={`header-mobile-item ${isActive('/about') ? 'text-primary-600' : ''}`}
-              onClick={handleMobileMenuClose}
-            >
-              ABOUT
-            </Link>
+            <li>
+              <Link
+                to="/about"
+                className={`header-mobile-item ${isActive('/about') ? 'active' : ''}`}
+                onClick={handleMobileMenuClose}
+              >
+                ABOUT
+              </Link>
+            </li>
 
             {/* Case Studies */}
-            <Link
-              to="/case-studies"
-              className={`header-mobile-item ${isActive('/case-studies') ? 'text-primary-600' : ''}`}
-              onClick={handleMobileMenuClose}
-            >
-              CASE STUDIES
-            </Link>
+            <li>
+              <Link
+                to="/case-studies"
+                className={`header-mobile-item ${isActive('/case-studies') ? 'active' : ''}`}
+                onClick={handleMobileMenuClose}
+              >
+                CASE STUDIES
+              </Link>
+            </li>
 
             {/* Inspiration Gallery */}
-            <Link
-              to="/inspiration-gallery"
-              className={`header-mobile-item ${isActive('/inspiration-gallery') ? 'text-primary-600' : ''}`}
-              onClick={handleMobileMenuClose}
-            >
-              INSPIRATION GALLERY
-            </Link>
+            <li>
+              <Link
+                to="/inspiration-gallery"
+                className={`header-mobile-item ${isActive('/inspiration-gallery') ? 'active' : ''}`}
+                onClick={handleMobileMenuClose}
+              >
+                INSPIRATION GALLERY
+              </Link>
+            </li>
 
             {/* Services */}
-            <div>
-              <div className="header-mobile-item">
-                SERVICES
-              </div>
+            <li>
               <div className="header-mobile-submenu">
-                {mainServices.map((service) => {
-                  const subServices = service.subServices || [];
-                  const isExpanded = expandedService === service.slug;
-                  
-                  return (
-                    <div key={service.slug} className="mobile-service-group">
-                      {/* Main Service - Clickable to expand */}
-                      <button
-                        onClick={() => handleServiceClick(service.slug, { preventDefault: () => {} })}
-                        className="header-mobile-subitem main-service expandable"
+                <button
+                  className="header-mobile-item"
+                  onClick={() => setExpandedService(expandedService === 'services' ? null : 'services')}
+                >
+                  <span>SERVICES</span>
+                  <svg className={`mobile-sub-dropdown-arrow ${expandedService === 'services' ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <ul className={`header-mobile-submenu-list ${expandedService === 'services' ? 'show' : ''}`}>
+                  {mainServices.map((service) => (
+                    <li key={service.slug}>
+                      <Link
+                        to={`/services/${service.slug}`}
+                        className="header-mobile-subitem"
+                        onClick={handleMobileMenuClose}
                       >
-                        <span>{service.title}</span>
-                        {subServices.length > 0 && (
-                          <svg 
-                            className={`w-1 h-1 ml-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                            style={{ strokeWidth: 1 }}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        )}
-                      </button>
-                      
-                      {/* Sub Services - Show only when expanded */}
-                      {subServices.length > 0 && isExpanded && (
-                        <div className="mobile-sub-services expanded">
-                          {subServices
-                            .filter(sub => sub.status === 'active')
-                            .map(sub => (
-                              <Link
-                                key={sub.slug}
-                                to={`/services/${service.slug}/${sub.slug}`}
-                                className="header-mobile-subitem sub-service"
-                                onClick={handleMobileMenuClose}
-                              >
-                                {sub.title}
-                              </Link>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        {service.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
+            </li>
 
             {/* Contact */}
-            <Link
-              to="/contact"
-              className={`header-mobile-item ${isActive('/contact') ? 'text-primary-600' : ''}`}
-              onClick={handleMobileMenuClose}
-            >
-              CONTACT
-            </Link>
-            
-            {/* Mobile Contact Info */}
-            {contact.phone && (
-              <div className="pt-4 border-t border-gray-200">
-                <a href={`tel:${contact.phone.replace(/\s+/g, '')}`} className="header-phone">
-                  <svg className="header-phone-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span className="phone-number">{contact.phone}</span>
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+            <li>
+              <Link
+                to="/contact"
+                className={`header-mobile-item ${isActive('/contact') ? 'active' : ''}`}
+                onClick={handleMobileMenuClose}
+              >
+                CONTACT
+              </Link>
+            </li>
+        </ul>
+      </div>
     </header>
   );
 };
