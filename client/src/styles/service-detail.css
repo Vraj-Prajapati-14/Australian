@@ -122,16 +122,86 @@
 }
 
 .service-main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
   margin-bottom: 4rem;
-  align-items: start;
+  align-items: center;
+}
+
+/* Department Information - Above Image */
+.service-department-info {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.department-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.department-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%);
+  background-size: 20px 20px;
+  animation: slidePattern 2s linear infinite;
+  opacity: 0.3;
+}
+
+.department-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+}
+
+.department-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+  flex-shrink: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.department-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  z-index: 1;
+  position: relative;
+}
+
+.department-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  z-index: 1;
+  position: relative;
 }
 
 .service-image-section {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
 }
 
 .service-image-container {
@@ -192,6 +262,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  max-width: 800px;
 }
 
 .service-info-card {
@@ -1036,8 +1108,15 @@
 /* Large tablets and small desktops */
 @media (max-width: 1024px) {
   .service-main-content {
-    grid-template-columns: 1fr;
     gap: 2rem;
+  }
+  
+  .service-image-section {
+    max-width: 700px;
+  }
+  
+  .service-info-section {
+    max-width: 700px;
   }
   
   .features-grid {
@@ -1093,6 +1172,31 @@
   
   .service-content {
     padding: 2rem 0;
+  }
+  
+  .service-department-info {
+    margin-bottom: 1.5rem;
+  }
+  
+  .department-badge {
+    padding: 0.875rem 1.5rem;
+    gap: 0.5rem;
+  }
+  
+  .department-label {
+    font-size: 0.8rem;
+  }
+  
+  .department-name {
+    font-size: 1rem;
+  }
+  
+  .service-image-section {
+    max-width: 100%;
+  }
+  
+  .service-info-section {
+    max-width: 100%;
   }
   
   .service-description,
@@ -1180,6 +1284,29 @@
   
   .service-content {
     padding: 1.5rem 0;
+  }
+  
+  .service-department-info {
+    margin-bottom: 1rem;
+  }
+  
+  .department-badge {
+    padding: 0.75rem 1.25rem;
+    gap: 0.4rem;
+    border-radius: 40px;
+  }
+  
+  .department-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .department-label {
+    font-size: 0.75rem;
+  }
+  
+  .department-name {
+    font-size: 0.9rem;
   }
   
   .service-description,

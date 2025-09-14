@@ -423,26 +423,9 @@ const CaseStudyDetailPage = () => {
               </div>
             )}
 
-            {/* Testimonial Section - Modern Card Design */}
+            {/* Testimonial Section - Card Design Like Second Image */}
             {caseStudy.testimonial && (
               <div className="case-study-detail-testimonial">
-                <div className="testimonial-header">
-                  <div className="testimonial-avatar">
-                    👤
-                  </div>
-                  <div className="testimonial-info">
-                    <div className="testimonial-name">
-                      {caseStudy.clientName || 'Project Client'}
-                    </div>
-                    <div className="testimonial-position">
-                      {caseStudy.clientPosition || 'Project Manager'}
-                    </div>
-                    <div className="testimonial-company">
-                      {caseStudy.clientCompany || 'Client Company'}
-                    </div>
-                  </div>
-                </div>
-                
                 <div className="testimonial-rating">
                   <span className="testimonial-star">
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -475,28 +458,44 @@ const CaseStudyDetailPage = () => {
                   {caseStudy.testimonial}
                 </blockquote>
                 
-                <div className="testimonial-category">
-                  {caseStudy.service?.title || caseStudy.department?.name || 'Engineering'}
+                <div className="testimonial-header">
+                  <div className="testimonial-avatar">
+                    👤
+                  </div>
+                  <div className="testimonial-info">
+                    <div className="testimonial-name">
+                      {caseStudy.clientName || 'Project Client'}
+                    </div>
+                    <div className="testimonial-position">
+                      {caseStudy.clientPosition || 'Project Manager'}
+                    </div>
+                    <div className="testimonial-company">
+                      {caseStudy.clientCompany || 'Client Company'}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* CTA Section */}
-            <div className="case-study-detail-cta">
-              <div className="cta-content">
-                <h2 className="cta-title">Ready to Start Your Project?</h2>
-                <p className="cta-subtitle">
-                  Let us help you achieve similar results for your business.
-                </p>
-                <div className="case-study-detail-cta-buttons">
-                  <Link to="/contact" className="cta-button-primary">
-                    Get Started
-                  </Link>
-                  <Link to="/case-studies" className="cta-button-secondary">
-                    View More Case Studies
-                  </Link>
-                </div>
-              </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* CTA Section - Full Width */}
+      <section className="case-study-detail-cta">
+        <Container>
+          <div className="cta-content">
+            <h2 className="cta-title">Ready to Start Your Project?</h2>
+            <p className="cta-subtitle">
+              Let us help you achieve similar results for your business.
+            </p>
+            <div className="case-study-detail-cta-buttons">
+              <Link to="/contact" className="cta-button-primary">
+                Get Started
+              </Link>
+              <Link to="/case-studies" className="cta-button-secondary">
+                View More Case Studies
+              </Link>
             </div>
           </div>
         </Container>

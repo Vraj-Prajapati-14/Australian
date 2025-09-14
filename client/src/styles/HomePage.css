@@ -132,41 +132,7 @@
 }
 
 /* ===== STATISTICS SECTION ===== */
-.stats-section {
-  background: white;
-  padding: 4rem 0;
-  position: relative;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 2rem 1rem;
-}
-
-.stat-number {
-  font-size: clamp(2.5rem, 4vw, 3.5rem);
-  font-weight: 800;
-  color: #1e40af;
-  margin-bottom: 0.5rem;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+/* Statistics styles are handled in components.css to avoid duplication */
 
 /* ===== WHAT WE OFFER SECTION ===== */
 .what-we-offer-section {
@@ -303,9 +269,25 @@
   transition: all 0.3s ease;
 }
 
-.partner-logo:hover {
-  background: #f1f5f9;
-  transform: translateY(-2px);
+/* Disable hover effects on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .partner-logo:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+  }
+}
+
+/* Mobile touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .partner-logo {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .partner-logo:active {
+    background: rgba(59, 130, 246, 0.1);
+    transform: scale(0.98);
+  }
 }
 
 .logo-placeholder {
@@ -324,6 +306,10 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .inspiration-text {
@@ -350,6 +336,9 @@
 
 .inspiration-images-grid {
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* ===== COMMITMENT SECTION ===== */
@@ -492,49 +481,7 @@
   gap: 2rem;
 }
 
-.service-card {
-  background: white;
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.service-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.service-icon {
-  margin-bottom: 2rem;
-}
-
-.service-card-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1rem;
-}
-
-.service-description {
-  font-size: 1rem;
-  color: #6b7280;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-.service-link {
-  color: #3b82f6;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.service-link:hover {
-  color: #1d4ed8;
-}
+/* Service card styles are now consolidated in components.css */
 
 /* ===== TESTIMONIALS SECTION ===== */
 .testimonials-section {
@@ -677,10 +624,7 @@
     max-width: 300px;
   }
   
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
+  /* Statistics responsive styles handled in components.css */
   
   .offer-content-grid {
     grid-template-columns: 1fr;
@@ -719,22 +663,14 @@
     min-height: 70vh;
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .stat-item {
-    padding: 1.5rem 1rem;
-  }
+  /* Statistics responsive styles handled in components.css */
   
   .partners-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   
   .offer-item,
-  .commitment-card,
-  .service-card {
+  .commitment-card {
     padding: 2rem 1.5rem;
   }
   
@@ -759,8 +695,7 @@
   }
   
   .offer-item,
-  .commitment-card,
-  .service-card {
+  .commitment-card {
     padding: 1.5rem 1rem;
   }
   

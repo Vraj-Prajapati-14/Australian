@@ -1,0 +1,38 @@
+/* ===== MAIN CSS ENTRY POINT ===== */
+/* This file imports all necessary CSS in the correct order */
+
+/* 1. Third-party CSS */
+@import 'antd/dist/reset.css';
+
+/* 2. Design System & Variables */
+@import './design-system.css';
+
+/* 3. Base Styles & Global Utilities */
+@import './base.css';
+
+/* 4. Component Styles */
+@import './components.css';
+
+/* 5. Layout Styles */
+@import './layouts.css';
+
+/* 6. Page-specific Styles */
+@import './pages.css';
+
+/* 7. Page-specific Detail Styles */
+@import './about-page.css';
+@import './case-studies-page.css';
+@import './case-study-detail.css';
+@import './contact-page.css';
+@import './inspiration-gallery.css';
+@import './project-detail.css';
+@import './service-detail.css';
+
+/* 8. Admin Styles */
+@import './admin.css';
+
+/* 9. Animations & Transitions */
+@import './animations.css';
+
+/* 10. Responsive Utilities */
+@import './responsive.css';

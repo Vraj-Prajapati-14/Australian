@@ -508,15 +508,7 @@
   z-index: -1;
 }
 
-.technology-tag:hover {
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.technology-tag:hover::before {
-  left: 0;
-}
+/* Hover effects removed as requested */
 
 /* ===== KEY FEATURES SECTION - FULL WIDTH ===== */
 .key-features-section {
@@ -680,6 +672,9 @@
   width: 100%;
   text-align: center;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .key-results-section h3 {
@@ -688,14 +683,20 @@
   color: #111827;
   margin-bottom: 40px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-  .key-results-carousel {
+.key-results-carousel {
   position: relative;
   overflow: hidden;
   border-radius: 12px;
   margin: 0 auto;
   max-width: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .key-results-track {
@@ -703,12 +704,15 @@
   transition: transform 0.5s ease;
   gap: 20px;
   padding: 10px 0;
+  justify-content: center;
 }
 
 .key-results-grid {
   display: flex;
   gap: 20px;
   min-width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .key-result-item {
@@ -986,16 +990,22 @@
   color: #6366f1;
 }
 
-/* ===== TESTIMONIAL SECTION - MODERN CARD DESIGN ===== */
+/* ===== TESTIMONIAL SECTION - CARD DESIGN LIKE SECOND IMAGE ===== */
 .case-study-detail-testimonial {
   background: #ffffff;
-  border-radius: 20px;
-  padding: 40px;
-  margin: 40px 0;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  margin: 40px auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .case-study-detail-testimonial::before {
@@ -1004,79 +1014,52 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  height: 3px;
+  background: #8b5cf6;
 }
 
-.testimonial-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 24px;
+/* Navigation arrows in top right */
+.case-study-detail-testimonial::after {
+  content: '⏸';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 1.2rem;
+  color: #6b7280;
+  cursor: pointer;
 }
 
-.testimonial-avatar {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  border: 2px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.testimonial-info {
-  flex: 1;
-}
-
-.testimonial-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.testimonial-position {
-  font-size: 1rem;
-  color: #64748b;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-
-.testimonial-company {
-  font-size: 0.875rem;
-  color: #6366f1;
-  font-weight: 600;
-}
-
+/* Star rating at the top */
 .testimonial-rating {
   display: flex;
   gap: 4px;
-  margin: 16px 0;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-self: flex-start;
 }
 
 .testimonial-star {
-  color: #fbbf24;
-  font-size: 1.25rem;
+  color: #f59e0b;
+  font-size: 1.1rem;
 }
 
 .testimonial-star svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: currentColor;
 }
 
+/* Quote text */
 .case-study-detail-testimonial blockquote {
-  font-size: 1.125rem;
-  color: #64748b;
+  font-size: 1.1rem;
+  color: #374151;
   line-height: 1.6;
   font-style: italic;
   margin: 0 0 24px 0;
   position: relative;
-  padding-left: 24px;
+  padding-left: 30px;
+  text-align: center;
+  width: 100%;
 }
 
 .case-study-detail-testimonial blockquote::before {
@@ -1085,108 +1068,152 @@
   left: 0;
   top: -8px;
   font-size: 3rem;
-  color: #e2e8f0;
+  color: #d1d5db;
   font-family: serif;
   line-height: 1;
 }
 
-.testimonial-category {
-  display: inline-block;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* Profile section */
+.testimonial-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  align-self: flex-start;
+  width: 100%;
 }
 
-/* ===== CTA SECTION - EXACT HOME PAGE STYLE ===== */
+.testimonial-avatar {
+  width: 50px;
+  height: 50px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: white;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.testimonial-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.testimonial-info {
+  flex: 1;
+  text-align: left;
+}
+
+.testimonial-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.testimonial-position {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.testimonial-company {
+  font-size: 0.85rem;
+  color: #3b82f6;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Remove the category button */
+.testimonial-category {
+  display: none;
+}
+
+/* ===== CTA SECTION - SAME AS CASE STUDIES PAGE ===== */
 .case-study-detail-cta {
   background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-  margin: 40px 0 0 0;
-  padding: 60px 40px;
-  text-align: center;
+  padding: 6rem 0;
   position: relative;
-  overflow: hidden;
-  grid-column: 1 / -1;
 }
 
 .case-study-detail-cta .cta-content {
-  position: relative;
-  z-index: 2;
+  text-align: center;
+  color: white;
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .case-study-detail-cta .cta-title {
   font-size: clamp(2.5rem, 4vw, 3.5rem);
   font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 24px;
-  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  color: white;
 }
 
 .case-study-detail-cta .cta-subtitle {
   font-size: 1.125rem;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 48px;
   line-height: 1.6;
+  margin-bottom: 3rem;
 }
 
 .case-study-detail-cta-buttons {
   display: flex;
-  justify-content: center;
-  gap: 24px;
   flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
   align-items: center;
 }
 
 .cta-button-primary {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #ffffff;
+  color: white;
   border: none;
-  padding: 18px 36px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
   text-decoration: none;
+  transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+  justify-content: center;
 }
 
 .cta-button-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(251, 191, 36, 0.4);
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
-  color: #ffffff;
+  color: white;
   text-decoration: none;
 }
 
 .cta-button-secondary {
   background: transparent;
-  color: #ffffff;
+  color: white;
   border: 2px solid rgba(255, 255, 255, 0.5);
-  padding: 18px 36px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
   text-decoration: none;
+  transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 }
 
 .cta-button-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: #ffffff;
-  color: #ffffff;
+  border-color: white;
   transform: translateY(-2px);
+  color: white;
   text-decoration: none;
 }
 

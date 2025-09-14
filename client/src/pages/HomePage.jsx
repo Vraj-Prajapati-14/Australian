@@ -787,12 +787,12 @@ const HomePage = () => {
                       </svg>
                     </div>
                   </div>
-                  <div className="service-content">
-                    <h3 className="service-card-title">{service.title}</h3>
-                    <p className="service-description">
+                  <div className="service-content" style={{ textAlign: 'center' }}>
+                    <h3 className="service-card-title" style={{ textAlign: 'center', margin: '0 auto 16px auto', width: '100%' }}>{service.title}</h3>
+                    <p className="service-description" style={{ textAlign: 'center', margin: '0 auto 24px auto', width: '100%' }}>
                       {service.description || 'Professional mechanical engineering solutions tailored to your specific needs and requirements.'}
                     </p>
-                    <Link to={`/services/${service.slug}`} className="service-link">
+                    <Link to={`/services/${service.slug}`} className="service-link" style={{ textAlign: 'center', margin: '0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                       Learn More →
                     </Link>
                   </div>
@@ -836,12 +836,12 @@ const HomePage = () => {
                       </svg>
                     </div>
                   </div>
-                  <div className="service-content">
-                    <h3 className="service-card-title">{service.title}</h3>
-                    <p className="service-description">
+                  <div className="service-content" style={{ textAlign: 'center' }}>
+                    <h3 className="service-card-title" style={{ textAlign: 'center', margin: '0 auto 16px auto', width: '100%' }}>{service.title}</h3>
+                    <p className="service-description" style={{ textAlign: 'center', margin: '0 auto 24px auto', width: '100%' }}>
                       {service.description}
                     </p>
-                    <Link to={`/services/${service.slug}`} className="service-link">
+                    <Link to={`/services/${service.slug}`} className="service-link" style={{ textAlign: 'center', margin: '0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                       Learn More →
                     </Link>
                   </div>

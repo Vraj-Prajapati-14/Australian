@@ -434,7 +434,7 @@ const AboutPage = () => {
           
           <div className="roadmap-timeline">
             {journeySteps.map((step, index) => (
-              <div key={index} className={`roadmap-step roadmap-step-${index + 1}`}>
+              <div key={index} className={`roadmap-step roadmap-step-${index + 1}`} data-step-index={index}>
                 <div className="roadmap-content">
                   <div className="roadmap-milestone">
                     <span className="milestone-badge">{step.milestone}</span>

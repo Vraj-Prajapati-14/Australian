@@ -1,5 +1,6 @@
 /* Component Library - Reusable UI Components */
 
+
 /* ===== BUTTON COMPONENTS ===== */
 .btn {
   display: inline-flex;
@@ -1091,32 +1092,39 @@ html {
 
 /* Service Group Styling */
 .service-group {
-  margin-bottom: 1px;
+  margin-bottom: 8px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .dropdown-item.main-service {
-  font-weight: 600;
+  font-weight: 500;
   color: #374151;
-  background: #f8fafc;
-  border-radius: 6px;
-  margin: 1px 8px;
-  border: 1px solid #e5e7eb;
-  padding: 12px 16px;
+  background: transparent;
+  border-radius: 8px;
+  margin: 4px 0;
+  border: none;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
   transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  min-height: 56px;
+  line-height: 1.4;
 }
 
 .dropdown-item.main-service:hover {
-  background: #eff6ff;
+  background: #f8fafc;
   color: #2563eb;
-  border-color: #dbeafe;
 }
 
 .dropdown-item.main-service.expandable {
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .sub-services {
@@ -1598,6 +1606,8 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  min-height: 300px;
 }
 
 .stats-grid {
@@ -1608,7 +1618,10 @@ html {
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  justify-self: center;
+  justify-items: center;
+  align-items: center;
+  place-content: center;
+  justify-content: center;
 }
 
 .stat-item {
@@ -1626,6 +1639,10 @@ html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 250px;
+  margin: 0 auto;
 }
 
 .stat-item::before {
@@ -1902,16 +1919,19 @@ html {
   border-right: 1px solid #cbd5e1;
 }
 
-.partner-logo:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-  z-index: 3;
-  border-color: #3b82f6;
-}
+/* Disable hover effects on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .partner-logo:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    z-index: 3;
+    border-color: #3b82f6;
+  }
 
-.partner-logo:hover::before {
-  opacity: 1;
+  .partner-logo:hover::before {
+    opacity: 1;
+  }
 }
 
 .logo-placeholder {
@@ -1924,10 +1944,26 @@ html {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.partner-logo:hover .logo-placeholder {
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transform: scale(1.05);
+/* Disable hover effects on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .partner-logo:hover .logo-placeholder {
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+  }
+}
+
+/* Mobile touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .partner-logo {
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .partner-logo:active {
+    background: rgba(59, 130, 246, 0.1);
+    transform: scale(0.98);
+  }
 }
 
 /* Responsive Design for Partners */
@@ -2003,6 +2039,7 @@ html {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
+  justify-content: center;
 }
 
 .inspiration-text {
@@ -2042,6 +2079,8 @@ html {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   width: 100%;
+  justify-items: center;
+  place-content: center;
 }
 
 /* Carousel Styles */
@@ -3967,6 +4006,10 @@ html {
     flex-direction: column;
     gap: 30px;
     padding: 0 20px;
+    max-width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
   }
   
   .inspiration-text {
@@ -3989,6 +4032,11 @@ html {
   .inspiration-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    justify-items: center;
+    place-content: center;
   }
   
   .inspiration-image {
@@ -4026,6 +4074,11 @@ html {
     flex-direction: column;
     gap: 30px;
     text-align: center;
+    max-width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
   }
   
   .inspiration-text {
@@ -4049,6 +4102,16 @@ html {
   
   .carousel-track {
     gap: 8px;
+  }
+  
+  .inspiration-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    justify-items: center;
+    place-content: center;
   }
   
   .inspiration-item {
@@ -4159,33 +4222,11 @@ html {
   opacity: 0.6;
 }
 
-.service-content {
-  padding: 32px;
-}
+/* Duplicate service-content removed - using the one below with proper centering */
 
-.service-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 16px;
-}
+/* Duplicate service styles removed - using service-card-title and service-card-description below */
 
-.service-description {
-  color: #6b7280;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.service-link {
-  color: #1677ff;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.service-link:hover {
-  color: #0958d9;
-}
+/* Duplicate service-link removed - using the one below with proper centering */
 
 
 
@@ -4526,6 +4567,11 @@ html {
   backdrop-filter: blur(10px);
   background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .service-card::before {
@@ -4554,6 +4600,10 @@ html {
 .service-icon {
   margin-bottom: 24px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .icon-wrapper.service {
@@ -4564,11 +4614,12 @@ html {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border: 2px solid #93c5fd;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .icon-wrapper.service::before {
@@ -4593,28 +4644,46 @@ html {
 }
 
 .service-content {
-  text-align: center;
+  text-align: center !important;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  flex: 1;
 }
 
 .service-card-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1f2937;
-  margin: 0 0 16px 0;
+  margin: 0 auto 16px auto;
   line-height: 1.3;
   letter-spacing: -0.025em;
+  text-align: center !important;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .service-description {
   font-size: 1rem;
   color: #6b7280;
   line-height: 1.6;
-  margin: 0 0 24px 0;
+  margin: 0 auto 24px auto;
+  text-align: center !important;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .service-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   color: #1677ff;
   text-decoration: none;
   font-weight: 600;
@@ -4622,11 +4691,75 @@ html {
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin: 0 auto;
+  text-align: center;
+  width: auto;
 }
 
 .service-link:hover {
   color: #0958d9;
   transform: translateX(4px);
+}
+
+/* Override Ant Design styles that might interfere with text alignment */
+.service-card .ant-card-meta-title {
+  text-align: center !important;
+}
+
+.service-card .ant-card-meta-description {
+  text-align: center !important;
+}
+
+.service-card .ant-typography {
+  text-align: center !important;
+}
+
+.service-card p {
+  text-align: center !important;
+}
+
+.service-card h1,
+.service-card h2,
+.service-card h3,
+.service-card h4,
+.service-card h5,
+.service-card h6 {
+  text-align: center !important;
+}
+
+/* More specific selectors for service card text alignment */
+.services-grid .service-card .service-content h3 {
+  text-align: center !important;
+  margin: 0 auto 16px auto !important;
+  width: 100% !important;
+}
+
+.services-grid .service-card .service-content p {
+  text-align: center !important;
+  margin: 0 auto 24px auto !important;
+  width: 100% !important;
+}
+
+.services-grid .service-card .service-content .service-link {
+  text-align: center !important;
+  margin: 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Force text alignment for all elements inside service cards */
+.services-grid .service-card * {
+  text-align: center !important;
+}
+
+/* Override any inherited text alignment */
+.services-grid .service-card .service-content {
+  text-align: center !important;
+}
+
+.services-grid .service-card .service-content * {
+  text-align: center !important;
 }
 
 /* Responsive Design for Commitment Section */
@@ -5281,15 +5414,33 @@ html {
     gap: 24px;
   }
   
+  .stats-section {
+    padding: 40px 20px !important;
+  }
+  
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    max-width: 700px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
+    justify-items: center !important;
+    align-items: center !important;
+    place-content: center !important;
+    justify-content: center !important;
+    padding: 0 20px !important;
+    width: 100% !important;
+    display: grid !important;
   }
   
   .stat-item {
-    padding: 32px 24px;
-    min-height: 130px;
+    padding: 24px 16px !important;
+    min-height: 120px !important;
+    width: 100% !important;
+    max-width: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   
   .section-title {
@@ -5323,16 +5474,36 @@ html {
     font-size: 1.75rem;
   }
   
+  .stats-section {
+    padding: 30px 16px !important;
+  }
+  
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    max-width: 100%;
-    padding: 0 16px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    max-width: 100% !important;
+    padding: 0 16px !important;
+    margin: 0 auto !important;
+    justify-items: center !important;
+    align-items: center !important;
+    place-content: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    display: grid !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
   
   .stat-item {
-    padding: 28px 16px;
-    min-height: 110px;
+    padding: 20px 12px !important;
+    min-height: 100px !important;
+    width: 100% !important;
+    max-width: 180px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   
   .stat-number {
@@ -5345,6 +5516,47 @@ html {
   
   .cta-title {
     font-size: 2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .stats-section {
+    padding: 20px 12px !important;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 0 12px !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    justify-items: center !important;
+    align-items: center !important;
+    place-content: center !important;
+    justify-content: center !important;
+    display: grid !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .stat-item {
+    padding: 16px 8px !important;
+    min-height: 90px !important;
+    width: 100% !important;
+    max-width: 150px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem !important;
   }
 }
 

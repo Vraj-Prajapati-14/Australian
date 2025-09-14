@@ -418,9 +418,10 @@
   display: flex;
   align-items: center;
   min-height: 140px;
-  opacity: 0;
-  transform: translateY(30px);
+  opacity: 1;
+  transform: translateY(0);
   animation: roadmapFadeIn 0.8s ease forwards;
+  visibility: visible;
 }
 
 .roadmap-step:nth-child(1) { animation-delay: 0.1s; }
@@ -431,6 +432,10 @@
 .roadmap-step:nth-child(6) { animation-delay: 0.6s; }
 
 @keyframes roadmapFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
@@ -454,6 +459,9 @@
   position: relative;
   border: 1px solid #e2e8f0;
   transition: all 0.4s ease;
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
 }
 
 .roadmap-content:hover {
@@ -534,6 +542,8 @@
   z-index: 3;
   box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
   transition: all 0.4s ease;
+  opacity: 1;
+  visibility: visible;
 }
 
 .roadmap-node:hover {

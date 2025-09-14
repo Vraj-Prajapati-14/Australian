@@ -323,7 +323,20 @@ const ServiceDetailPage = () => {
       <div className="service-content">
         <div className="service-content-inner">
           <div className="service-main-content">
-            {/* Service Image */}
+            {/* Department Information - Above Image */}
+            {service.department && (
+              <div className="service-department-info">
+                <div className="department-badge">
+                  {/* <svg className="department-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"> */}
+                    {/* <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/> */}
+                  {/* </svg> */}
+                  <span className="department-label">Department:</span>
+                  <span className="department-name">{service.department.name}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Service Image - Centered */}
             <div className="service-image-section">
               {service.heroImage?.url ? (
                 <div className="service-image-container">
@@ -342,32 +355,26 @@ const ServiceDetailPage = () => {
 
             {/* Service Information */}
             <div className="service-info-section">
-              <div className="service-info-card">
-                <h3>
-                  <svg className="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                  </svg>
-                  Service Information
-                </h3>
+            <div className="service-info-card">
+              {/* <h3>
+                <svg className="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                Service Information
+              </h3> */}
+              {/* <div className="service-info-item">
+                <span className="service-info-label">Category:</span>
+                <span className="service-info-value">{service.category || 'N/A'}</span>
+              </div> */}
+              {/* {parentService && (
                 <div className="service-info-item">
-                  <span className="service-info-label">Category:</span>
-                  <span className="service-info-value">{service.category || 'N/A'}</span>
+                  <span className="service-info-label">Parent Service:</span>
+                  <span className="service-info-value">{parentService.title}</span>
                 </div>
-                {parentService && (
-                  <div className="service-info-item">
-                    <span className="service-info-label">Parent Service:</span>
-                    <span className="service-info-value">{parentService.title}</span>
-                  </div>
-                )}
-                {service.department && (
-                  <div className="service-info-item">
-                    <span className="service-info-label">Department:</span>
-                    <span className="service-info-value">{service.department.name}</span>
-                  </div>
-                )}
-              </div>
+              )} */}
+            </div>
 
-              {service.pricing && (
+            {service.pricing && (
                 <div className="service-info-card">
                   <h3>
                     <svg className="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -426,6 +433,8 @@ const ServiceDetailPage = () => {
                 </div>
               )}
             </div>
+          </div>
+          </div>
           </div>
 
           {/* Features Section */}
@@ -762,14 +771,14 @@ const ServiceDetailPage = () => {
                     )}
 
                     {/* Project Actions */}
-                    <div className="project-full-actions">
+                    {/* <div className="project-full-actions">
                       <Button variant="primary" size="lg" as={Link} to="/contact" className="btn">
                         Get Quote
                       </Button>
                       <Button variant="outline" size="lg" as={Link} to="/case-studies" className="btn">
                         View Case Studies
                       </Button>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
@@ -943,8 +952,7 @@ const ServiceDetailPage = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
+        
 
       {/* CTA Section */}
       <section className="service-cta">
