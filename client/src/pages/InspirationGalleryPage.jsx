@@ -255,7 +255,7 @@ const InspirationGalleryPage = () => {
             <div className="loading-spinner"></div>
           </div>
         ) : (
-          <div className="inspiration-gallery-grid">
+          <div className={`inspiration-gallery-grid ${filteredItems.length === 1 ? 'single-item' : filteredItems.length === 2 ? 'two-items' : 'multiple-items'}`}>
              {filteredItems.map((item) => (
                <div key={item._id} className="inspiration-gallery-card" onClick={() => handleImageClick(item)}>
                  <div className="inspiration-gallery-card-image">

@@ -77,6 +77,7 @@ export default function AdminServicesPage() {
   const createServiceMutation = useMutation({
     mutationFn: (data) => api.post('/services', data),
     onSuccess: () => {
+      console.log('Create service mutation success - closing modal');
       queryClient.invalidateQueries(['services']);
       message.success('Service created successfully');
       setIsModalVisible(false);
@@ -85,6 +86,7 @@ export default function AdminServicesPage() {
       form.resetFields();
     },
     onError: (error) => {
+      console.error('Create service mutation error:', error);
       message.error('Error creating service: ' + error.message);
     }
   });
@@ -92,6 +94,7 @@ export default function AdminServicesPage() {
   const updateServiceMutation = useMutation({
     mutationFn: ({ id, data }) => api.put(`/services/${id}`, data),
     onSuccess: () => {
+      console.log('Update service mutation success - closing modal');
       queryClient.invalidateQueries(['services']);
       message.success('Service updated successfully');
       setIsModalVisible(false);
@@ -101,6 +104,7 @@ export default function AdminServicesPage() {
       form.resetFields();
     },
     onError: (error) => {
+      console.error('Update service mutation error:', error);
       message.error('Error updating service: ' + error.message);
     }
   });
@@ -184,6 +188,9 @@ export default function AdminServicesPage() {
   };
 
   const handleSubmit = (values) => {
+    console.log('handleSubmit called with values:', values);
+    console.log('editingService:', editingService);
+    
     // Handle image data
     const heroImageData = uploadedHeroImage || editingService?.heroImage || values.heroImage;
     const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingService?.gallery || values.gallery || [];
@@ -195,9 +202,13 @@ export default function AdminServicesPage() {
       gallery: galleryData
     };
 
+    console.log('Submitting formData:', formData);
+
     if (editingService) {
+      console.log('Calling updateServiceMutation with id:', editingService._id);
       updateServiceMutation.mutate({ id: editingService._id, data: formData });
     } else {
+      console.log('Calling createServiceMutation');
       createServiceMutation.mutate(formData);
     }
   };
@@ -804,7 +815,7 @@ export default function AdminServicesPage() {
         footer={null}
         width={800}
         style={modalStyle}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}
@@ -907,7 +918,6 @@ export default function AdminServicesPage() {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="parentService"
                 label="Parent Service"
                 style={formItemStyle}
                 dependencies={['isMainService']}
@@ -915,17 +925,19 @@ export default function AdminServicesPage() {
                 {({ getFieldValue }) => {
                   const isMainService = getFieldValue('isMainService');
                   return isMainService ? null : (
-                    <Select 
-                      placeholder="Select parent service" 
-                      style={selectStyle}
-                      allowClear
-                    >
-                      {mainServices.map(service => (
-                        <Option key={service._id} value={service._id}>
-                          {service.title}
-                        </Option>
-                      ))}
-                    </Select>
+                    <Form.Item name="parentService" noStyle>
+                      <Select 
+                        placeholder="Select parent service" 
+                        style={selectStyle}
+                        allowClear
+                      >
+                        {mainServices.map(service => (
+                          <Option key={service._id} value={service._id}>
+                            {service.title}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
                   );
                 }}
               </Form.Item>
@@ -1007,7 +1019,7 @@ export default function AdminServicesPage() {
         footer={null}
         width={600}
         style={modalStyle}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={subServiceForm}

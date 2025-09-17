@@ -370,6 +370,7 @@
   margin-left: calc(-50vw + 50%);
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .roadmap-section::before {
@@ -699,6 +700,7 @@
 
 .checklist-content {
   flex: 1;
+  text-align: center;
 }
 
 .checklist-question {
@@ -708,6 +710,7 @@
   margin-bottom: 12px;
   line-height: 1.3;
   transition: color 0.3s ease;
+  text-align: center;
 }
 
 .checklist-item:hover .checklist-question {
@@ -719,6 +722,7 @@
   font-size: 1rem;
   line-height: 1.6;
   margin: 0;
+  text-align: center;
 }
 
 /* Why Choose Section - Feature Grid */
@@ -1145,9 +1149,11 @@
   }
   
   .roadmap-content {
-    width: 100%;
+    width: calc(100% - 80px);
     margin: 0 0 0 60px !important;
     padding: 24px;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .roadmap-node {
@@ -1214,6 +1220,9 @@
   .roadmap-content {
     padding: 20px;
     margin: 0 0 0 50px !important;
+    width: calc(100% - 70px);
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .roadmap-title {
@@ -1297,6 +1306,9 @@
   .roadmap-content {
     margin: 0 0 0 40px !important;
     padding: 20px;
+    width: calc(100% - 60px);
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .roadmap-node {

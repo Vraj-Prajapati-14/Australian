@@ -11,8 +11,7 @@ const app = express();
 
 const FRONTEND_URLS = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173,http://localhost:5174,http://localhost:5175')
   .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+  .map((s) => s.trim());
 
 app.use(helmet());
 app.use(

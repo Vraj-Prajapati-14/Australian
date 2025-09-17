@@ -939,6 +939,7 @@ html, body {
   align-items: center;
   gap: 8px;
   width: 100%;
+  position: relative;
 }
 
 .mobile-sub-service-icon {
@@ -964,6 +965,99 @@ html, body {
 
 .mobile-sub-dropdown-arrow.rotate-90 {
   transform: rotate(90deg);
+}
+
+
+/* Mobile Service Item Styles */
+.mobile-service-item {
+  width: 100%;
+}
+
+.mobile-service-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.main-service-link {
+  flex: 1;
+  display: block;
+  font-size: 14px; /* Larger font for main service */
+  font-weight: 500;
+}
+
+/* Mobile Sub-service Toggle Button - Inline */
+.mobile-subservice-toggle-inline {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.mobile-subservice-toggle-inline:hover {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.mobile-subservice-toggle-inline:focus {
+  outline: none;
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+.mobile-subservice-toggle-inline:active {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Mobile Sub-services List */
+.mobile-subservices-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background-color: rgba(243, 244, 246, 0.8);
+  backdrop-filter: blur(5px);
+  border-radius: 6px;
+  margin-top: 4px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  border: 1px solid rgba(229, 231, 235, 0.3);
+}
+
+.mobile-subservices-list.show {
+  max-height: 300px;
+  padding: 4px 0;
+}
+
+.mobile-subservices-list .header-mobile-subitem {
+  padding: 8px 16px 8px 32px;
+  font-size: 13px;
+  color: #6b7280;
+  background-color: transparent;
+}
+
+.mobile-subservices-list .header-mobile-subitem:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.mobile-subservices-list .mobile-sub-service-icon {
+  width: 12px;
+  height: 12px;
+  color: #10b981;
+}
+
+.sub-service-link {
+  font-weight: 400;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

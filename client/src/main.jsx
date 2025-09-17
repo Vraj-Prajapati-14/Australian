@@ -3,10 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { App as AntdApp } from 'antd';
 import 'antd/dist/reset.css';
 import './styles/design-system.css';
-import './styles/header-clean.css';
 import './styles/animations.css';
 import './styles/components.css';
 import './styles/admin.css';
+import './styles/header-clean.css';
 import App from './App.jsx';
 import { setAuthToken } from './lib/api';
 import { getToken } from './lib/auth';
@@ -56,6 +56,32 @@ const globalStyles = `
   
   ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
+  }
+  
+  /* Hide scrollbar on mobile devices */
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+    
+    /* For Firefox */
+    html {
+      scrollbar-width: none;
+    }
+    
+    /* For IE and Edge */
+    body {
+      -ms-overflow-style: none;
+    }
   }
   
   /* Smooth scrolling */

@@ -4756,10 +4756,64 @@ html {
 /* Override any inherited text alignment */
 .services-grid .service-card .service-content {
   text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
 }
 
 .services-grid .service-card .service-content * {
   text-align: center !important;
+}
+
+/* Additional centering for service card content */
+.services-grid .service-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Ensure all text elements are centered */
+.services-grid .service-card h1,
+.services-grid .service-card h2,
+.services-grid .service-card h3,
+.services-grid .service-card h4,
+.services-grid .service-card h5,
+.services-grid .service-card h6,
+.services-grid .service-card p,
+.services-grid .service-card span,
+.services-grid .service-card div {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Preserve icon styling and positioning */
+.services-grid .service-card .service-icon {
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
+.services-grid .service-card .icon-wrapper.service {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border: 2px solid rgba(59, 130, 246, 0.2) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
 /* Responsive Design for Commitment Section */
