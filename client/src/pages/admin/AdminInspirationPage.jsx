@@ -1,285 +1,236 @@
 import { useState, useEffect } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Table, 
   Button, 
-  Space, 
   Modal, 
-  Form, 
   Input, 
-  Select, 
   Card, 
-  Typography,
-  Tag,
-  Popconfirm,
-  Image,
-  Row,
-  Col,
-  Spin,
-  App
-} from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+  Table, 
+  Tag, 
+  Select
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import SimpleImageUpload from '../../components/SimpleImageUpload';
 
-const { Title, Paragraph } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const EyeIcon = () => <span>👁️</span>;
+const FileIcon = () => <span>📄</span>;
+const ImageIcon = () => <span>🖼️</span>;
 
 export default function AdminInspirationPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [form] = Form.useForm();
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const queryClient = useQueryClient();
-  const { message } = App.useApp();
-
-  // Validate image field when uploadedImage changes
-  useEffect(() => {
-    if (isModalVisible) {
-      form.validateFields(['image']);
-    }
-  }, [uploadedImage, isModalVisible, form]);
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
   // Fetch inspiration data
   const { data: inspirationItems = [], isLoading } = useQuery({
     queryKey: ['inspiration'],
     queryFn: async () => {
-      const response = await api.get('/inspiration');
-      return response.data?.data || [];
-    }
-  });
-
-  // Fetch main services for dropdown (not sub-services)
-  const { data: services = [], error: servicesError } = useQuery({ 
-    queryKey: ['main-services'], 
-    queryFn: async () => {
       try {
-        const response = await api.get('/services?type=main&status=all');
-        return response.data || [];
+        const response = await api.get('/inspiration');
+        return response.data?.data || [];
       } catch (error) {
-        console.error('Error fetching main services:', error);
+        console.error('Error fetching inspiration items:', error);
         return [];
       }
     }
   });
 
-  // Fetch departments for dropdown
-  const { data: departments = [], error: departmentsError } = useQuery({ 
-    queryKey: ['departments'], 
-    queryFn: async () => {
-      try {
-        const response = await api.get('/departments');
-        return response.data || [];
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-        return [];
-      }
-    }
-  });
-
-  // Create inspiration mutation
+  // Create mutation
   const createMutation = useMutation({
-    mutationFn: async (formData) => {
-      const response = await api.post('/inspiration', formData);
-      return response.data;
-    },
+    mutationFn: (data) => api.post('/inspiration', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['inspiration']);
-      message.success('Inspiration item created successfully');
-      handleCancel();
-    },
-    onError: (error) => {
-      message.error('Failed to create inspiration item');
-      console.error('Create error:', error);
-    }
-  });
-
-  // Update inspiration mutation
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, formData }) => {
-      const response = await api.put(`/inspiration/${id}`, formData);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['inspiration']);
-      message.success('Inspiration item updated successfully');
-      handleCancel();
-    },
-    onError: (error) => {
-      message.error('Failed to update inspiration item');
-      console.error('Update error:', error);
-    }
-  });
-
-  // Delete inspiration mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      await api.delete(`/inspiration/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['inspiration']);
-      message.success('Inspiration item deleted successfully');
-    },
-    onError: (error) => {
-      message.error('Failed to delete inspiration item');
-      console.error('Delete error:', error);
-    }
-  });
-
-  const showModal = (item = null) => {
-    setEditingItem(item);
-    if (item) {
-      form.setFieldsValue({
-        title: item.title,
-        service: item.service?._id,
-        department: item.department?._id,
-        description: item.description,
-        tags: item.tags,
-        status: item.status,
-        isFeatured: item.isFeatured,
-        order: item.order,
-        image: item.image || null
-      });
-      setUploadedImage(item.image || null);
-    } else {
-      form.resetFields();
+      showMessage('success', 'Inspiration item created successfully');
+      setIsModalVisible(false);
+      setFormData({});
       setUploadedImage(null);
+      setFormErrors({});
+    },
+    onError: (error) => {
+      console.error('Create inspiration error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error creating inspiration item. Please try again.');
+      }
     }
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => api.put(`/inspiration/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['inspiration']);
+      showMessage('success', 'Inspiration item updated successfully');
+      setIsModalVisible(false);
+      setEditingItem(null);
+      setFormData({});
+      setUploadedImage(null);
+      setFormErrors({});
+    },
+    onError: (error) => {
+      console.error('Update inspiration error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error updating inspiration item. Please try again.');
+      }
+    }
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/inspiration/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['inspiration']);
+      showMessage('success', 'Inspiration item deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Delete inspiration error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        showMessage('error', 'Error deleting inspiration item. Please try again.');
+      }
+    }
+  });
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setFormData({ 
+      title: '',
+      description: '',
+      category: 'general',
+      tags: [],
+      isActive: true,
+      order: 0
+    });
+    setUploadedImage(null);
+    setFormErrors({});
     setIsModalVisible(true);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setFormData({
+      ...item,
+      tags: Array.isArray(item.tags) ? item.tags : []
+    });
+    setUploadedImage(item.image || null);
+    setFormErrors({});
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this inspiration item?')) {
+      try {
+        await deleteMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting inspiration item:', error);
+      }
+    }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
     setEditingItem(null);
+    setFormData({});
     setUploadedImage(null);
-    form.resetFields();
+    setFormErrors({});
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
-      // Check if we have an image - check all possible sources
-      const imageData = uploadedImage || editingItem?.image || values.image;
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        showMessage('error', 'Please log in to continue');
+        return;
+      }
+
+      // Handle image data
+      const imageData = uploadedImage || editingItem?.image || formData.image;
       
-      if (!imageData) {
-        message.error('Please upload an image before submitting');
-        return;
-      }
-
-      // Validate image data structure
-      if (typeof imageData === 'object' && (!imageData.url || !imageData.publicId)) {
-        message.error('Invalid image data. Please upload an image again.');
-        return;
-      }
-
-      // If imageData is a string (URL), convert it to proper format
-      let finalImageData = imageData;
-      if (typeof imageData === 'string') {
-        finalImageData = {
-          url: imageData,
-          publicId: `inspiration_${Date.now()}`,
-          alt: values.title || 'Inspiration image'
-        };
-      }
-
       // Prepare the data object
-      const formData = {
-        title: values.title,
-        service: values.service,
-        department: values.department,
-        description: values.description,
-        status: values.status || 'draft',
-        isFeatured: values.isFeatured || false,
-        order: values.order || 0,
-        tags: values.tags || [],
-        image: finalImageData
+      const submitData = {
+        ...formData,
+        image: imageData,
+        tags: Array.isArray(formData.tags) ? formData.tags : []
       };
       
       if (editingItem) {
-        updateMutation.mutate({ id: editingItem._id, formData });
+        await updateMutation.mutateAsync({ id: editingItem._id, data: submitData });
       } else {
-        createMutation.mutate(formData);
+        await createMutation.mutateAsync(submitData);
       }
     } catch (error) {
-      console.error('Submit error:', error);
-      message.error('An error occurred');
+      console.error('Error saving inspiration item:', error);
     }
-  };
-
-  const handleDelete = (id) => {
-    deleteMutation.mutate(id);
-  };
-
-  const handleStatusChange = (id, status) => {
-    const formData = { status };
-    updateMutation.mutate({ id, formData });
   };
 
   const columns = [
     {
-      title: 'Preview',
-      dataIndex: 'image',
+      title: 'Image',
       key: 'image',
-      render: (image, record) => (
-        <div style={{ 
-          width: 80, 
-          height: 60, 
-          borderRadius: 8,
-          overflow: 'hidden',
-          border: '1px solid #d9d9d9'
-        }}>
-          {image && image.url ? (
-            <Image
-              src={image.url}
-              alt={image.alt || record.title}
-              width="100%"
-              height="100%"
-              style={{ objectFit: 'cover' }}
-              preview={false}
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.image?.url ? (
+            <img
+              src={record.image.url}
+              alt={record.title}
+              width={80}
+              height={60}
+              style={{ objectFit: 'cover', borderRadius: 4 }}
+              onError={(e) => {
+                e.target.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN';
+              }}
             />
           ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 24
-            }}>
-              🎨
+            <div style={{ width: 80, height: 60, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ImageIcon />
             </div>
           )}
         </div>
       )
     },
     {
-      title: 'Title & Service',
+      title: 'Title',
       dataIndex: 'title',
       key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{text}</div>
-          <div style={{ fontSize: 12, color: '#666' }}>
-            Service: {record.service?.title || 'N/A'}
-          </div>
-          <div style={{ fontSize: 12, color: '#666' }}>
-            Department: {record.department?.name || 'N/A'}
-          </div>
-        </div>
+      render: (title) => (
+        <div style={{ fontWeight: 'bold' }}>{title || 'Untitled'}</div>
       )
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (text) => (
-        <div style={{ maxWidth: 300 }}>
-          <Paragraph ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
-            {text}
-          </Paragraph>
-        </div>
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category) => (
+        <Tag color="blue">
+          {category ? category.charAt(0).toUpperCase() + category.slice(1) : 'General'}
+        </Tag>
       )
     },
     {
@@ -287,274 +238,245 @@ export default function AdminInspirationPage() {
       dataIndex: 'tags',
       key: 'tags',
       render: (tags) => (
-        <div>
-          {tags && tags.slice(0, 3).map((tag, index) => (
-            <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
-              {tag}
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {Array.isArray(tags) && tags.length > 0 ? (
+            tags.slice(0, 3).map((tag, index) => (
+              <Tag key={index} color="gray" size="small">
+                {tag}
+              </Tag>
+            ))
+          ) : (
+            <span style={{ fontSize: 12, color: '#999' }}>No tags</span>
+          )}
+          {Array.isArray(tags) && tags.length > 3 && (
+            <Tag color="gray" size="small">
+              +{tags.length - 3}
             </Tag>
-          ))}
-          {tags && tags.length > 3 && <Tag>+{tags.length - 3}</Tag>}
+          )}
         </div>
       )
     },
     {
       title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status, record) => (
-        <Select
-          value={status}
-          onChange={(value) => handleStatusChange(record._id, value)}
-          style={{ width: 120 }}
-        >
-          <Option value="draft">Draft</Option>
-          <Option value="published">Published</Option>
-          <Option value="archived">Archived</Option>
-        </Select>
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (isActive) => (
+        <Tag color={isActive ? 'green' : 'red'}>
+          {isActive ? 'Active' : 'Inactive'}
+        </Tag>
       )
     },
     {
-      title: 'Featured',
-      dataIndex: 'isFeatured',
-      key: 'isFeatured',
-      render: (isFeatured, record) => (
-        <Select
-          value={isFeatured}
-          onChange={(value) => {
-            const formData = { isFeatured: value };
-            updateMutation.mutate({ id: record._id, formData });
-          }}
-          style={{ width: 100 }}
-        >
-          <Option value={true}>Yes</Option>
-          <Option value={false}>No</Option>
-        </Select>
+      title: 'Order',
+      dataIndex: 'order',
+      key: 'order',
+      render: (order) => (
+        <span style={{ fontWeight: 'bold' }}>{order || 0}</span>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
+        <div style={{ display: 'flex', gap: 8 }}>
           <Button 
-            type="text" 
-            icon={<EyeOutlined />} 
-            onClick={() => showModal(record)}
-            title="View"
-          />
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
-            onClick={() => showModal(record)}
-            title="Edit"
-          />
-          <Popconfirm
-            title="Are you sure you want to delete this inspiration item?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(record)}
           >
-            <Button 
-              type="text" 
-              icon={<DeleteOutlined />} 
-              danger
-              title="Delete"
-            />
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(record._id)}
+          >
+            <DeleteIcon />
+          </Button>
+        </div>
       )
     }
   ];
 
   return (
-    <div>
+    <div className="admin-page" style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
+      <div className="page-header">
+        <h1 className="page-title">Inspiration Gallery</h1>
+        <p className="page-description">Manage inspiration images and gallery content</p>
+      </div>
+
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div className="card-header">
           <div>
-            <Title level={2}>Inspiration Gallery Management</Title>
-            <Paragraph>Manage inspiration gallery items and showcase your best work</Paragraph>
+            <h2 className="card-title">Inspiration Items ({inspirationItems.length})</h2>
+            <p className="card-subtitle">View and manage all inspiration gallery items</p>
           </div>
           <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            size="large"
-            onClick={() => showModal()}
+            variant="primary"
+            onClick={handleAdd}
           >
-            Add Inspiration Item
+            <PlusIcon /> Add Item
           </Button>
         </div>
 
-        <Table 
-          columns={columns} 
+        <Table
+          columns={columns}
           dataSource={inspirationItems}
           rowKey="_id"
           loading={isLoading}
-          pagination={{
+          pagination={{ 
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} inspiration items`
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
           }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
+      {/* Inspiration Modal */}
       <Modal
         title={editingItem ? 'Edit Inspiration Item' : 'Add New Inspiration Item'}
-        open={isModalVisible}
-        onCancel={handleCancel}
-        footer={null}
-        width={800}
+        isOpen={isModalVisible}
+        onClose={handleCancel}
+        size="lg"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            isFeatured: false,
-            status: 'draft'
-          }}
-        >
-          <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: 'Please enter the title' }]}
-          >
-            <Input placeholder="Enter inspiration item title" />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="service"
-                label="Main Service"
-              >
-                <Select placeholder="Select main service" allowClear>
-                  {services.map(service => (
-                    <Option key={service._id} value={service._id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{service.title}</span>
-                        <Tag size="small" color={service.status === 'active' ? 'green' : 'red'}>
-                          {service.status}
-                        </Tag>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="department"
-                label="Department"
-              >
-                <Select placeholder="Select department" allowClear>
-                  {departments.map(dept => (
-                    <Option key={dept._id} value={dept._id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{dept.name}</span>
-                        <Tag size="small" color={dept.status === 'active' ? 'green' : 'red'}>
-                          {dept.status}
-                        </Tag>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter the description' }]}
-          >
-            <TextArea 
-              rows={4} 
-              placeholder="Enter description of the inspiration item"
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Title *
+              </label>
+              <Input 
+                placeholder="Enter title"
+                value={formData.title || ''}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                error={formErrors.title}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Category
+              </label>
+              <Select
+                value={formData.category || 'general'}
+                onChange={(value) => setFormData({...formData, category: value})}
+                options={[
+                  { value: 'general', label: 'General' },
+                  { value: 'automotive', label: 'Automotive' },
+                  { value: 'custom', label: 'Custom Work' },
+                  { value: 'before-after', label: 'Before & After' },
+                  { value: 'featured', label: 'Featured' }
+                ]}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Description
+            </label>
+            <textarea 
+              placeholder="Enter description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={4}
+              style={{ 
+                width: '100%', 
+                padding: '12px', 
+                border: '1px solid #ddd', 
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
             />
-          </Form.Item>
-
-          <Form.Item
-            name="tags"
-            label="Tags"
-            rules={[{ required: true, message: 'Please enter at least one tag' }]}
-          >
-            <Select
-              mode="tags"
-              placeholder="Enter tags"
-              style={{ width: '100%' }}
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Tags (comma separated)
+            </label>
+            <Input 
+              placeholder="e.g., automotive, custom, featured"
+              value={Array.isArray(formData.tags) ? formData.tags.join(', ') : formData.tags || ''}
+              onChange={(e) => {
+                const tags = e.target.value.split(',').map(t => t.trim()).filter(t => t);
+                setFormData({...formData, tags: tags});
+              }}
             />
-          </Form.Item>
-
-          <Form.Item
-            name="image"
-            label="Image"
-            rules={[
-              {
-                validator: (_, value) => {
-                  const hasImage = uploadedImage || editingItem?.image || value;
-                  if (!hasImage) {
-                    return Promise.reject(new Error('Please upload an image'));
-                  }
-                  return Promise.resolve();
-                }
-              }
-            ]}
-          >
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Image *
+            </label>
             <SimpleImageUpload 
               value={uploadedImage}
               onChange={(image) => {
                 setUploadedImage(image);
-                // Also set the form field value
-                form.setFieldsValue({ image: image });
-                // Trigger form validation
-                form.validateFields(['image']);
+                setFormData({...formData, image: image});
               }}
               folder="inspiration"
               maxSize={5}
               required={true}
             />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="isFeatured"
-                label="Featured"
-              >
-                <Select>
-                  <Option value={true}>Yes</Option>
-                  <Option value={false}>No</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-              >
-                <Select>
-                  <Option value="draft">Draft</Option>
-                  <Option value="published">Published</Option>
-                  <Option value="archived">Archived</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item style={{ marginTop: 24, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit">
-                {editingItem ? 'Update' : 'Create'}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Display Order
+              </label>
+              <input 
+                type="number"
+                placeholder="0"
+                value={formData.order || 0}
+                onChange={(e) => setFormData({...formData, order: parseInt(e.target.value) || 0})}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Status
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="checkbox"
+                  checked={formData.isActive !== false}
+                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  style={{ transform: 'scale(1.2)' }}
+                />
+                <span>Active</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              variant="primary"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {editingItem ? 'Update Item' : 'Add Item'}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
-} 
+}

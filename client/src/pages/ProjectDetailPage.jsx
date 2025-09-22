@@ -323,39 +323,33 @@ export default function ProjectDetailPage() {
             <div className="project-gallery">
               <h2>Project Gallery</h2>
               <div className="gallery-carousel">
-                <div className="gallery-track" style={{ transform: `translateX(-${currentImageIndex * (100 / 3)}%)` }}>
-                  {allImages.slice(1).map((image, index) => (
-                    <div key={index} className="gallery-slide" onClick={() => openLightbox(index + 1)}>
-                      <img
-                        src={image.url}
-                        alt={image.alt}
-                        className="gallery-image"
-                      />
-                      <div className="gallery-overlay">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="11" cy="11" r="8"/>
-                          <path d="M21 21l-4.35-4.35"/>
-                        </svg>
+                <button className="carousel-nav carousel-nav-prev" onClick={prevImage}>
+                  <span>‹</span>
+                </button>
+                
+                <div className="carousel-container">
+                  <div className="carousel-track" style={{ transform: `translateX(-${currentImageIndex * (100 / 3)}%)` }}>
+                    {allImages.slice(1).map((image, index) => (
+                      <div key={index} className="gallery-slide" onClick={() => openLightbox(index + 1)}>
+                        <img
+                          src={image.url}
+                          alt={image.alt}
+                          className="gallery-image"
+                        />
+                        <div className="gallery-overlay">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                          </svg>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
                 
-                {allImages.length > 3 && (
-                  <>
-                    <button className="carousel-nav carousel-prev" onClick={prevImage}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="15,18 9,12 15,6"/>
-                      </svg>
-                    </button>
-                    
-                    <button className="carousel-nav carousel-next" onClick={nextImage}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="9,18 15,12 9,6"/>
-                      </svg>
-                    </button>
-                  </>
-                )}
+                <button className="carousel-nav carousel-nav-next" onClick={nextImage}>
+                  <span>›</span>
+                </button>
               </div>
               
               {allImages.length > 3 && (
@@ -373,6 +367,30 @@ export default function ProjectDetailPage() {
           )}
         </div>
       </div>
+
+      {/* CTA Section - Using exact same structure as HomePage and AboutPage */}
+      <section className="cta-section">
+        <Container>
+          <div className="cta-content">
+            <h2 className="cta-title">Ready to Start Your Project?</h2>
+            <p className="cta-subtitle">
+              Contact us today for a free consultation and quote
+            </p>
+            <div className="cta-buttons">
+              <Link to="/contact">
+                <Button variant="primary" size="lg" className="cta-button-primary">
+                  Contact Us
+                </Button>
+              </Link>
+              <Link to="/projects">
+                <Button variant="outline" size="lg" className="cta-button-secondary">
+                  View More Projects
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Container>
+      </section>
 
       {/* Lightbox Modal */}
       {isLightboxOpen && allImages.length > 0 && (

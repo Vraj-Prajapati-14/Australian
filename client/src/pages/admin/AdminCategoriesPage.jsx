@@ -1,41 +1,38 @@
 import { useState } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Table, 
   Button, 
   Modal, 
-  Form, 
   Input, 
-  Space, 
   Card, 
-  Typography, 
-  Popconfirm,
-  App,
-  Select,
-  Tag,
-  Row,
-  Col
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined,
-  LinkOutlined
-} from '@ant-design/icons';
+  Table, 
+  Tag, 
+  Select
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const LinkIcon = () => <span>🔗</span>;
 
 export default function AdminCategoriesPage() {
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [serviceCategoryModalVisible, setServiceCategoryModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
-  const [form] = Form.useForm();
-  const [serviceCategoryForm] = Form.useForm();
+  const [formData, setFormData] = useState({});
+  const [serviceCategoryData, setServiceCategoryData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const queryClient = useQueryClient();
-  const { message } = App.useApp();
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
   // Fetch categories
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({ 
@@ -60,11 +57,14 @@ export default function AdminCategoriesPage() {
     mutationFn: (data) => api.post('/service-categories', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['service-categories']);
-      message.success('Category created successfully');
+      showMessage('success', 'Category created successfully');
+      setCategoryModalVisible(false);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Create category error:', error);
-      message.error('Error creating category. Please try again.');
+      showMessage('error', 'Error creating category. Please try again.');
     }
   });
 
@@ -72,11 +72,15 @@ export default function AdminCategoriesPage() {
     mutationFn: ({ id, data }) => api.put(`/service-categories/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['service-categories']);
-      message.success('Category updated successfully');
+      showMessage('success', 'Category updated successfully');
+      setCategoryModalVisible(false);
+      setEditingCategory(null);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Update category error:', error);
-      message.error('Error updating category. Please try again.');
+      showMessage('error', 'Error updating category. Please try again.');
     }
   });
 
@@ -84,11 +88,11 @@ export default function AdminCategoriesPage() {
     mutationFn: (id) => api.delete(`/service-categories/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['service-categories']);
-      message.success('Category deleted successfully');
+      showMessage('success', 'Category deleted successfully');
     },
     onError: (error) => {
       console.error('Delete category error:', error);
-      message.error('Error deleting category. Please try again.');
+      showMessage('error', 'Error deleting category. Please try again.');
     }
   });
 
@@ -96,65 +100,90 @@ export default function AdminCategoriesPage() {
     mutationFn: ({ serviceId, categories }) => api.put(`/services/${serviceId}`, { categories }),
     onSuccess: () => {
       queryClient.invalidateQueries(['adminMainServices']);
-      message.success('Service categories updated successfully');
+      showMessage('success', 'Service categories updated successfully');
+      setServiceCategoryModalVisible(false);
+      setSelectedService(null);
+      setServiceCategoryData({});
     },
     onError: (error) => {
       console.error('Update service categories error:', error);
-      message.error('Error updating service categories. Please try again.');
+      showMessage('error', 'Error updating service categories. Please try again.');
     }
   });
 
   const handleAddCategory = () => {
     setEditingCategory(null);
-    form.resetFields();
+    setFormData({});
+    setFormErrors({});
     setCategoryModalVisible(true);
   };
 
   const handleEditCategory = (category) => {
     setEditingCategory(category);
-    form.setFieldsValue(category);
+    setFormData({
+      name: category.name || '',
+      slug: category.slug || '',
+      description: category.description || '',
+      order: category.order || 0
+    });
+    setFormErrors({});
     setCategoryModalVisible(true);
   };
 
   const handleDeleteCategory = async (categoryId) => {
+    if (window.confirm('Delete this category? This action cannot be undone.')) {
     try {
       await deleteCategoryMutation.mutateAsync(categoryId);
     } catch (error) {
       console.error('Error deleting category:', error);
+      }
     }
   };
 
   const handleAssignCategories = (service) => {
     setSelectedService(service);
-    serviceCategoryForm.setFieldsValue({
+    setServiceCategoryData({
       categories: service.categories?.map(cat => cat._id) || []
     });
     setServiceCategoryModalVisible(true);
   };
 
-  const handleCategorySubmit = async (values) => {
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
     try {
       if (editingCategory) {
-        await updateCategoryMutation.mutateAsync({ id: editingCategory._id, data: values });
+        await updateCategoryMutation.mutateAsync({ id: editingCategory._id, data: formData });
       } else {
-        await createCategoryMutation.mutateAsync(values);
+        await createCategoryMutation.mutateAsync(formData);
       }
-      setCategoryModalVisible(false);
     } catch (error) {
       console.error('Error saving category:', error);
     }
   };
 
-  const handleServiceCategoriesSubmit = async (values) => {
+  const handleServiceCategoriesSubmit = async (e) => {
+    e.preventDefault();
     try {
       await updateServiceCategoriesMutation.mutateAsync({ 
         serviceId: selectedService._id, 
-        categories: values.categories 
+        categories: serviceCategoryData.categories 
       });
-      setServiceCategoryModalVisible(false);
     } catch (error) {
       console.error('Error updating service categories:', error);
     }
+  };
+
+  const handleCancel = () => {
+    setCategoryModalVisible(false);
+    setEditingCategory(null);
+    setFormData({});
+    setFormErrors({});
+  };
+
+  const handleServiceCategoryCancel = () => {
+    setServiceCategoryModalVisible(false);
+    setSelectedService(null);
+    setServiceCategoryData({});
   };
 
   const categoryColumns = [
@@ -162,13 +191,25 @@ export default function AdminCategoriesPage() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <Text strong>{text}</Text>
+      render: (text) => (
+        <span style={{ fontWeight: '600', color: '#1f2937' }}>{text}</span>
+      )
     },
     {
       title: 'Slug',
       dataIndex: 'slug',
       key: 'slug',
-      render: (text) => <Text code>{text}</Text>
+      render: (text) => (
+        <span style={{ 
+          fontFamily: 'monospace', 
+          background: '#f3f4f6', 
+          padding: '2px 6px', 
+          borderRadius: '4px',
+          fontSize: '12px'
+        }}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Description',
@@ -186,26 +227,22 @@ export default function AdminCategoriesPage() {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
+        <div className="action-buttons">
+          <button 
+            className="action-btn edit"
             onClick={() => handleEditCategory(record)}
-          />
-          <Popconfirm
-            title="Delete this category?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDeleteCategory(record._id)}
-            okText="Yes"
-            cancelText="No"
+            title="Edit Category"
           >
-            <Button 
-              type="text" 
-              danger 
-              icon={<DeleteOutlined />} 
-            />
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </button>
+          <button 
+            className="action-btn delete"
+            onClick={() => handleDeleteCategory(record._id)}
+            title="Delete Category"
+          >
+            <DeleteIcon />
+          </button>
+        </div>
       )
     }
   ];
@@ -215,200 +252,241 @@ export default function AdminCategoriesPage() {
       title: 'Service',
       dataIndex: 'title',
       key: 'title',
-      render: (text) => <Text strong>{text}</Text>
+      render: (text, record) => (
+        <div>
+          <div style={{ fontWeight: '600', marginBottom: '4px' }}>{text}</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>
+            {record.shortDescription}
+          </div>
+        </div>
+      )
     },
     {
       title: 'Categories',
       key: 'categories',
       render: (_, record) => (
-        <Space wrap>
-          {record.categories?.map(category => (
-            <Tag key={category._id} color="blue">
-              {category.name}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {record.categories?.map(cat => (
+            <Tag key={cat._id} color="blue">
+              {cat.name}
             </Tag>
-          )) || <Text type="secondary">No categories assigned</Text>}
-        </Space>
+          )) || <span style={{ color: '#9ca3af' }}>No categories</span>}
+        </div>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Button 
-          type="primary" 
-          icon={<LinkOutlined />} 
+        <div className="action-buttons">
+          <button 
+            className="action-btn edit"
           onClick={() => handleAssignCategories(record)}
+            title="Assign Categories"
         >
-          Assign Categories
-        </Button>
+            <LinkIcon />
+          </button>
+        </div>
       )
     }
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
-      <Title level={2}>Service Categories Management</Title>
-      
-      <Row gutter={[24, 24]}>
-        <Col span={12}>
-          <Card title="Categories">
-            <div style={{ marginBottom: 16 }}>
+    <div className="admin-page">
+      <div className="page-header">
+        <h2 className="page-title">Categories Management</h2>
+        <p className="page-description">Manage service categories and assign them to services</p>
+      </div>
+
+      {/* Categories Section */}
+      <Card className="services-card">
+        <div className="card-header">
+          <div className="card-title">
+            <h4>Service Categories ({categories.length})</h4>
+            <p className="card-subtitle">Create and manage service categories</p>
+          </div>
               <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
+            variant="primary" 
                 onClick={handleAddCategory}
+            className="add-service-btn"
               >
-                Add Category
+            <PlusIcon /> Add Category
               </Button>
             </div>
+        
             <Table
+          className="services-table"
               columns={categoryColumns}
-              dataSource={categories}
+          dataSource={Array.isArray(categories) ? categories : []}
               rowKey="_id"
               loading={categoriesLoading}
               pagination={{ 
                 pageSize: 10,
                 showSizeChanger: true,
-                showQuickJumper: true
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
               }}
             />
           </Card>
-        </Col>
+
+      {/* Services Section */}
+      <Card className="services-card" style={{ marginTop: '24px' }}>
+        <div className="card-header">
+          <div className="card-title">
+            <h4>Main Services ({mainServices.length})</h4>
+            <p className="card-subtitle">Assign categories to main services</p>
+          </div>
+        </div>
         
-        <Col span={12}>
-          <Card title="Service Category Assignment">
-            <div style={{ marginBottom: 16 }}>
-              <Text type="secondary">
-                Assign categories to main services. Each service can have multiple categories.
-              </Text>
-            </div>
             <Table
+          className="services-table"
               columns={serviceColumns}
-              dataSource={mainServices}
+          dataSource={Array.isArray(mainServices) ? mainServices : []}
               rowKey="_id"
               loading={servicesLoading}
               pagination={{ 
                 pageSize: 10,
                 showSizeChanger: true,
-                showQuickJumper: true
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
               }}
             />
           </Card>
-        </Col>
-      </Row>
 
       {/* Category Modal */}
       <Modal
+        isOpen={categoryModalVisible}
+        onClose={handleCancel}
         title={editingCategory ? 'Edit Category' : 'Add New Category'}
-        open={categoryModalVisible}
-        onCancel={() => setCategoryModalVisible(false)}
-        footer={null}
-        width={600}
+        size="md"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCategorySubmit}
-        >
-          <Form.Item
-            name="name"
-            label="Category Name"
-            rules={[{ required: true, message: 'Please enter category name' }]}
-          >
-            <Input placeholder="e.g., Ute, Trailer, Truck" />
-          </Form.Item>
-          
-          <Form.Item
-            name="slug"
-            label="Slug"
-            rules={[{ required: true, message: 'Please enter slug' }]}
-          >
-            <Input placeholder="e.g., ute, trailer, truck" />
-          </Form.Item>
-          
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <Input.TextArea rows={3} placeholder="Category description" />
-          </Form.Item>
-          
-          <Form.Item
-            name="order"
-            label="Display Order"
-            initialValue={0}
-          >
-            <Input type="number" min={0} placeholder="0" />
-          </Form.Item>
-          
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Space>
-              <Button onClick={() => setCategoryModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                loading={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-              >
-                {editingCategory ? 'Update Category' : 'Add Category'}
-              </Button>
-            </Space>
+        <form onSubmit={handleCategorySubmit}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>
+              Category Information
+            </h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Category Name *
+              </label>
+              <Input 
+                placeholder="e.g., Automotive Accessories"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                error={formErrors.name}
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Slug *
+              </label>
+              <Input 
+                placeholder="e.g., automotive-accessories"
+                value={formData.slug || ''}
+                onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                error={formErrors.slug}
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Description
+              </label>
+              <Input.Textarea 
+                rows={3}
+                placeholder="Brief description of the category"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                error={formErrors.description}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Display Order
+              </label>
+              <Input 
+                type="number"
+                placeholder="0"
+                value={formData.order || 0}
+                onChange={(e) => setFormData({...formData, order: parseInt(e.target.value) || 0})}
+                error={formErrors.order}
+              />
+            </div>
           </div>
-        </Form>
+
+          <div className="modal-footer">
+            <button 
+              type="button"
+              className="btn btn-outline"
+              onClick={handleCancel}
+            >
+                Cancel
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+            >
+              {createCategoryMutation.isPending || updateCategoryMutation.isPending ? 'Saving...' : (editingCategory ? 'Update Category' : 'Add Category')}
+            </button>
+          </div>
+        </form>
       </Modal>
 
       {/* Service Categories Modal */}
       <Modal
+        isOpen={serviceCategoryModalVisible}
+        onClose={handleServiceCategoryCancel}
         title={`Assign Categories to ${selectedService?.title}`}
-        open={serviceCategoryModalVisible}
-        onCancel={() => setServiceCategoryModalVisible(false)}
-        footer={null}
-        width={600}
+        size="md"
       >
-        <Form
-          form={serviceCategoryForm}
-          layout="vertical"
-          onFinish={handleServiceCategoriesSubmit}
-        >
-          <Form.Item
-            name="categories"
-            label="Select Categories"
-          >
+        <form onSubmit={handleServiceCategoriesSubmit}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>
+              Select Categories
+            </h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Categories
+              </label>
             <Select
               mode="multiple"
-              placeholder="Select categories for this service"
+                placeholder="Select categories"
+                value={serviceCategoryData.categories || []}
+                onChange={(value) => setServiceCategoryData({...serviceCategoryData, categories: value})}
+                options={categories.map(cat => ({
+                  value: cat._id,
+                  label: cat.name
+                }))}
               style={{ width: '100%' }}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {categories.map(category => (
-                <Option key={category._id} value={category._id}>
-                  {category.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Space>
-              <Button onClick={() => setServiceCategoryModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                loading={updateServiceCategoriesMutation.isPending}
-              >
-                Update Categories
-              </Button>
-            </Space>
+              />
+            </div>
           </div>
-        </Form>
+
+          <div className="modal-footer">
+            <button 
+              type="button"
+              className="btn btn-outline"
+              onClick={handleServiceCategoryCancel}
+            >
+                Cancel
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={updateServiceCategoriesMutation.isPending}
+            >
+              {updateServiceCategoriesMutation.isPending ? 'Updating...' : 'Update Categories'}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
 }
-

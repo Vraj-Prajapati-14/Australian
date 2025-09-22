@@ -1,38 +1,26 @@
 import { useState } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Table, 
   Button, 
   Modal, 
-  Form, 
   Input, 
-  Select, 
-  Switch, 
-  Space, 
   Card, 
-  Row, 
-  Col, 
-  Typography, 
+  Table, 
   Tag, 
-  Popconfirm,
-  App,
-  Tooltip,
-  Badge,
+  Select,
+  Switch,
   InputNumber
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  SettingOutlined,
-  TeamOutlined,
-  FileOutlined
-} from '@ant-design/icons';
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const SettingIcon = () => <span>⚙️</span>;
+const TeamIcon = () => <span>👥</span>;
+const FileIcon = () => <span>📄</span>;
 
 // Helper function to calculate contrast color (black or white) based on background color
 const getContrastColor = (hexColor) => {
@@ -52,146 +40,156 @@ const getContrastColor = (hexColor) => {
 };
 
 export default function AdminDepartmentsPage() {
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
-  const [currentColor, setCurrentColor] = useState('#1677ff');
-  const [form] = Form.useForm();
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const queryClient = useQueryClient();
-  const { message } = App.useApp();
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
   // Fetch departments data
-  const { data: departments = [], isLoading: loading } = useQuery({ 
-    queryKey: ['departments'], 
+  const { data: departments = [], isLoading } = useQuery({
+    queryKey: ['departments'],
     queryFn: async () => {
-      const response = await api.get('/departments');
-      return response.data || [];
+      try {
+        const response = await api.get('/departments');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        return [];
+      }
     }
   });
 
-  // Mutations
-  const createDepartmentMutation = useMutation({
+  // Create mutation
+  const createMutation = useMutation({
     mutationFn: (data) => api.post('/departments', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['departments']);
-      message.success('Department created successfully');
-      setModalVisible(false);
-      form.resetFields();
+      showMessage('success', 'Department created successfully');
+      setIsModalVisible(false);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Create department error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error creating department. Please try again.');
+        showMessage('error', 'Error creating department. Please try again.');
       }
     }
   });
 
-  const updateDepartmentMutation = useMutation({
+  // Update mutation
+  const updateMutation = useMutation({
     mutationFn: ({ id, data }) => api.put(`/departments/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['departments']);
-      message.success('Department updated successfully');
-      setModalVisible(false);
+      showMessage('success', 'Department updated successfully');
+      setIsModalVisible(false);
       setEditingDepartment(null);
-      form.resetFields();
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Update department error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error updating department. Please try again.');
+        showMessage('error', 'Error updating department. Please try again.');
       }
     }
   });
 
-  const deleteDepartmentMutation = useMutation({
+  // Delete mutation
+  const deleteMutation = useMutation({
     mutationFn: (id) => api.delete(`/departments/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['departments']);
-      message.success('Department deleted successfully');
+      showMessage('success', 'Department deleted successfully');
     },
     onError: (error) => {
       console.error('Delete department error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else {
-        message.error('Error deleting department. Please try again.');
+        showMessage('error', 'Error deleting department. Please try again.');
       }
     }
   });
 
-  const handleAddDepartment = () => {
+  const handleAdd = () => {
     setEditingDepartment(null);
-    setCurrentColor('#1677ff');
-    form.resetFields();
-    form.setFieldsValue({ 
-      status: 'active',
-      order: 0,
-      color: '#1677ff'
+    setFormData({ 
+      name: '',
+      description: '',
+      color: '#1890ff',
+      isActive: true,
+      order: 0
     });
-    setModalVisible(true);
+    setFormErrors({});
+    setIsModalVisible(true);
   };
 
-  const handleEditDepartment = (department) => {
+  const handleEdit = (department) => {
     setEditingDepartment(department);
-    const departmentColor = department.color || '#1677ff';
-    setCurrentColor(departmentColor);
-    setModalVisible(true);
-    
-    // Small delay to ensure form is ready
-    setTimeout(() => {
-      // Pre-fill form fields with only the fields that exist in the database
-      const formValues = {
-        name: department.name,
-        description: department.description,
-        order: department.order || 0,
-        status: department.status || 'active',
-        color: departmentColor
-      };
-      form.setFieldsValue(formValues);
-    }, 100);
+    setFormData({
+      ...department
+    });
+    setFormErrors({});
+    setIsModalVisible(true);
   };
 
-  const handleDeleteDepartment = async (departmentId) => {
-    try {
-      await deleteDepartmentMutation.mutateAsync(departmentId);
-    } catch (error) {
-      console.error('Error deleting department:', error);
-    }
-  };
-
-  const handleStatusChange = async (departmentId, status) => {
-    try {
-      const department = departments.find(d => d._id === departmentId);
-      if (department) {
-        await updateDepartmentMutation.mutateAsync({ id: departmentId, data: { status } });
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this department?')) {
+      try {
+        await deleteMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting department:', error);
       }
-    } catch (error) {
-      console.error('Error updating status:', error);
     }
   };
 
-  const handleSubmit = async (values) => {
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setEditingDepartment(null);
+    setFormData({});
+    setFormErrors({});
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
       const token = localStorage.getItem('aes_admin_token');
       if (!token) {
-        message.error('Please log in to continue');
+        showMessage('error', 'Please log in to continue');
         return;
       }
-      
+
+      // Validate required fields
+      if (!formData.name) {
+        setFormErrors({ name: 'Department name is required' });
+        return;
+      }
+
       if (editingDepartment) {
-        await updateDepartmentMutation.mutateAsync({ id: editingDepartment._id, data: values });
+        await updateMutation.mutateAsync({ id: editingDepartment._id, data: formData });
       } else {
-        await createDepartmentMutation.mutateAsync(values);
+        await createMutation.mutateAsync(formData);
       }
     } catch (error) {
       console.error('Error saving department:', error);
@@ -205,129 +203,114 @@ export default function AdminDepartmentsPage() {
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div 
-            style={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: '50%', 
-              backgroundColor: record.color || '#1677ff',
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              backgroundColor: record.color || '#1890ff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: getContrastColor(record.color || '#1677ff'),
-              fontWeight: 'bold',
-              fontSize: '16px',
-              border: '2px solid #f0f0f0'
+              color: getContrastColor(record.color || '#1890ff'),
+              fontSize: '12px',
+              fontWeight: 'bold'
             }}
           >
-            {record.name.charAt(0).toUpperCase()}
+            {record.name?.charAt(0)?.toUpperCase() || 'D'}
           </div>
           <div>
             <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.name}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>
-              {record.description ? record.description.substring(0, 50) + (record.description.length > 50 ? '...' : '') : 'No description'}
-            </div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.description}</div>
           </div>
         </div>
       )
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'default'} 
-          text={status.charAt(0).toUpperCase() + status.slice(1)} 
-        />
-      )
-    },
-    {
-      title: 'Order',
-      dataIndex: 'order',
-      key: 'order',
-      render: (order) => <Tag color="blue">{order}</Tag>
     },
     {
       title: 'Color',
       dataIndex: 'color',
       key: 'color',
       render: (color) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div 
-            style={{ 
-              width: '20px', 
-              height: '20px', 
-              borderRadius: '4px', 
-              backgroundColor: color || '#1677ff',
-              border: '1px solid #d9d9d9'
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              backgroundColor: color || '#1890ff'
             }}
           />
-          <Text style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-            {color || '#1677ff'}
-          </Text>
+          <span style={{ fontSize: 12 }}>{color || '#1890ff'}</span>
         </div>
+      )
+    },
+    {
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (isActive) => (
+        <Tag color={isActive ? 'green' : 'red'}>
+          {isActive ? 'Active' : 'Inactive'}
+        </Tag>
+      )
+    },
+    {
+      title: 'Order',
+      dataIndex: 'order',
+      key: 'order',
+      render: (order) => (
+        <span style={{ fontWeight: 'bold' }}>{order || 0}</span>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit Department">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => handleEditDepartment(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Toggle Status">
-            <Button 
-              type="text" 
-              icon={<SettingOutlined />} 
-              onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Delete this department?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDeleteDepartment(record._id)}
-            okText="Yes"
-            cancelText="No"
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(record)}
           >
-            <Tooltip title="Delete Department">
-              <Button 
-                type="text" 
-                danger 
-                icon={<DeleteOutlined />} 
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(record._id)}
+          >
+            <DeleteIcon />
+          </Button>
+        </div>
       )
     }
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
-      <Title level={2}>Departments Management</Title>
-      
+    <div className="admin-page" style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
+      <div className="page-header">
+        <h1 className="page-title">Departments</h1>
+        <p className="page-description">Manage company departments and teams</p>
+      </div>
+
       <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <Title level={4}>Departments ({departments.length})</Title>
+        <div className="card-header">
+          <div>
+            <h2 className="card-title">Departments ({departments.length})</h2>
+            <p className="card-subtitle">View and manage all departments</p>
+          </div>
           <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleAddDepartment}
+            variant="primary"
+            onClick={handleAdd}
           >
-            Add Department
+            <PlusIcon /> Add Department
           </Button>
         </div>
-        
+
         <Table
           columns={columns}
           dataSource={departments}
           rowKey="_id"
-          loading={loading}
+          loading={isLoading}
           pagination={{ 
             pageSize: 10,
             showSizeChanger: true,
@@ -341,137 +324,118 @@ export default function AdminDepartmentsPage() {
       {/* Department Modal */}
       <Modal
         title={editingDepartment ? 'Edit Department' : 'Add New Department'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={800}
-        style={{ top: 20 }}
-        className="admin-modal"
+        isOpen={isModalVisible}
+        onClose={handleCancel}
+        size="lg"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          className="admin-form"
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="name"
-                label="Department Name"
-                rules={[{ required: true, message: 'Please enter department name' }]}
-              >
-                <Input placeholder="e.g., Installation Team" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="order"
-                label="Display Order"
-                initialValue={0}
-              >
-                <InputNumber min={0} placeholder="0" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter description' }]}
-          >
-            <TextArea 
-              rows={4} 
-              placeholder="Detailed description of the department's responsibilities and functions"
-            />
-          </Form.Item>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-                initialValue="active"
-              >
-                <Select>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="color"
-                label="Department Color"
-                initialValue="#1677ff"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Input 
-                    type="color" 
-                    value={currentColor}
-                    onChange={(e) => {
-                      const color = e.target.value;
-                      setCurrentColor(color);
-                      form.setFieldValue('color', color);
-                    }}
-                    style={{ 
-                      width: '60px', 
-                      height: '40px',
-                      border: '1px solid #d9d9d9',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }} 
-                  />
-                  <Input 
-                    value={currentColor}
-                    placeholder="#1677ff"
-                    style={{ flex: 1 }}
-                    onChange={(e) => {
-                      const color = e.target.value;
-                      setCurrentColor(color);
-                      if (color.match(/^#[0-9A-F]{6}$/i)) {
-                        form.setFieldValue('color', color);
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const color = e.target.value;
-                      if (color && !color.startsWith('#')) {
-                        const newColor = `#${color}`;
-                        setCurrentColor(newColor);
-                        form.setFieldValue('color', newColor);
-                      }
-                    }}
-                  />
-                </div>
-                <div style={{ 
-                  marginTop: '8px', 
-                  padding: '8px', 
-                  borderRadius: '4px', 
-                  border: '1px solid #d9d9d9',
-                  backgroundColor: currentColor,
-                  color: getContrastColor(currentColor),
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}>
-                  Preview: {currentColor}
-                </div>
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit" loading={createDepartmentMutation.isPending || updateDepartmentMutation.isPending}>
-                {editingDepartment ? 'Update Department' : 'Add Department'}
-              </Button>
-            </Space>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Department Name *
+              </label>
+              <Input 
+                placeholder="e.g., Engineering"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                error={formErrors.name}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Display Order
+              </label>
+              <InputNumber 
+                placeholder="0"
+                value={formData.order || 0}
+                onChange={(value) => setFormData({...formData, order: value || 0})}
+                min={0}
+              />
+            </div>
           </div>
-        </Form>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Description
+            </label>
+            <textarea 
+              placeholder="Enter department description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={3}
+              style={{ 
+                width: '100%', 
+                padding: '12px', 
+                border: '1px solid #ddd', 
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Color
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="color"
+                  value={formData.color || '#1890ff'}
+                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  style={{ 
+                    width: '40px', 
+                    height: '40px', 
+                    border: 'none', 
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                />
+                <Input 
+                  value={formData.color || '#1890ff'}
+                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  placeholder="#1890ff"
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Status
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="checkbox"
+                  checked={formData.isActive !== false}
+                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  style={{ transform: 'scale(1.2)' }}
+                />
+                <span>Active</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              variant="primary"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {editingDepartment ? 'Update Department' : 'Add Department'}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
-} 
+}

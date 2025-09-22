@@ -269,27 +269,29 @@ const ServicesPage = () => {
         </Container>
       </Section>
 
-      {/* CTA Section */}
-      <Section background="primary" padding="4xl">
+      {/* CTA Section - Using exact same structure as HomePage and AboutPage */}
+      <section className="cta-section">
         <Container>
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+          <div className="cta-content">
+            <h2 className="cta-title">Ready to Get Started?</h2>
+            <p className="cta-subtitle">
               Get a custom quote for your vehicle solution. Our team is ready to help you find the perfect fit.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg" as={Link} to="/contact">
-                Get Quote
-              </Button>
-              <Button variant="outline" size="lg" as={Link} to="/inspiration">
-                View Inspiration Gallery
-              </Button>
+            <div className="cta-buttons">
+              <Link to="/contact">
+                <Button variant="primary" size="lg" className="cta-button-primary">
+                  Get Quote
+                </Button>
+              </Link>
+              <Link to="/inspiration">
+                <Button variant="outline" size="lg" className="cta-button-secondary">
+                  View Inspiration Gallery
+                </Button>
+              </Link>
             </div>
           </div>
         </Container>
-      </Section>
+      </section>
     </>
   );
 };

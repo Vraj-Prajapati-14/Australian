@@ -1,79 +1,62 @@
 import { useState } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Table, 
   Button, 
   Modal, 
-  Form, 
   Input, 
-  Select, 
-  Switch, 
-  Space, 
   Card, 
-  Row, 
-  Col, 
-  Typography, 
+  Table, 
   Tag, 
-  Popconfirm,
-  Image,
-  Avatar,
-  Divider,
-  App,
-  Tooltip,
-  Badge,
-  InputNumber,
-  Alert
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  UserOutlined,
-  LinkedinOutlined,
-  TwitterOutlined,
-  GlobalOutlined,
-  MailOutlined,
-  SettingOutlined,
-  FileOutlined
-} from '@ant-design/icons';
+  Select,
+  Switch,
+  InputNumber
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import SimpleImageUpload from '../../components/SimpleImageUpload';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const UserIcon = () => <span>👤</span>;
+const SettingIcon = () => <span>⚙️</span>;
 
 export default function AdminTeamPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
-  const [form] = Form.useForm();
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const queryClient = useQueryClient();
-  const { message } = App.useApp();
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
-  // Fetch team data (expects raw array)
-  const { data: teamMembers = [], isLoading: loading, error: teamError } = useQuery({ 
+  // Fetch team members
+  const { data: teamMembers = [], isLoading: loading } = useQuery({ 
     queryKey: ['team'], 
     queryFn: async () => {
       try {
         const response = await api.get('/team');
-        
-        // Return raw array for antd Table
-        const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
-        return data;
+        return response.data || [];
       } catch (error) {
-        console.error('Error fetching team data:', error);
-        throw error;
+        console.error('Error fetching team:', error);
+        return [];
       }
     }
   });
 
-  // Fetch departments for dropdown
+  // Fetch departments
   const { data: departments = [] } = useQuery({ 
     queryKey: ['departments'], 
     queryFn: async () => {
       try {
         const response = await api.get('/departments');
-        return Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        return response.data || [];
       } catch (error) {
         console.error('Error fetching departments:', error);
         return [];
@@ -86,19 +69,21 @@ export default function AdminTeamPage() {
     mutationFn: (data) => api.post('/team', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['team']);
-      message.success('Team member added successfully');
+      showMessage('success', 'Team member created successfully');
       setModalVisible(false);
-      form.resetFields();
+      setUploadedImage(null);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
-      console.error('Create team member error:', error);
+      console.error('Create member error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error creating team member. Please try again.');
+        showMessage('error', 'Error creating team member. Please try again.');
       }
     }
   });
@@ -107,20 +92,22 @@ export default function AdminTeamPage() {
     mutationFn: ({ id, data }) => api.put(`/team/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['team']);
-      message.success('Team member updated successfully');
+      showMessage('success', 'Team member updated successfully');
       setModalVisible(false);
       setEditingMember(null);
-      form.resetFields();
+      setUploadedImage(null);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
-      console.error('Update team member error:', error);
+      console.error('Update member error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error updating team member. Please try again.');
+        showMessage('error', 'Error updating team member. Please try again.');
       }
     }
   });
@@ -129,72 +116,104 @@ export default function AdminTeamPage() {
     mutationFn: (id) => api.delete(`/team/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['team']);
-      message.success('Team member deleted successfully');
+      showMessage('success', 'Team member deleted successfully');
     },
     onError: (error) => {
-      console.error('Delete team member error:', error);
+      console.error('Delete member error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else {
-        message.error('Error deleting team member. Please try again.');
+        showMessage('error', 'Error deleting team member. Please try again.');
       }
     }
   });
 
   const handleAddMember = () => {
     setEditingMember(null);
-    form.resetFields();
-    form.setFieldsValue({ 
-      status: 'active',
-      isFeatured: false,
+    setUploadedImage(null);
+    setFormData({ 
+      isActive: true,
       order: 0
     });
+    setFormErrors({});
     setModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setModalVisible(false);
+    setEditingMember(null);
+    setUploadedImage(null);
+    setFormData({});
+    setFormErrors({});
   };
 
   const handleEditMember = (member) => {
     setEditingMember(member);
-    form.setFieldsValue({
-      ...member,
-      department: member.department?._id
+    setUploadedImage(member.image || null);
+    setFormData({
+      name: member.name || '',
+      position: member.position || '',
+      department: member.department || '',
+      email: member.email || '',
+      phone: member.phone || '',
+      bio: member.bio || '',
+      experience: member.experience || '',
+      specializations: member.specializations || [],
+      linkedinUrl: member.linkedinUrl || '',
+      twitterUrl: member.twitterUrl || '',
+      websiteUrl: member.websiteUrl || '',
+      isActive: member.isActive !== undefined ? member.isActive : true,
+      order: member.order || 0
     });
+    setFormErrors({});
     setModalVisible(true);
   };
 
   const handleDeleteMember = async (memberId) => {
+    if (window.confirm('Delete this team member? This action cannot be undone.')) {
     try {
       await deleteMemberMutation.mutateAsync(memberId);
     } catch (error) {
-      console.error('Error deleting team member:', error);
+        console.error('Error deleting member:', error);
+      }
     }
   };
 
-  const handleStatusChange = async (memberId, status) => {
+  const handleStatusChange = async (memberId, currentStatus) => {
     try {
-      const member = Array.isArray(teamMembers) ? teamMembers.find(m => m._id === memberId) : null;
+      const newStatus = !currentStatus;
+      const member = teamMembers.find(m => m._id === memberId);
       if (member) {
-        await updateMemberMutation.mutateAsync({ id: memberId, data: { status } });
+        await updateMemberMutation.mutateAsync({ id: memberId, data: { isActive: newStatus } });
       }
     } catch (error) {
       console.error('Error updating status:', error);
     }
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       const token = localStorage.getItem('aes_admin_token');
       if (!token) {
-        message.error('Please log in to continue');
+        showMessage('error', 'Please log in to continue');
         return;
       }
 
-      console.log('Submitting team member data:', values);
+      // Handle image data
+      const imageData = uploadedImage || editingMember?.image || formData.image;
+
+      // Prepare the data object
+      const submitData = {
+        ...formData,
+        image: imageData
+      };
       
       if (editingMember) {
-        await updateMemberMutation.mutateAsync({ id: editingMember._id, data: values });
+        await updateMemberMutation.mutateAsync({ id: editingMember._id, data: submitData });
       } else {
-        await createMemberMutation.mutateAsync(values);
+        await createMemberMutation.mutateAsync(submitData);
       }
     } catch (error) {
       console.error('Error saving team member:', error);
@@ -203,220 +222,159 @@ export default function AdminTeamPage() {
 
   const columns = [
     {
-      title: 'Team Member',
+      title: 'Member',
       key: 'member',
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {record.avatar?.url ? (
-            <Avatar 
-              size={60} 
-              src={record.avatar.url}
-              style={{ objectFit: 'cover' }}
+          {record.image?.url ? (
+            <img
+              src={record.image.url}
+              alt={record.name}
+              width={50}
+              height={50}
+              style={{ objectFit: 'cover', borderRadius: '50%' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
-          ) : (
-            <Avatar 
-              size={60} 
-              icon={<UserOutlined />}
-              style={{ backgroundColor: '#f0f0f0', color: '#999' }}
-            />
-          )}
+          ) : null}
+          <div style={{ 
+            width: 50, 
+            height: 50, 
+            background: '#f0f0f0', 
+            borderRadius: '50%', 
+            display: record.image?.url ? 'none' : 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            <UserIcon />
+          </div>
           <div>
-            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.name}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>{record.role}</div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+              {typeof record.name === 'object' 
+                ? (record.name?.name || record.name?.title || JSON.stringify(record.name))
+                : (record.name || 'Unnamed')
+              }
+            </div>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              {typeof record.position === 'object' 
+                ? (record.position?.name || record.position?.title || JSON.stringify(record.position))
+                : (record.position || '-')
+              }
+            </div>
             <div style={{ fontSize: 11, color: '#999' }}>
-              {record.department?.name || 'No Department'}
+              {typeof record.department === 'object' 
+                ? (record.department?.name || record.department?.title || JSON.stringify(record.department))
+                : (record.department || '-')
+              }
             </div>
           </div>
         </div>
       )
     },
     {
-      title: 'Department',
-      dataIndex: 'department',
-      key: 'department',
-      render: (department) => (
-        <Tag color="blue">
-          {department?.name || 'N/A'}
-        </Tag>
-      )
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'default'} 
-          text={(status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown')} 
-        />
-      )
-    },
-    {
-      title: 'Featured',
-      dataIndex: 'isFeatured',
-      key: 'isFeatured',
-      render: (isFeatured) => (
-        <Tag color={isFeatured ? 'gold' : 'default'}>
-          {isFeatured ? 'Featured' : 'Regular'}
-        </Tag>
-      )
-    },
-    {
       title: 'Contact',
       key: 'contact',
       render: (_, record) => (
-        <div style={{ fontSize: 12 }}>
-          <div>{record.email || 'N/A'}</div>
-          <div>{record.phone || 'N/A'}</div>
+        <div>
+          <div style={{ fontSize: 12, marginBottom: 2 }}>{record.email}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>{record.phone || '-'}</div>
         </div>
       )
     },
     {
-      title: 'Specialties & Qualifications',
-      key: 'specialties-qualifications',
-      render: (_, record) => (
-        <div style={{ fontSize: 12, maxWidth: 200 }}>
-          {record.specialties && record.specialties.length > 0 && (
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ fontWeight: 'bold', color: '#3b82f6', marginBottom: 4 }}>Specialties:</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {record.specialties.slice(0, 3).map((specialty, index) => (
-                  <Tag key={index} size="small" color="blue">{specialty}</Tag>
-                ))}
-                {record.specialties.length > 3 && (
-                  <Tag size="small" color="blue">+{record.specialties.length - 3} more</Tag>
+      title: 'Specializations',
+      dataIndex: 'specializations',
+      key: 'specializations',
+      render: (specializations) => {
+        // Handle both string arrays and object arrays
+        const specs = Array.isArray(specializations) ? specializations : [];
+        const displaySpecs = specs.slice(0, 2).map(spec => {
+          // If spec is an object, extract the name property, otherwise use as string
+          return typeof spec === 'object' ? (spec.name || spec.title || JSON.stringify(spec)) : spec;
+        });
+        
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            {displaySpecs.map((spec, index) => (
+              <Tag key={index} color="blue">
+                {String(spec)}
+              </Tag>
+            ))}
+            {specs.length > 2 && (
+              <Tag color="default">+{specs.length - 2}</Tag>
                 )}
               </div>
-            </div>
-          )}
-          {record.qualifications && record.qualifications.length > 0 && (
-            <div>
-              <div style={{ fontWeight: 'bold', color: '#10b981', marginBottom: 4 }}>Qualifications:</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {record.qualifications.slice(0, 2).map((qual, index) => (
-                  <Tag key={index} size="small" color="green">{qual}</Tag>
-                ))}
-                {record.qualifications.length > 2 && (
-                  <Tag size="small" color="green">+{record.qualifications.length - 2} more</Tag>
-                )}
-              </div>
-            </div>
-          )}
-          {(!record.specialties || record.specialties.length === 0) && (!record.qualifications || record.qualifications.length === 0) && (
-            <div style={{ color: '#9ca3af', fontStyle: 'italic' }}>No specialties or qualifications added</div>
-          )}
-        </div>
-      )
+        );
+      }
     },
     {
-      title: 'Social',
-      key: 'social',
-      render: (_, record) => (
-        <Space size="small">
-          {record.linkedin && (
-            <Tooltip title="LinkedIn">
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<LinkedinOutlined />} 
-                onClick={() => window.open(record.linkedin, '_blank')}
-              />
-            </Tooltip>
-          )}
-          {record.twitter && (
-            <Tooltip title="Twitter">
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<TwitterOutlined />} 
-                onClick={() => window.open(record.twitter, '_blank')}
-              />
-            </Tooltip>
-          )}
-          {record.website && (
-            <Tooltip title="Website">
-              <Button 
-                type="text" 
-                size="small" 
-                icon={<GlobalOutlined />} 
-                onClick={() => window.open(record.website, '_blank')}
-              />
-            </Tooltip>
-          )}
-        </Space>
+      title: 'Status',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (isActive) => (
+        <span className={isActive ? 'status-active' : 'status-inactive'}>
+          {isActive ? 'Active' : 'Inactive'}
+        </span>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit Team Member">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
+        <div className="action-buttons">
+          <button 
+            className="action-btn edit"
               onClick={() => handleEditMember(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Toggle Status">
-            <Button 
-              type="text" 
-              icon={<SettingOutlined />} 
-              onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Delete this team member?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDeleteMember(record._id)}
-            okText="Yes"
-            cancelText="No"
+            title="Edit Member"
           >
-            <Tooltip title="Delete Team Member">
-              <Button 
-                type="text" 
-                danger 
-                icon={<DeleteOutlined />} 
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </button>
+          <button 
+            className="action-btn status"
+            onClick={() => handleStatusChange(record._id, record.isActive)}
+            title={`Toggle Status (Current: ${record.isActive ? 'Active' : 'Inactive'})`}
+          >
+            <SettingIcon />
+          </button>
+          <button 
+            className="action-btn delete"
+            onClick={() => handleDeleteMember(record._id)}
+            title="Delete Member"
+          >
+            <DeleteIcon />
+          </button>
+        </div>
       )
     }
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
-      <Title level={2}>Team Management</Title>
+    <div className="admin-page">
+      <div className="page-header">
+        <h2 className="page-title">Team Management</h2>
+        <p className="page-description">Manage your team members and their information</p>
+      </div>
       
-      {teamError && (
-        <Alert
-          message="Error Loading Team Data"
-          description={teamError.message || 'There was an error loading the team data. Please try refreshing the page.'}
-          type="error"
-          showIcon
-          style={{ marginBottom: '16px' }}
-          action={
-            <Button size="small" danger onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-          }
-        />
-      )}
-      
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <Title level={4}>Team Members ({Array.isArray(teamMembers) ? teamMembers.length : 0})</Title>
+      <Card className="services-card">
+        <div className="card-header">
+          <div className="card-title">
+            <h4>Team Members ({teamMembers.length})</h4>
+            <p className="card-subtitle">Add and manage team member profiles</p>
+          </div>
           <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
+            variant="primary" 
             onClick={handleAddMember}
+            className="add-service-btn"
           >
-            Add Team Member
+            <PlusIcon /> Add Team Member
           </Button>
         </div>
         
         <Table
+          className="services-table"
           columns={columns}
           dataSource={Array.isArray(teamMembers) ? teamMembers : []}
           rowKey="_id"
@@ -427,290 +385,243 @@ export default function AdminTeamPage() {
             showQuickJumper: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
           }}
-          scroll={{ x: 1200 }}
         />
       </Card>
 
       {/* Team Member Modal */}
       <Modal
+        isOpen={modalVisible}
+        onClose={handleCancel}
         title={editingMember ? 'Edit Team Member' : 'Add New Team Member'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={900}
-        style={{ top: 20 }}
-        className="admin-modal"
+        size="full"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          className="admin-form"
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="name"
-                label="Full Name"
-                rules={[{ required: true, message: 'Please enter full name' }]}
-              >
-                <Input placeholder="e.g., John Smith" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="role"
-                label="Role/Position"
-                rules={[{ required: true, message: 'Please enter role/position' }]}
-              >
-                <Input placeholder="e.g., Senior Installer" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="email"
-                label="Email"
-                rules={[
-                  { required: true, message: 'Please enter email' },
-                  { type: 'email', message: 'Please enter a valid email' }
-                ]}
-              >
-                <Input placeholder="e.g., john.smith@company.com" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="phone"
-                label="Phone"
-              >
-                <Input placeholder="e.g., +61 400 123 456" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="department"
-                label="Department"
-              >
-                <Select placeholder="Select department">
-                  {Array.isArray(departments) ? departments.map(dept => (
-                    <Option key={dept._id} value={dept._id}>
-                      {dept.name}
-                    </Option>
-                  )) : null}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="order"
-                label="Display Order"
-                initialValue={0}
-              >
-                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="status"
-                label="Status"
-                initialValue="active"
-              >
-                <Select>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="isFeatured"
-                label="Featured Member"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="showContact"
-                label="Show Contact Info"
-                valuePropName="checked"
-                initialValue={true}
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="avatar"
-            label="Profile Photo"
-          >
-            <SimpleImageUpload folder="team/avatars" />
-          </Form.Item>
-          
-          <Form.Item
-            name="bio"
-            label="Bio"
-          >
-            <TextArea 
+        <form onSubmit={handleSubmit} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+          {/* Basic Information */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Basic Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Full Name *
+                </label>
+                <Input 
+                  placeholder="e.g., John Smith"
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  error={formErrors.name}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Position *
+                </label>
+                <Input 
+                  placeholder="e.g., Senior Engineer"
+                  value={formData.position || ''}
+                  onChange={(e) => setFormData({...formData, position: e.target.value})}
+                  error={formErrors.position}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Department
+                </label>
+                <Select
+                  placeholder="Select department"
+                  value={typeof formData.department === 'object' ? formData.department?._id : formData.department}
+                  onChange={(value) => {
+                    // Find the selected department object
+                    const selectedDept = departments.find(dept => dept._id === value);
+                    setFormData({...formData, department: selectedDept || value});
+                  }}
+                  options={departments.map(dept => ({
+                    value: dept._id,
+                    label: dept.name || dept.title
+                  }))}
+                  error={formErrors.department}
+                  allowClear
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Email *
+                </label>
+                <Input 
+                  type="email"
+                  placeholder="e.g., john@company.com"
+                  value={formData.email || ''}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  error={formErrors.email}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Phone
+                </label>
+                <Input 
+                  placeholder="e.g., +61 400 000 000"
+                  value={formData.phone || ''}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  error={formErrors.phone}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Years of Experience
+                </label>
+                <Input 
+                  placeholder="e.g., 5 years"
+                  value={formData.experience || ''}
+                  onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                  error={formErrors.experience}
+                />
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Bio
+              </label>
+              <Input.Textarea 
               rows={4} 
-              placeholder="Tell us about this team member's experience, skills, and background..."
-            />
-          </Form.Item>
-          
-          <Divider>Social Media & Links</Divider>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="linkedin"
-                label="LinkedIn Profile"
-              >
-                <Input placeholder="https://linkedin.com/in/username" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="twitter"
-                label="Twitter Profile"
-              >
-                <Input placeholder="https://twitter.com/username" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="website"
-            label="Personal Website"
-          >
-            <Input placeholder="https://example.com" />
-          </Form.Item>
-          
-          <Divider>Skills & Expertise</Divider>
-          
-          <Form.Item
-            name="specialties"
-            label="Specialties & Skills"
-            rules={[
-              {
-                validator: (_, value) => {
-                  if (!value || value.length === 0) {
-                    return Promise.resolve();
-                  }
-                  if (Array.isArray(value) && value.some(specialty => !specialty || specialty.trim().length < 2)) {
-                    return Promise.reject(new Error('Each specialty must be at least 2 characters long'));
-                  }
-                  return Promise.resolve();
-                }
-              }
-            ]}
-          >
-            <Select
-              mode="tags"
-              placeholder="Add specialties (e.g., Ute Canopies, Trailer Modifications, Customer Service)"
-              style={{ width: '100%' }}
-              maxTagCount={10}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </Form.Item>
-          
-          <Form.Item
-            name="qualifications"
-            label="Qualifications & Certifications"
-            rules={[
-              {
-                validator: (_, value) => {
-                  if (!value || value.length === 0) {
-                    return Promise.resolve();
-                  }
-                  if (Array.isArray(value) && value.some(qual => !qual || qual.trim().length < 2)) {
-                    return Promise.reject(new Error('Each qualification must be at least 2 characters long'));
-                  }
-                  return Promise.resolve();
-                }
-              }
-            ]}
-          >
-            <Select
-              mode="tags"
-              placeholder="Add qualifications (e.g., ISO 9001 Lead Auditor, Six Sigma Green Belt, Trade Certificate)"
-              style={{ width: '100%' }}
-              maxTagCount={10}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </Form.Item>
-          
-          <Form.Item
-            name="experience"
-            label="Years of Experience"
-          >
+                placeholder="Brief biography of the team member"
+                value={formData.bio || ''}
+                onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                error={formErrors.bio}
+              />
+            </div>
+          </div>
+
+          {/* Professional Information */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Professional Information</h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Specializations
+              </label>
+              <Input 
+                placeholder="e.g., React, Node.js, Python (comma separated)"
+                value={formData.specializations ? formData.specializations.join(', ') : ''}
+                onChange={(e) => setFormData({
+                  ...formData, 
+                  specializations: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                })}
+                error={formErrors.specializations}
+              />
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  LinkedIn URL
+                </label>
+                <Input 
+                  placeholder="https://linkedin.com/in/username"
+                  value={formData.linkedinUrl || ''}
+                  onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})}
+                  error={formErrors.linkedinUrl}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Twitter URL
+                </label>
+                <Input 
+                  placeholder="https://twitter.com/username"
+                  value={formData.twitterUrl || ''}
+                  onChange={(e) => setFormData({...formData, twitterUrl: e.target.value})}
+                  error={formErrors.twitterUrl}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Website URL
+                </label>
+                <Input 
+                  placeholder="https://website.com"
+                  value={formData.websiteUrl || ''}
+                  onChange={(e) => setFormData({...formData, websiteUrl: e.target.value})}
+                  error={formErrors.websiteUrl}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Settings */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Settings</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Display Order
+                </label>
             <InputNumber 
               min={0} 
-              max={50} 
-              placeholder="5" 
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="startDate"
-            label="Start Date"
-          >
-            <Input type="date" />
-          </Form.Item>
-
-          <Form.Item
-            name="region"
-            label="Region/Location"
-          >
-            <Input placeholder="e.g., Sydney, Melbourne, Brisbane" />
-          </Form.Item>
-
-          <Form.Item
-            name="achievements"
-            label="Key Achievements"
-          >
-            <Select
-              mode="tags"
-              placeholder="Add achievements (e.g., Employee of the Year 2023, Project Excellence Award)"
-              style={{ width: '100%' }}
-              maxTagCount={5}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </Form.Item>
-          
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit" loading={createMemberMutation.isPending || updateMemberMutation.isPending}>
-                {editingMember ? 'Update Team Member' : 'Add Team Member'}
-              </Button>
-            </Space>
+                  placeholder="0"
+                  value={formData.order || 0}
+                  onChange={(value) => setFormData({...formData, order: value})}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Switch
+                    checked={formData.isActive !== undefined ? formData.isActive : true}
+                    onChange={(checked) => setFormData({...formData, isActive: checked})}
+                  />
+                  <label style={{ fontWeight: '500' }}>Active Member</label>
+                </div>
+              </div>
+            </div>
           </div>
-        </Form>
+
+          {/* Profile Image */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Profile Image</h3>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Team Member Photo
+              </label>
+              <SimpleImageUpload 
+                value={uploadedImage}
+                onChange={(image) => {
+                  setUploadedImage(image);
+                  setFormData({...formData, image: image});
+                }}
+                folder="team"
+                maxSize={5}
+              />
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="modal-footer">
+            <button 
+              type="button"
+              className="btn btn-outline"
+              onClick={handleCancel}
+            >
+                Cancel
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={createMemberMutation.isPending || updateMemberMutation.isPending}
+            >
+              {createMemberMutation.isPending || updateMemberMutation.isPending ? 'Saving...' : (editingMember ? 'Update Member' : 'Add Member')}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { Container, Section, Button, Card, Badge, Alert } from '../components/ui';
+import UniversalCarousel from '../components/UniversalCarousel';
 
 // Inspiration Gallery Component for Homepage
 const InspirationGallery = () => {
@@ -78,7 +79,7 @@ const InspirationGallery = () => {
     );
   }
 
-  // Show carousel if more than 3 items, otherwise show grid
+  // Show carousel if more than 3 items, otherwise show centered grid
   if (displayItems.length > 3) {
     return (
       <div className="inspiration-gallery">
@@ -91,48 +92,56 @@ const InspirationGallery = () => {
             <div 
               className="carousel-track"
               style={{
-                transform: `translateX(-${currentSlide * 316}px)`,
-                width: `${displayItems.length * 316}px`
+                transform: `translateX(-${currentSlide * (100 / 3)}%)`,
+                width: `${(displayItems.length / 3) * 100}%`
               }}
             >
-              {displayItems.map((item, index) => (
-                <div key={item._id} className="inspiration-item">
-                  <div className="inspiration-image">
-                    {item.image?.url ? (
-                      <img 
-                        src={item.image.url} 
-                        alt={item.image.alt || item.title}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="placeholder-image">
-                        <span>⚙️</span>
-                      </div>
-                    )}
-                    <div className="inspiration-overlay">
-                      <div className="overlay-content">
-                        <h4 className="overlay-title">{item.title}</h4>
-                        {item.service && (
-                          <Badge variant="primary" className="service-badge">
-                            {item.service.title}
-                          </Badge>
-                        )}
-                        <div className="overlay-description">
-                          <p>Precision Engineering Excellence</p>
+              {Array.from({ length: totalSlides }, (_, slideIndex) => (
+                <div key={slideIndex} className="carousel-slide">
+                  <div className="carousel-slide-content" style={{ display: 'flex', gap: '16px' }}>
+                    {displayItems.slice(slideIndex * 3, slideIndex * 3 + 3).map((item, index) => (
+                      <div key={item._id} style={{ flex: '0 0 33.333%' }}>
+                        <div className="inspiration-item">
+                          <div className="inspiration-image">
+                            {item.image?.url ? (
+                              <img 
+                                src={item.image.url} 
+                                alt={item.image.alt || item.title}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="placeholder-image">
+                                <span>⚙️</span>
+                              </div>
+                            )}
+                            <div className="inspiration-overlay">
+                              <div className="overlay-content">
+                                <h4 className="overlay-title">{item.title}</h4>
+                                {item.service && (
+                                  <Badge variant="primary" className="service-badge">
+                                    {item.service.title}
+                                  </Badge>
+                                )}
+                                <div className="overlay-description">
+                                  <p>Precision Engineering Excellence</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="inspiration-content">
+                            <h3 className="inspiration-title">{item.title}</h3>
+                            <p className="inspiration-description">{item.description}</p>
+                            {item.tags && item.tags.length > 0 && (
+                              <div className="inspiration-tags">
+                                {item.tags.slice(0, 2).map((tag, tagIndex) => (
+                                  <span key={tagIndex} className="tag">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="inspiration-content">
-                    <h3 className="inspiration-title">{item.title}</h3>
-                    <p className="inspiration-description">{item.description}</p>
-                    {item.tags && item.tags.length > 0 && (
-                      <div className="inspiration-tags">
-                        {item.tags.slice(0, 2).map((tag, tagIndex) => (
-                          <span key={tagIndex} className="tag">{tag}</span>
-                        ))}
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               ))}
@@ -148,7 +157,7 @@ const InspirationGallery = () => {
           {Array.from({ length: Math.max(1, totalSlides) }, (_, index) => (
             <button
               key={index}
-              className={`indicator ${currentSlide === index ? 'active' : ''}`}
+              className={`carousel-indicator ${currentSlide === index ? 'active' : ''}`}
               onClick={() => goToSlide(index)}
             />
           ))}
@@ -157,10 +166,10 @@ const InspirationGallery = () => {
     );
   }
 
-  // Show grid for 3 or fewer items
+  // Show centered grid for 3 or fewer items
   return (
     <div className="inspiration-gallery">
-      <div className="inspiration-grid">
+      <div className={`carousel-grid ${displayItems.length === 1 ? 'single-item' : displayItems.length === 2 ? 'two-items' : 'three-items'}`}>
         {displayItems.map((item, index) => (
           <div key={item._id} className="inspiration-item">
             <div className="inspiration-image">
@@ -209,42 +218,53 @@ const InspirationGallery = () => {
 
 // Testimonials Carousel Component
 const TestimonialsCarousel = ({ testimonials = [] }) => {
-  // Only use real testimonials from database
-  const displayTestimonials = Array.isArray(testimonials) ? testimonials : [];
+  // Only use real testimonials from database - memoize to prevent unnecessary re-renders
+  const displayTestimonials = React.useMemo(() => 
+    Array.isArray(testimonials) ? testimonials : [], 
+    [testimonials]
+  );
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = React.useState(true);
+  const [itemsPerSlide, setItemsPerSlide] = React.useState(3);
+  const [progress, setProgress] = React.useState(0);
 
-  // Debug logging to see what data we're getting
-  console.log('Testimonials received:', testimonials);
-  console.log('Testimonials type:', typeof testimonials);
-  console.log('Testimonials length:', testimonials?.length);
-  console.log('Testimonials structure:', JSON.stringify(testimonials, null, 2));
+  // Calculate items per slide based on screen size
+  React.useEffect(() => {
+    const updateItemsPerSlide = () => {
+      if (window.innerWidth < 768) {
+        setItemsPerSlide(1); // 1 item per slide on mobile
+      } else if (window.innerWidth < 1024) {
+        setItemsPerSlide(2); // 2 items per slide on tablet
+      } else {
+        setItemsPerSlide(3); // 3 items per slide on desktop
+      }
+    };
+
+    updateItemsPerSlide();
+    window.addEventListener('resize', updateItemsPerSlide);
+    return () => window.removeEventListener('resize', updateItemsPerSlide);
+  }, []);
 
   // Auto-swipe functionality
   React.useEffect(() => {
-    if (!isAutoPlaying || displayTestimonials.length <= 3) return;
+    if (!isAutoPlaying || displayTestimonials.length <= itemsPerSlide || displayTestimonials.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        const maxSlides = Math.ceil(displayTestimonials.length / 3);
+        const maxSlides = Math.ceil(displayTestimonials.length / itemsPerSlide);
+        if (maxSlides <= 1) return prev; // Prevent infinite loop if only one slide
         return (prev + 1) % maxSlides;
       });
     }, 4000); // Auto-swipe every 4 seconds for better engagement
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, displayTestimonials.length]);
-
-  // Pause auto-swipe on hover
-  const handleMouseEnter = () => setIsAutoPlaying(false);
-  const handleMouseLeave = () => setIsAutoPlaying(true);
-
-  // Add progress indicator for auto-scroll
-  const [progress, setProgress] = React.useState(0);
+  }, [isAutoPlaying, displayTestimonials.length, itemsPerSlide]);
 
   // Update progress bar
   React.useEffect(() => {
-    if (!isAutoPlaying || displayTestimonials.length <= 3) return;
+    if (!isAutoPlaying || displayTestimonials.length <= itemsPerSlide || displayTestimonials.length === 0) return;
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
@@ -257,20 +277,29 @@ const TestimonialsCarousel = ({ testimonials = [] }) => {
     }, 100);
 
     return () => clearInterval(progressInterval);
-  }, [isAutoPlaying, displayTestimonials.length]);
+  }, [isAutoPlaying, displayTestimonials.length, itemsPerSlide]);
 
   // Reset progress when slide changes
   React.useEffect(() => {
     setProgress(0);
   }, [currentSlide]);
 
+  // Calculate total slides
+  const totalSlides = Math.ceil(displayTestimonials.length / itemsPerSlide);
+
+  // Event handlers
+  const handleMouseEnter = () => setIsAutoPlaying(false);
+  const handleMouseLeave = () => setIsAutoPlaying(true);
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % Math.ceil(displayTestimonials.length / 3));
+    if (totalSlides <= 1) return; // Prevent navigation if only one slide
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
   };
 
   const prevSlide = () => {
+    if (totalSlides <= 1) return; // Prevent navigation if only one slide
     setCurrentSlide((prev) => 
-      prev === 0 ? Math.ceil(displayTestimonials.length / 3) - 1 : prev - 1
+      prev === 0 ? totalSlides - 1 : prev - 1
     );
   };
 
@@ -278,7 +307,12 @@ const TestimonialsCarousel = ({ testimonials = [] }) => {
     setCurrentSlide(slideIndex);
   };
 
-  const totalSlides = Math.ceil(displayTestimonials.length / 3);
+  // Debug logging to see what data we're getting (only when testimonials change)
+  React.useEffect(() => {
+    console.log('Testimonials received:', testimonials);
+    console.log('Testimonials type:', typeof testimonials);
+    console.log('Testimonials length:', testimonials?.length);
+  }, [testimonials]);
 
   // If no testimonials, show empty state
   if (displayTestimonials.length === 0) {
@@ -289,137 +323,141 @@ const TestimonialsCarousel = ({ testimonials = [] }) => {
     );
   }
 
-  // If 3 or fewer testimonials, show them all in a row without carousel
-  if (displayTestimonials.length <= 3) {
+  // Show carousel for more than 3 testimonials, otherwise show centered grid
+  if (displayTestimonials.length > 3) {
     return (
-      <div className="testimonials-grid">
-        {displayTestimonials.map((testimonial, index) => (
-          <div key={testimonial._id} className="testimonial-card">
-            <div className="testimonial-content">
-              <div className="testimonial-rating">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className={`star ${i < (testimonial.rating || 5) ? 'filled' : ''}`}>
-                    ★
-                  </span>
-                ))}
-              </div>
-              <div className="quote-icon">"</div>
-              <p className="testimonial-text">"{testimonial.content}"</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">
-                  {testimonial.avatar?.url ? (
-                    <img src={testimonial.avatar.url} alt={testimonial.name} />
-                  ) : (
-                    <div className="avatar-placeholder">
-                      {testimonial.name.charAt(0)}
+      <div 
+        className="testimonial-carousel"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Left Arrow */}
+        <button className="carousel-nav carousel-nav-prev" onClick={prevSlide}>
+          <span>‹</span>
+        </button>
+        
+        <div className="carousel-container">
+          <div 
+            className="carousel-track"
+            style={{
+              transform: `translateX(-${currentSlide * (100 / itemsPerSlide)}%)`,
+              width: `${(displayTestimonials.length / itemsPerSlide) * 100}%`
+            }}
+          >
+            {Array.from({ length: totalSlides }, (_, slideIndex) => (
+              <div key={slideIndex} className="carousel-slide">
+                <div className="carousel-slide-content" style={{ display: 'flex', gap: '16px' }}>
+                  {displayTestimonials.slice(slideIndex * itemsPerSlide, slideIndex * itemsPerSlide + itemsPerSlide).map((testimonial, index) => (
+                    <div key={testimonial._id} style={{ flex: `0 0 ${100 / itemsPerSlide}%` }}>
+                      <div className="testimonial-card">
+                        <div className="testimonial-content">
+                          <div className="testimonial-rating">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`star ${i < (testimonial.rating || 5) ? 'filled' : ''}`}>
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <div className="quote-icon">"</div>
+                          <p className="testimonial-text">"{testimonial.content}"</p>
+                          <div className="testimonial-author">
+                            <div className="author-avatar">
+                              {testimonial.avatar?.url ? (
+                                <img src={testimonial.avatar.url} alt={testimonial.name} />
+                              ) : (
+                                <div className="avatar-placeholder">
+                                  {testimonial.name.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="author-info">
+                              <h4 className="author-name">{testimonial.name}</h4>
+                              <p className="author-position">{testimonial.position}</p>
+                              <p className="author-company">{testimonial.company}</p>
+                            </div>
+                          </div>
+                          <div className="testimonial-tags">
+                            {testimonial.tags?.map((tag, tagIndex) => (
+                              <span key={tagIndex} className="tag">{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div className="author-info">
-                  <h4 className="author-name">{testimonial.name}</h4>
-                  <p className="author-position">{testimonial.position}</p>
-                  <p className="author-company">{testimonial.company}</p>
+                  ))}
                 </div>
               </div>
-              <div className="testimonial-tags">
-                {testimonial.tags?.map((tag, tagIndex) => (
-                  <span key={tagIndex} className="tag">{tag}</span>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Right Arrow */}
+        <button className="carousel-nav carousel-nav-next" onClick={nextSlide}>
+          <span>›</span>
+        </button>
+
+        {/* Progress Bar for Auto-scroll */}
+        {displayTestimonials.length > itemsPerSlide && (
+          <div className="carousel-progress">
+            <div 
+              className="progress-bar" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+
+        <div className="carousel-indicators">
+          {Array.from({ length: totalSlides }, (_, index) => (
+            <button
+              key={index}
+              className={`carousel-indicator ${currentSlide === index ? 'active' : ''}`}
+              onClick={() => goToSlide(index)}
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Show carousel for more than 3 testimonials
+  // Show centered grid for 3 or fewer testimonials
   return (
-    <div 
-      className="testimonials-carousel"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <button className="carousel-nav carousel-nav-prev" onClick={prevSlide}>
-        <span>‹</span>
-      </button>
-      
-      <div className="carousel-container">
-        <div 
-          className="carousel-track"
-          style={{
-            transform: `translateX(-${currentSlide * 100}%)`,
-            width: `${totalSlides * 100}%`
-          }}
-        >
-          {Array.from({ length: totalSlides }, (_, slideIndex) => (
-            <div key={slideIndex} className="carousel-slide">
-              <div className="testimonials-row">
-                {displayTestimonials.slice(slideIndex * 3, slideIndex * 3 + 3).map((testimonial, index) => (
-                  <div key={testimonial._id} className="testimonial-card">
-                    <div className="testimonial-content">
-                      <div className="testimonial-rating">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className={`star ${i < (testimonial.rating || 5) ? 'filled' : ''}`}>
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                      <div className="quote-icon">"</div>
-                      <p className="testimonial-text">"{testimonial.content}"</p>
-                      <div className="testimonial-author">
-                        <div className="author-avatar">
-                          {testimonial.avatar?.url ? (
-                            <img src={testimonial.avatar.url} alt={testimonial.name} />
-                          ) : (
-                            <div className="avatar-placeholder">
-                              {testimonial.name.charAt(0)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="author-info">
-                          <h4 className="author-name">{testimonial.name}</h4>
-                          <p className="author-position">{testimonial.position}</p>
-                          <p className="author-company">{testimonial.company}</p>
-                        </div>
-                      </div>
-                      <div className="testimonial-tags">
-                        {testimonial.tags?.map((tag, tagIndex) => (
-                          <span key={tagIndex} className="tag">{tag}</span>
-                        ))}
-                      </div>
-                    </div>
+    <div className={`carousel-grid ${displayTestimonials.length === 1 ? 'single-item' : displayTestimonials.length === 2 ? 'two-items' : 'three-items'}`}>
+      {displayTestimonials.map((testimonial, index) => (
+        <div key={testimonial._id} className="testimonial-card">
+          <div className="testimonial-content">
+            <div className="testimonial-rating">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className={`star ${i < (testimonial.rating || 5) ? 'filled' : ''}`}>
+                  ★
+                </span>
+              ))}
+            </div>
+            <div className="quote-icon">"</div>
+            <p className="testimonial-text">"{testimonial.content}"</p>
+            <div className="testimonial-author">
+              <div className="author-avatar">
+                {testimonial.avatar?.url ? (
+                  <img src={testimonial.avatar.url} alt={testimonial.name} />
+                ) : (
+                  <div className="avatar-placeholder">
+                    {testimonial.name.charAt(0)}
                   </div>
-                ))}
+                )}
+              </div>
+              <div className="author-info">
+                <h4 className="author-name">{testimonial.name}</h4>
+                <p className="author-position">{testimonial.position}</p>
+                <p className="author-company">{testimonial.company}</p>
               </div>
             </div>
-          ))}
+            <div className="testimonial-tags">
+              {testimonial.tags?.map((tag, tagIndex) => (
+                <span key={tagIndex} className="tag">{tag}</span>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-
-      <button className="carousel-nav carousel-nav-next" onClick={nextSlide}>
-        <span>›</span>
-      </button>
-
-      {/* Progress Bar for Auto-scroll */}
-      {displayTestimonials.length > 3 && (
-        <div className="carousel-progress">
-          <div 
-            className="progress-bar" 
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      )}
-
-      <div className="carousel-indicators">
-        {Array.from({ length: totalSlides }, (_, index) => (
-          <button
-            key={index}
-            className={`indicator ${currentSlide === index ? 'active' : ''}`}
-            onClick={() => goToSlide(index)}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 };

@@ -13,6 +13,9 @@
 /* 4. Component Styles */
 @import './components.css';
 
+/* 4.1. Universal Carousel Styles */
+@import './carousel.css';
+
 /* 5. Layout Styles */
 @import './layouts.css';
 

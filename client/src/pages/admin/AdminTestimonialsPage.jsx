@@ -1,55 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import '../../styles/admin-forms.css';
 import {
-  Typography,
-  Card,
   Button,
-  Space,
-  Table,
   Modal,
-  Form,
   Input,
-  Rate,
-  Upload,
-  message,
-  Popconfirm,
+  Card,
+  Table,
   Tag,
-  Row,
-  Col,
-  Statistic,
   Select,
   InputNumber,
-  Switch,
-  Tooltip,
-  Avatar,
-  Badge,
-  Alert
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  UploadOutlined,
-  StarOutlined,
-  UserOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  ClockCircleOutlined
-} from '@ant-design/icons';
+  Switch
+} from '../../components/ui';
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const EyeIcon = () => <span>👁️</span>;
+const UploadIcon = () => <span>📤</span>;
+const StarIcon = () => <span>⭐</span>;
+const UserIcon = () => <span>👤</span>;
+const CheckIcon = () => <span>✅</span>;
+const CloseIcon = () => <span>❌</span>;
+const ClockIcon = () => <span>🕐</span>;
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Helmet } from 'react-helmet-async';
-
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+import SimpleImageUpload from '../../components/SimpleImageUpload';
 
 export default function AdminTestimonialsPage() {
-  const [form] = Form.useForm();
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
+  
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [fileList, setFileList] = useState([]);
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -73,7 +63,6 @@ export default function AdminTestimonialsPage() {
           limit: pagination.pageSize,
         });
         
-        // Only add non-empty filters
         if (filters.status && filters.status.trim() !== '') {
           params.append('status', filters.status);
         }
@@ -83,11 +72,12 @@ export default function AdminTestimonialsPage() {
         if (filters.search && filters.search.trim() !== '') {
           params.append('search', filters.search);
         }
-        const response = await api.get(`/testimonials/admin?${params}`);
-        return response.data; // This returns { success: true, data: [...], pagination: {...} }
+        
+        const response = await api.get(`/testimonials/admin?${params.toString()}`);
+        return response.data;
       } catch (error) {
         console.error('Error fetching testimonials:', error);
-        throw error;
+        return { data: [], stats: {} };
       }
     }
   });
@@ -96,162 +86,202 @@ export default function AdminTestimonialsPage() {
   const { data: statsData } = useQuery({
     queryKey: ['testimonialStats'],
     queryFn: async () => {
-      const response = await api.get('/testimonials/admin/stats');
-      return response.data;
+      try {
+        const response = await api.get('/testimonials/admin/stats');
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        return { stats: {} };
+      }
     }
   });
 
-  // Create/Update mutation
-  const testimonialMutation = useMutation({
-    mutationFn: async (values) => {
-      const formData = new FormData();
-      
-      Object.keys(values).forEach(key => {
-        if (values[key] !== undefined && values[key] !== null) {
-          if (key === 'avatar' && values[key]?.fileList?.[0]) {
-            formData.append('avatar', values[key].fileList[0].originFileObj);
-          } else if (key !== 'avatar') {
-            formData.append(key, values[key]);
-          }
-        }
-      });
-
-      if (editingTestimonial) {
-        const response = await api.put(`/testimonials/admin/${editingTestimonial._id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-      } else {
-        const response = await api.post('/testimonials/admin', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-      }
-    },
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: (data) => api.post('/testimonials', data),
     onSuccess: () => {
-      message.success(editingTestimonial ? 'Testimonial updated successfully' : 'Testimonial created successfully');
-      setIsModalVisible(false);
-      form.resetFields();
-      setFileList([]);
-      setEditingTestimonial(null);
       queryClient.invalidateQueries(['adminTestimonials']);
       queryClient.invalidateQueries(['testimonialStats']);
+      showMessage('success', 'Testimonial created successfully');
+      setIsModalVisible(false);
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
-      console.error('Testimonial mutation error:', error);
-      console.error('Error response:', error.response?.data);
-      message.error(error.response?.data?.message || 'Operation failed');
+      console.error('Create testimonial error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error creating testimonial. Please try again.');
+      }
+    }
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => api.put(`/testimonials/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['adminTestimonials']);
+      queryClient.invalidateQueries(['testimonialStats']);
+      showMessage('success', 'Testimonial updated successfully');
+      setIsModalVisible(false);
+      setEditingTestimonial(null);
+      setFormData({});
+      setFormErrors({});
+    },
+    onError: (error) => {
+      console.error('Update testimonial error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error updating testimonial. Please try again.');
+      }
     }
   });
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const response = await api.delete(`/testimonials/admin/${id}`);
-      return response.data;
-    },
+    mutationFn: (id) => api.delete(`/testimonials/${id}`),
     onSuccess: () => {
-      message.success('Testimonial deleted successfully');
       queryClient.invalidateQueries(['adminTestimonials']);
       queryClient.invalidateQueries(['testimonialStats']);
+      showMessage('success', 'Testimonial deleted successfully');
     },
     onError: (error) => {
-      message.error(error.response?.data?.message || 'Delete failed');
+      console.error('Delete testimonial error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        showMessage('error', 'Error deleting testimonial. Please try again.');
+      }
     }
   });
 
-  // Bulk update mutation
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async ({ ids, action, value }) => {
-      const response = await api.post('/testimonials/admin/bulk-update', { ids, action, value });
-      return response.data;
-    },
-    onSuccess: () => {
-      message.success('Bulk operation completed successfully');
-      setSelectedRowKeys([]);
-      queryClient.invalidateQueries(['adminTestimonials']);
-      queryClient.invalidateQueries(['testimonialStats']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Bulk operation failed');
-    }
-  });
-
-  const handleAddTestimonial = () => {
+  const handleAdd = () => {
     setEditingTestimonial(null);
-    form.resetFields();
-    setFileList([]);
-    setIsModalVisible(true);
-  };
-
-  const handleEditTestimonial = (record) => {
-    setEditingTestimonial(record);
-    form.setFieldsValue({
-      ...record,
-      avatar: record.avatar?.url ? [{ uid: '-1', name: 'avatar.jpg', status: 'done', url: record.avatar.url }] : []
+    setFormData({ 
+      name: '',
+      position: '',
+      company: '',
+      content: '',
+      rating: 5,
+      featured: false,
+      status: 'pending',
+      email: '',
+      phone: ''
     });
-    setFileList(record.avatar?.url ? [{ uid: '-1', name: 'avatar.jpg', status: 'done', url: record.avatar.url }] : []);
+    setFormErrors({});
     setIsModalVisible(true);
   };
 
-  const handleDeleteTestimonial = (id) => {
-    deleteMutation.mutate(id);
+  const handleEdit = (testimonial) => {
+    setEditingTestimonial(testimonial);
+    setFormData({
+      ...testimonial
+    });
+    setFormErrors({});
+    setIsModalVisible(true);
   };
 
-  const handleBulkAction = (action, value) => {
-    if (selectedRowKeys.length === 0) {
-      message.warning('Please select testimonials first');
-      return;
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this testimonial?')) {
+      try {
+        await deleteMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting testimonial:', error);
+      }
     }
-    bulkUpdateMutation.mutate({ ids: selectedRowKeys, action, value });
   };
 
-  const handleTableChange = (paginationInfo, filters, sorter) => {
-    setPagination(prev => ({
-      ...prev,
-      current: paginationInfo.current,
-      pageSize: paginationInfo.pageSize
-    }));
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setEditingTestimonial(null);
+    setFormData({});
+    setFormErrors({});
   };
 
-  const uploadProps = {
-    name: 'avatar',
-    fileList,
-    beforeUpload: () => false,
-    onChange: ({ fileList: newFileList }) => {
-      setFileList(newFileList);
-    },
-    accept: 'image/*',
-    maxCount: 1
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        showMessage('error', 'Please log in to continue');
+        return;
+      }
+
+      // Validate required fields
+      if (!formData.name) {
+        setFormErrors({ name: 'Name is required' });
+        return;
+      }
+      if (!formData.content) {
+        setFormErrors({ content: 'Testimonial content is required' });
+        return;
+      }
+
+      if (editingTestimonial) {
+        await updateMutation.mutateAsync({ id: editingTestimonial._id, data: formData });
+      } else {
+        await createMutation.mutateAsync(formData);
+      }
+    } catch (error) {
+      console.error('Error saving testimonial:', error);
+    }
   };
 
   const columns = [
     {
-      title: 'Avatar',
-      dataIndex: 'avatar',
-      key: 'avatar',
-      width: 60,
-      render: (avatar) => (
-        <Avatar
-          size={40}
-          src={avatar?.url}
-          icon={<UserOutlined />}
-        >
-          {avatar?.url ? '' : 'U'}
-        </Avatar>
+      title: 'Testimonial',
+      key: 'testimonial',
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.avatar?.url ? (
+            <img
+              src={record.avatar.url}
+              alt={record.name}
+              width={60}
+              height={60}
+              style={{ objectFit: 'cover', borderRadius: '50%' }}
+              onError={(e) => {
+                e.target.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN';
+              }}
+            />
+          ) : (
+            <div style={{ width: 60, height: 60, background: '#f0f0f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <UserIcon />
+            </div>
+          )}
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.name}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.position}</div>
+            {record.company && (
+              <div style={{ fontSize: 11, color: '#999' }}>{record.company}</div>
+            )}
+          </div>
+        </div>
       )
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <div>
-          <Text strong>{text}</Text>
-          <br />
-          <Text type="secondary">{record.position}</Text>
-          <br />
-          <Text type="secondary">{record.company}</Text>
+      title: 'Rating',
+      dataIndex: 'rating',
+      key: 'rating',
+      render: (rating) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <StarIcon key={i} style={{ 
+              color: i < (rating || 5) ? '#ffc107' : '#ddd',
+              fontSize: '14px'
+            }} />
+          ))}
+          <span style={{ marginLeft: 8, fontSize: 12 }}>{rating || 5}/5</span>
         </div>
       )
     },
@@ -259,23 +289,9 @@ export default function AdminTestimonialsPage() {
       title: 'Content',
       dataIndex: 'content',
       key: 'content',
-      ellipsis: true,
-      render: (text) => (
-        <Tooltip title={text}>
-          <Text>{text}</Text>
-        </Tooltip>
-      )
-    },
-    {
-      title: 'Rating',
-      dataIndex: 'rating',
-      key: 'rating',
-      width: 100,
-      render: (rating) => (
-        <div>
-          <Rate disabled defaultValue={rating} size="small" />
-          <br />
-          <Text type="secondary">{rating}/5</Text>
+      render: (content) => (
+        <div style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {content || 'No content'}
         </div>
       )
     },
@@ -283,23 +299,19 @@ export default function AdminTestimonialsPage() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
       render: (status) => {
-        const statusConfig = {
-          pending: { color: 'orange', icon: <ClockCircleOutlined />, text: 'Pending' },
-          approved: { color: 'green', icon: <CheckCircleOutlined />, text: 'Approved' },
-          rejected: { color: 'red', icon: <CloseCircleOutlined />, text: 'Rejected' }
+        const getStatusColor = (status) => {
+          switch (status) {
+            case 'approved': return 'green';
+            case 'pending': return 'orange';
+            case 'rejected': return 'red';
+            default: return 'default';
+          }
         };
-        const config = statusConfig[status];
         return (
-          <Badge
-            status={config.color}
-            text={
-              <Tag color={config.color} icon={config.icon}>
-                {config.text}
-              </Tag>
-            }
-          />
+          <Tag color={getStatusColor(status)}>
+            {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending'}
+          </Tag>
         );
       }
     },
@@ -307,373 +319,327 @@ export default function AdminTestimonialsPage() {
       title: 'Featured',
       dataIndex: 'featured',
       key: 'featured',
-      width: 80,
       render: (featured) => (
-        <Tag color={featured ? 'blue' : 'default'}>
-          {featured ? 'Yes' : 'No'}
+        <Tag color={featured ? 'gold' : 'default'}>
+          {featured ? 'Featured' : 'Regular'}
         </Tag>
       )
     },
     {
-      title: 'Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 120,
-      render: (date) => new Date(date).toLocaleDateString()
-    },
-    {
       title: 'Actions',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditTestimonial(record)}
-            size="small"
-          />
-          <Popconfirm
-            title="Are you sure you want to delete this testimonial?"
-            onConfirm={() => handleDeleteTestimonial(record._id)}
-            okText="Yes"
-            cancelText="No"
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(record)}
           >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              danger
-              size="small"
-            />
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(record._id)}
+          >
+            <DeleteIcon />
+          </Button>
+        </div>
       )
     }
   ];
 
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: setSelectedRowKeys
-  };
-
   return (
-    <>
+    <div className="admin-page" style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto', backgroundColor: 'white', minHeight: '100vh' }}>
       <Helmet>
         <title>Testimonials Management - Admin Dashboard</title>
       </Helmet>
 
-      <div className="admin-testimonials-page">
-        <div className="admin-page-header">
-          <Title level={2}>Testimonials Management</Title>
+      <div className="page-header">
+        <h1 className="page-title">Testimonials Management</h1>
+        <p className="page-description">Manage customer testimonials and reviews</p>
+      </div>
+
+      {/* Statistics */}
+      {statsData && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <Card>
+            <div style={{ padding: '16px', textAlign: 'center' }}>
+              <UserIcon />
+              <h3 style={{ margin: '8px 0 4px 0' }}>Total Testimonials</h3>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                {statsData?.stats?.total || 0}
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ padding: '16px', textAlign: 'center' }}>
+              <CheckIcon />
+              <h3 style={{ margin: '8px 0 4px 0' }}>Active</h3>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
+                {statsData?.stats?.active || 0}
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ padding: '16px', textAlign: 'center' }}>
+              <StarIcon />
+              <h3 style={{ margin: '8px 0 4px 0' }}>Featured</h3>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
+                {statsData?.stats?.featured || 0}
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ padding: '16px', textAlign: 'center' }}>
+              <ClockIcon />
+              <h3 style={{ margin: '8px 0 4px 0' }}>Pending</h3>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fa8c16' }}>
+                {statsData?.stats?.pending || 0}
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <Card>
+        <div className="card-header">
+          <div>
+            <h2 className="card-title">Testimonials ({testimonialsData?.data?.length || 0})</h2>
+            <p className="card-subtitle">View and manage all testimonials</p>
+          </div>
+          <Button 
+            variant="primary"
+            onClick={handleAdd}
+          >
+            <PlusIcon /> Add Testimonial
+          </Button>
         </div>
 
-        {/* Statistics */}
-        {statsData && (
-          <Row gutter={[16, 16]} className="stats-grid">
-            <Col xs={24} sm={12} lg={6}>
-              <Card className="stats-card">
-                <Statistic
-                  title="Total Testimonials"
-                  value={statsData?.data?.stats?.total || 0}
-                  prefix={<UserOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card className="stats-card">
-                <Statistic
-                  title="Pending"
-                  value={statsData?.data?.stats?.pending || 0}
-                  valueStyle={{ color: '#faad14' }}
-                  prefix={<ClockCircleOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card className="stats-card">
-                <Statistic
-                  title="Approved"
-                  value={statsData?.data?.stats?.approved || 0}
-                  valueStyle={{ color: '#52c41a' }}
-                  prefix={<CheckCircleOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card className="stats-card">
-                <Statistic
-                  title="Featured"
-                  value={statsData?.data?.stats?.featured || 0}
-                  valueStyle={{ color: '#1677ff' }}
-                  prefix={<StarOutlined />}
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
-
-        {/* Actions */}
-        <Card style={{ marginBottom: 16 }}>
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAddTestimonial}
-                >
-                  Add Testimonial
-                </Button>
-                {selectedRowKeys.length > 0 && (
-                  <Space>
-                    <Button
-                      onClick={() => handleBulkAction('approve')}
-                      icon={<CheckCircleOutlined />}
-                    >
-                      Approve Selected
-                    </Button>
-                    <Button
-                      onClick={() => handleBulkAction('reject')}
-                      icon={<CloseCircleOutlined />}
-                    >
-                      Reject Selected
-                    </Button>
-                    <Button
-                      onClick={() => handleBulkAction('feature', 'true')}
-                      icon={<StarOutlined />}
-                    >
-                      Feature Selected
-                    </Button>
-                    <Popconfirm
-                      title="Are you sure you want to delete selected testimonials?"
-                      onConfirm={() => handleBulkAction('delete')}
-                      okText="Yes"
-                      cancelText="No"
-                    >
-                      <Button danger icon={<DeleteOutlined />}>
-                        Delete Selected
-                      </Button>
-                    </Popconfirm>
-                  </Space>
-                )}
-              </Space>
-            </Col>
-            <Col>
-              <Text type="secondary">
-                {selectedRowKeys.length} of {testimonialsData?.pagination?.totalDocs || 0} selected
-              </Text>
-            </Col>
-          </Row>
-        </Card>
-
-        {/* Error Display */}
-        {error && (
-          <Card style={{ marginBottom: 16 }}>
-            <Alert
-              message="Error Loading Testimonials"
-              description={error.message || 'Failed to load testimonials'}
-              type="error"
-              showIcon
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: '200px' }}>
+            <Input
+              placeholder="Search testimonials..."
+              value={filters.search}
+              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              prefix={<span>🔍</span>}
             />
-          </Card>
-        )}
-
-
-
-        {/* Table */}
-        <Card>
-          <Table
-            columns={columns}
-            dataSource={testimonialsData?.data || []}
-            rowKey="_id"
-            loading={isLoading}
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: testimonialsData?.pagination?.totalDocs || 0,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
-            }}
-            onChange={handleTableChange}
-            rowSelection={rowSelection}
-            scroll={{ x: 1200 }}
+          </div>
+          <Select
+            placeholder="Filter by status"
+            value={filters.status}
+            onChange={(value) => setFilters({...filters, status: value})}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'rejected', label: 'Rejected' }
+            ]}
+            allowClear
           />
-        </Card>
+          <Select
+            placeholder="Filter by featured"
+            value={filters.featured}
+            onChange={(value) => setFilters({...filters, featured: value})}
+            options={[
+              { value: '', label: 'All' },
+              { value: 'true', label: 'Featured' },
+              { value: 'false', label: 'Regular' }
+            ]}
+            allowClear
+          />
+        </div>
 
-        {/* Add/Edit Modal */}
-        <Modal
-          title={editingTestimonial ? 'Edit Testimonial' : 'Add Testimonial'}
-          open={isModalVisible}
-          onCancel={() => {
-            setIsModalVisible(false);
-            setEditingTestimonial(null);
-            form.resetFields();
-            setFileList([]);
+        <Table
+          columns={columns}
+          dataSource={testimonialsData?.data || []}
+          rowKey="_id"
+          loading={isLoading}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+            onChange: (page, pageSize) => {
+              setPagination(prev => ({
+                ...prev,
+                current: page,
+                pageSize: pageSize || prev.pageSize
+              }));
+            }
           }}
-          footer={null}
-          width={600}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={testimonialMutation.mutate}
-            initialValues={{
-              rating: 5,
-              status: 'approved',
-              featured: false
-            }}
-          >
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label="Full Name"
-                  rules={[{ required: true, message: 'Please enter full name' }]}
-                >
-                  <Input placeholder="Enter full name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="position"
-                  label="Position"
-                  rules={[{ required: true, message: 'Please enter position' }]}
-                >
-                  <Input placeholder="Enter position" />
-                </Form.Item>
-              </Col>
-            </Row>
+          scroll={{ x: 1200 }}
+        />
+      </Card>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="company"
-                  label="Company"
-                  rules={[{ required: true, message: 'Please enter company' }]}
-                >
-                  <Input placeholder="Enter company" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="email"
-                  label="Email"
-                  rules={[
-                    { required: true, message: 'Please enter email' },
-                    { type: 'email', message: 'Please enter valid email' }
-                  ]}
-                >
-                  <Input placeholder="Enter email" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              name="phone"
-              label="Phone (Optional)"
-            >
-              <Input placeholder="Enter phone number" />
-            </Form.Item>
-
-            <Form.Item
-              name="rating"
-              label="Rating"
-              rules={[{ required: true, message: 'Please select rating' }]}
-            >
-              <Rate />
-            </Form.Item>
-
-            <Form.Item
-              name="content"
-              label="Testimonial Content"
-              rules={[
-                { required: true, message: 'Please enter testimonial content' },
-                { min: 20, message: 'Content must be at least 20 characters' },
-                { max: 500, message: 'Content cannot exceed 500 characters' }
-              ]}
-            >
-              <TextArea
-                rows={4}
-                placeholder="Enter testimonial content..."
-                maxLength={500}
-                showCount
+      {/* Testimonial Modal */}
+      <Modal
+        title={editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
+        isOpen={isModalVisible}
+        onClose={handleCancel}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Name *
+              </label>
+              <Input 
+                placeholder="Customer name"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                error={formErrors.name}
+                required
               />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="status"
-                  label="Status"
-                  rules={[{ required: true, message: 'Please select status' }]}
-                >
-                  <Select>
-                    <Option value="pending">Pending</Option>
-                    <Option value="approved">Approved</Option>
-                    <Option value="rejected">Rejected</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="featured"
-                  label="Featured"
-                  valuePropName="checked"
-                >
-                  <Switch />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              name="avatar"
-              label="Avatar"
-            >
-              <Upload {...uploadProps} listType="picture-card">
-                <div>
-                  <UploadOutlined />
-                  <div style={{ marginTop: 8 }}>Upload</div>
-                </div>
-              </Upload>
-            </Form.Item>
-
-            <Form.Item
-              name="notes"
-              label="Admin Notes (Optional)"
-            >
-              <TextArea
-                rows={2}
-                placeholder="Add any admin notes..."
-                maxLength={500}
-                showCount
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Position
+              </label>
+              <Input 
+                placeholder="Job title"
+                value={formData.position || ''}
+                onChange={(e) => setFormData({...formData, position: e.target.value})}
               />
-            </Form.Item>
-
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={testimonialMutation.isPending}
-                >
-                  {editingTestimonial ? 'Update' : 'Create'} Testimonial
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsModalVisible(false);
-                    setEditingTestimonial(null);
-                    form.resetFields();
-                    setFileList([]);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
-    </>
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Company
+            </label>
+            <Input 
+              placeholder="Company name"
+              value={formData.company || ''}
+              onChange={(e) => setFormData({...formData, company: e.target.value})}
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Email *
+              </label>
+              <Input 
+                type="email"
+                placeholder="Customer email"
+                value={formData.email || ''}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Phone
+              </label>
+              <Input 
+                placeholder="Phone number"
+                value={formData.phone || ''}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Testimonial Content *
+            </label>
+            <textarea 
+              placeholder="Enter testimonial content"
+              value={formData.content || ''}
+              onChange={(e) => setFormData({...formData, content: e.target.value})}
+              rows={4}
+              style={{ 
+                width: '100%', 
+                padding: '12px', 
+                border: '1px solid #ddd', 
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+              required
+            />
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Customer Photo
+            </label>
+            <SimpleImageUpload 
+              value={formData.avatar}
+              onChange={(avatar) => setFormData({...formData, avatar: avatar})}
+              folder="testimonials"
+              maxSize={5}
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Rating
+              </label>
+              <InputNumber 
+                placeholder="5"
+                value={formData.rating || 5}
+                onChange={(value) => setFormData({...formData, rating: value || 5})}
+                min={1}
+                max={5}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Status
+              </label>
+              <Select
+                value={formData.status || 'pending'}
+                onChange={(value) => setFormData({...formData, status: value})}
+                options={[
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'approved', label: 'Approved' },
+                  { value: 'rejected', label: 'Rejected' }
+                ]}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Featured
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                type="checkbox"
+                checked={formData.featured || false}
+                onChange={(e) => setFormData({...formData, featured: e.target.checked})}
+                style={{ transform: 'scale(1.2)' }}
+              />
+              <span>Featured Testimonial</span>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              variant="primary"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {editingTestimonial ? 'Update Testimonial' : 'Add Testimonial'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </div>
   );
-} 
+}

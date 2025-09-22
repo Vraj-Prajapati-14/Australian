@@ -37,6 +37,7 @@ import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
 import AdminContactsPage from './pages/admin/AdminContactsPage';
 import AdminTestimonialsPage from './pages/admin/AdminTestimonialsPage';
 import { ThemeProvider } from './components/ThemeProvider';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
           <AntApp>
             <ThemeProvider>
               <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                   <Route element={<PublicLayout />}>
                     <Route index element={<HomePage />} />

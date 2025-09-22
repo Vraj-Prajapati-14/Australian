@@ -1,111 +1,121 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Row, 
-  Col, 
+  Button, 
+  Modal, 
+  Input, 
   Card, 
   Table, 
-  Button, 
-  Space, 
   Tag, 
-  Typography, 
-  Modal, 
-  Form, 
-  Input, 
   Select, 
   Switch, 
-  InputNumber, 
-  Upload, 
-  message, 
-  Popconfirm,
-  Spin,
-  Alert,
-  Tabs,
-  Divider,
-  Badge,
-  Tooltip,
-  Image
-} from 'antd';
-import SimpleImageUpload from '../../components/SimpleImageUpload';
-import GalleryUpload from '../../components/GalleryUpload';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  EyeOutlined,
-  UploadOutlined,
-  CarOutlined,
-  ContainerOutlined,
-  SearchOutlined,
-  FilterOutlined,
-  ReloadOutlined,
-  PlusCircleOutlined,
-  SettingOutlined
-} from '@ant-design/icons';
+  InputNumber 
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import SimpleImageUpload from '../../components/SimpleImageUpload';
+import GalleryUpload from '../../components/GalleryUpload';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const SettingIcon = () => <span>⚙️</span>;
+const FileIcon = () => <span>📄</span>;
+const CarIcon = () => <span>🚗</span>;
+const ContainerIcon = () => <span>📦</span>;
 
 export default function AdminServicesPage() {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isSubServiceModalVisible, setIsSubServiceModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [editingService, setEditingService] = useState(null);
-  const [selectedMainService, setSelectedMainService] = useState(null);
-  const [activeTab, setActiveTab] = useState('main');
-  const [uploadedHeroImage, setUploadedHeroImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [uploadedGallery, setUploadedGallery] = useState([]);
-  const [uploadedSubHeroImage, setUploadedSubHeroImage] = useState(null);
-  const [uploadedSubGallery, setUploadedSubGallery] = useState([]);
-  const [form] = Form.useForm();
-  const [subServiceForm] = Form.useForm();
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+  const [activeTab, setActiveTab] = useState('main');
   const queryClient = useQueryClient();
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
   // Fetch services data
-  const { data: services = [], isLoading: servicesLoading, error: servicesError } = useQuery({ 
+  const { data: services = [], isLoading: loading, error: servicesError } = useQuery({ 
     queryKey: ['services'], 
-    queryFn: async () => (await api.get('/services')).data || []
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+    }
   });
 
-  const { data: departments = [], isLoading: departmentsLoading } = useQuery({ 
-    queryKey: ['departments'], 
-    queryFn: async () => (await api.get('/departments')).data || []
+  // Fetch main services for dropdown (for sub-services parent selection)
+  const { data: mainServicesForDropdown = [], error: mainServicesError } = useQuery({ 
+    queryKey: ['main-services'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services/main');
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching main services:', error);
+        return [];
+      }
+    }
   });
 
   // Mutations
   const createServiceMutation = useMutation({
     mutationFn: (data) => api.post('/services', data),
     onSuccess: () => {
-      console.log('Create service mutation success - closing modal');
       queryClient.invalidateQueries(['services']);
-      message.success('Service created successfully');
-      setIsModalVisible(false);
-      setUploadedHeroImage(null);
+      showMessage('success', 'Service created successfully');
+      setModalVisible(false);
+      setUploadedImage(null);
       setUploadedGallery([]);
-      form.resetFields();
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
-      console.error('Create service mutation error:', error);
-      message.error('Error creating service: ' + error.message);
+      console.error('Create service error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error creating service. Please try again.');
+      }
     }
   });
 
   const updateServiceMutation = useMutation({
     mutationFn: ({ id, data }) => api.put(`/services/${id}`, data),
     onSuccess: () => {
-      console.log('Update service mutation success - closing modal');
       queryClient.invalidateQueries(['services']);
-      message.success('Service updated successfully');
-      setIsModalVisible(false);
+      showMessage('success', 'Service updated successfully');
+      setModalVisible(false);
       setEditingService(null);
-      setUploadedHeroImage(null);
+      setUploadedImage(null);
       setUploadedGallery([]);
-      form.resetFields();
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
-      console.error('Update service mutation error:', error);
-      message.error('Error updating service: ' + error.message);
+      console.error('Update service error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else if (error.response?.status === 400) {
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
+      } else {
+        showMessage('error', 'Error updating service. Please try again.');
+      }
     }
   });
 
@@ -113,330 +123,162 @@ export default function AdminServicesPage() {
     mutationFn: (id) => api.delete(`/services/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['services']);
-      message.success('Service deleted successfully');
+      showMessage('success', 'Service deleted successfully');
     },
     onError: (error) => {
-      message.error('Error deleting service: ' + error.message);
+      console.error('Delete service error:', error);
+      if (error.response?.status === 401) {
+        showMessage('error', 'Session expired. Please log in again.');
+        window.location.href = '/admin/login';
+      } else {
+        showMessage('error', 'Error deleting service. Please try again.');
+      }
     }
   });
 
-  const createSubServiceMutation = useMutation({
-    mutationFn: (data) => api.post('/services', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['services']);
-      message.success('Sub-service created successfully');
-      setIsSubServiceModalVisible(false);
-      setUploadedSubHeroImage(null);
-      setUploadedSubGallery([]);
-      subServiceForm.resetFields();
-    },
-    onError: (error) => {
-      console.error('Sub-service creation error:', error.response?.data || error.message);
-      const errorMessage = error.response?.data?.message || error.message;
-      message.error('Error creating sub-service: ' + errorMessage);
-    }
-  });
-
-  // Filter data
-  const mainServices = services.filter(s => s.isMainService);
-  const subServices = services.filter(s => !s.isMainService && s.parentService);
-
-  // Modal handlers
-  const showModal = (service = null) => {
-    setEditingService(service);
-    setUploadedHeroImage(service?.heroImage || null);
-    setUploadedGallery(service?.gallery || []);
-    if (service) {
-      form.setFieldsValue({
-        ...service,
-        parentService: service.parentService?._id
-      });
-    } else {
-      form.resetFields();
-    }
-    setIsModalVisible(true);
-  };
-
-  const showSubServiceModal = (mainService) => {
-    setSelectedMainService(mainService);
-    setUploadedSubHeroImage(null);
-    setUploadedSubGallery([]);
-    subServiceForm.resetFields();
-    setIsSubServiceModalVisible(true);
+  const handleAddService = () => {
+    setEditingService(null);
+    setUploadedImage(null);
+    setUploadedGallery([]);
+    setFormData({ 
+      status: 'active',
+      isFeatured: false,
+      isMainService: activeTab === 'main',
+      order: 0
+    });
+    setFormErrors({});
+    setModalVisible(true);
   };
 
   const handleCancel = () => {
-    setIsModalVisible(false);
+    setModalVisible(false);
     setEditingService(null);
-    setUploadedHeroImage(null);
+    setUploadedImage(null);
     setUploadedGallery([]);
-    form.resetFields();
+    setFormData({});
+    setFormErrors({});
   };
 
-  const handleSubServiceCancel = () => {
-    setIsSubServiceModalVisible(false);
-    setSelectedMainService(null);
-    setUploadedSubHeroImage(null);
-    setUploadedSubGallery([]);
-    subServiceForm.resetFields();
-  };
-
-  // Auto-generate slug from title
-  const generateSlug = (title) => {
-    if (!title) return '';
-    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  };
-
-  const handleSubmit = (values) => {
-    console.log('handleSubmit called with values:', values);
-    console.log('editingService:', editingService);
+  const handleEditService = (service) => {
+    setEditingService(service);
+    setUploadedImage(service.image || null);
+    setUploadedGallery(service.gallery || []);
     
-    // Handle image data
-    const heroImageData = uploadedHeroImage || editingService?.heroImage || values.heroImage;
-    const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingService?.gallery || values.gallery || [];
-
-    // Prepare the data object with proper image structure
-    const formData = {
-      ...values,
-      heroImage: heroImageData,
-      gallery: galleryData
-    };
-
-    console.log('Submitting formData:', formData);
-
-    if (editingService) {
-      console.log('Calling updateServiceMutation with id:', editingService._id);
-      updateServiceMutation.mutate({ id: editingService._id, data: formData });
-    } else {
-      console.log('Calling createServiceMutation');
-      createServiceMutation.mutate(formData);
-    }
+    setFormData({
+      ...service,
+      category: service.category?._id,
+      parentService: service.parentService?._id
+    });
+    setFormErrors({});
+    setModalVisible(true);
   };
 
-  const handleSubServiceSubmit = (values) => {
-    // Ensure slug is properly formatted
-    let slug = values.slug;
-    if (slug) {
-      slug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    }
-    
-    // Handle image data for sub-service
-    const heroImageData = uploadedSubHeroImage || values.heroImage;
-    const galleryData = uploadedSubGallery.length > 0 ? uploadedSubGallery : values.gallery || [];
-    
-    const subServiceData = {
-      ...values,
-      slug: slug,
-      isMainService: false,
-      parentService: selectedMainService._id,
-      heroImage: heroImageData,
-      gallery: galleryData
-    };
-    console.log('Submitting sub-service data:', subServiceData);
-    createSubServiceMutation.mutate(subServiceData);
-  };
-
-  const handleDelete = (id) => {
-    deleteServiceMutation.mutate(id);
-  };
-
-  // Image upload handler
-  const handleImageUpload = async (file) => {
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('folder', 'services');
-
+  const handleDeleteService = async (serviceId) => {
     try {
-      const response = await api.post('/media/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      if (response.data.success) {
-        return response.data;
-      } else {
-        message.error('Upload failed');
-        return false;
+      await deleteServiceMutation.mutateAsync(serviceId);
+    } catch (error) {
+      console.error('Error deleting service:', error);
+    }
+  };
+
+  const handleStatusChange = async (serviceId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      const service = services.find(s => s._id === serviceId);
+      if (service) {
+        await updateServiceMutation.mutateAsync({ id: serviceId, data: { status: newStatus } });
       }
     } catch (error) {
-      message.error('Upload failed: ' + error.message);
-      return false;
+      console.error('Error updating status:', error);
     }
   };
 
-  // Modern CSS styles
-  const containerStyle = {
-    padding: '32px',
-    background: '#ffffff',
-    minHeight: '100vh'
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('aes_admin_token');
+      if (!token) {
+        showMessage('error', 'Please log in to continue');
+        return;
+      }
 
-  const pageHeaderStyle = {
-    marginBottom: '32px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '16px'
-  };
+      // Handle image data
+      const imageData = uploadedImage || editingService?.image || formData.image;
+      const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingService?.gallery || formData.gallery || [];
 
-  const titleStyle = {
-    color: '#1a1a1a',
-    margin: 0,
-    fontWeight: '700',
-    fontSize: '28px',
-    letterSpacing: '-0.5px'
-  };
-
-  const headerActionsStyle = {
-    display: 'flex',
-    gap: '12px',
-    flexWrap: 'wrap'
-  };
-
-  const cardStyle = {
-    background: '#ffffff',
-    border: '1px solid #f0f0f0',
-    borderRadius: '16px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-    overflow: 'hidden'
-  };
-
-  const tabCardStyle = {
-    background: '#ffffff',
-    border: 'none',
-    borderRadius: '16px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-  };
-
-  const buttonStyle = {
-    height: '40px',
-    borderRadius: '8px',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  };
-
-  const primaryButtonStyle = {
-    ...buttonStyle,
-    background: 'linear-gradient(135deg, #1677ff 0%, #0958d9 100%)',
-    border: 'none',
-    boxShadow: '0 2px 8px rgba(22, 119, 255, 0.3)'
-  };
-
-  const actionButtonStyle = {
-    border: 'none',
-    borderRadius: '6px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '32px',
-    height: '32px'
-  };
-
-  const modalStyle = {
-    borderRadius: '16px',
-    overflow: 'hidden'
-  };
-
-  const formItemStyle = {
-    marginBottom: '20px'
-  };
-
-  const dividerStyle = {
-    margin: '24px 0',
-    borderColor: '#f0f0f0'
-  };
-
-  const inputStyle = {
-    borderRadius: '8px',
-    border: '2px solid #f0f0f0',
-    padding: '8px 12px',
-    fontSize: '14px',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      borderColor: '#1677ff'
-    },
-    '&:focus': {
-      borderColor: '#1677ff',
-      boxShadow: '0 0 0 3px rgba(22, 119, 255, 0.1)'
+      // Prepare the data object
+      const submitData = {
+        ...formData,
+        image: imageData,
+        gallery: galleryData
+      };
+      
+      if (editingService) {
+        await updateServiceMutation.mutateAsync({ id: editingService._id, data: submitData });
+      } else {
+        await createServiceMutation.mutateAsync(submitData);
+      }
+    } catch (error) {
+      console.error('Error saving service:', error);
     }
   };
 
-  const selectStyle = {
-    borderRadius: '8px',
-    border: '2px solid #f0f0f0'
-  };
+  // Filter services based on active tab
+  const mainServices = services.filter(s => s.isMainService === true);
+  const subServices = services.filter(s => s.isMainService === false);
 
-  const tableStyle = {
-    background: '#ffffff'
-  };
+  const currentServices = activeTab === 'main' ? mainServices : subServices;
 
-  const statusTagStyle = {
-    borderRadius: '6px',
-    fontWeight: '500',
-    padding: '4px 8px'
-  };
-
-  const loadingStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '60px 20px',
-    background: '#ffffff'
-  };
-
-  const errorStyle = {
-    padding: '32px',
-    background: '#ffffff'
-  };
-
-  // Table columns for main services
-  const mainServiceColumns = [
+  const columns = [
     {
       title: 'Service',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>
-            {text}
-          </div>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.slug}
-          </Text>
-          {record.heroImage && (
-            <Image
-              src={record.heroImage.url}
-              alt={record.heroImage.alt}
-              width={40}
-              height={40}
-              style={{ borderRadius: '6px', marginTop: '8px' }}
+      key: 'service',
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {record.image?.url ? (
+            <img
+              src={record.image.url}
+              alt={record.title}
+              width={60}
+              height={60}
+              style={{ objectFit: 'cover', borderRadius: 4 }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
-          )}
+          ) : null}
+          <div style={{ 
+            width: 60, 
+            height: 60, 
+            background: '#f0f0f0', 
+            borderRadius: 4, 
+            display: record.image?.url ? 'none' : 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            {activeTab === 'main' ? <CarIcon /> : <ContainerIcon />}
+          </div>
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.title}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>{record.shortDescription}</div>
+            {activeTab === 'sub' && record.parentService && (
+              <div style={{ fontSize: 11, color: '#999' }}>
+                Parent: {record.parentService.title}
+              </div>
+            )}
+          </div>
         </div>
       )
     },
     {
-      title: 'Department',
-      dataIndex: 'department',
-      key: 'department',
-      render: (department) => (
-        <Tag color="blue" style={statusTagStyle}>
-          {department?.name || 'N/A'}
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (category) => (
+        <Tag color="blue">
+          {category?.name || 'N/A'}
         </Tag>
-      )
-    },
-    {
-      title: 'Sub-Services',
-      dataIndex: 'subServices',
-      key: 'subServices',
-      render: (subServices) => (
-        <div>
-          <Text style={{ color: '#666' }}>
-            {subServices?.length || 0} sub-services
-          </Text>
-        </div>
       )
     },
     {
@@ -444,14 +286,9 @@ export default function AdminServicesPage() {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'error'} 
-          text={
-            <Tag color={status === 'active' ? 'green' : 'red'} style={statusTagStyle}>
-              {status === 'active' ? 'Active' : 'Inactive'}
-            </Tag>
-          }
-        />
+        <span className={status === 'active' ? 'status-active' : 'status-inactive'}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
       )
     },
     {
@@ -465,726 +302,310 @@ export default function AdminServicesPage() {
       )
     },
     {
-      title: 'Gallery',
-      key: 'gallery',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {record.gallery && record.gallery.length > 0 ? (
-            record.gallery.slice(0, 3).map((image, index) => (
-              <div key={index} style={{ position: 'relative' }}>
-                <Image
-                  src={image.url}
-                  alt={image.alt || `Gallery ${index + 1}`}
-                  width={40}
-                  height={30}
-                  style={{ objectFit: 'cover', borderRadius: 4 }}
-                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-                />
-                {index === 2 && record.gallery.length > 3 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    borderRadius: 4
-                  }}>
-                    +{record.gallery.length - 3}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
-          )}
-        </div>
-      )
-    },
-    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space size="small">
-          <Tooltip title="Add Sub-Service">
-            <Button 
-              type="text" 
-              icon={<PlusCircleOutlined />} 
-              onClick={() => showSubServiceModal(record)}
-              style={{ ...actionButtonStyle, color: '#52c41a' }}
-            />
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => showModal(record)}
-              style={{ ...actionButtonStyle, color: '#1677ff' }}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Are you sure you want to delete this service?"
-            description="This will also delete all sub-services."
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
+        <div className="action-buttons">
+          <button 
+            className="action-btn edit"
+            onClick={() => handleEditService(record)}
+            title="Edit Service"
           >
-            <Tooltip title="Delete">
-              <Button 
-                type="text" 
-                icon={<DeleteOutlined />} 
-                style={{ ...actionButtonStyle, color: '#ff4d4f' }}
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </button>
+          <button 
+            className="action-btn status"
+            onClick={() => handleStatusChange(record._id, record.status)}
+            title={`Toggle Status (Current: ${record.status})`}
+          >
+            <SettingIcon />
+          </button>
+          <button 
+            className="action-btn delete"
+            onClick={() => {
+              if (window.confirm('Delete this service? This action cannot be undone.')) {
+                handleDeleteService(record._id);
+              }
+            }}
+            title="Delete Service"
+          >
+            <DeleteIcon />
+          </button>
+        </div>
       )
     }
   ];
-
-  // Table columns for sub-services
-  const subServiceColumns = [
-    {
-      title: 'Sub-Service',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>
-            {text}
-          </div>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.slug}
-          </Text>
-          {record.heroImage && (
-            <Image
-              src={record.heroImage.url}
-              alt={record.heroImage.alt}
-              width={40}
-              height={40}
-              style={{ borderRadius: '6px', marginTop: '8px' }}
-            />
-          )}
-        </div>
-      )
-    },
-    {
-      title: 'Parent Service',
-      dataIndex: 'parentService',
-      key: 'parentService',
-      render: (parentService) => (
-        <Text style={{ color: '#666' }}>
-          {parentService?.title || 'N/A'}
-        </Text>
-      )
-    },
-    {
-      title: 'Department',
-      dataIndex: 'department',
-      key: 'department',
-      render: (department) => (
-        <Tag color="blue" style={statusTagStyle}>
-          {department?.name || 'N/A'}
-        </Tag>
-      )
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'error'} 
-          text={
-            <Tag color={status === 'active' ? 'green' : 'red'} style={statusTagStyle}>
-              {status === 'active' ? 'Active' : 'Inactive'}
-            </Tag>
-          }
-        />
-      )
-    },
-    {
-      title: 'Featured',
-      dataIndex: 'isFeatured',
-      key: 'isFeatured',
-      render: (featured) => (
-        <Tag color={featured ? 'gold' : 'default'} style={statusTagStyle}>
-          {featured ? 'Yes' : 'No'}
-        </Tag>
-      )
-    },
-    {
-      title: 'Gallery',
-      key: 'gallery',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {record.gallery && record.gallery.length > 0 ? (
-            record.gallery.slice(0, 3).map((image, index) => (
-              <div key={index} style={{ position: 'relative' }}>
-                <Image
-                  src={image.url}
-                  alt={image.alt || `Gallery ${index + 1}`}
-                  width={40}
-                  height={30}
-                  style={{ objectFit: 'cover', borderRadius: 4 }}
-                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-                />
-                {index === 2 && record.gallery.length > 3 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    borderRadius: 4
-                  }}>
-                    +{record.gallery.length - 3}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
-          )}
-        </div>
-      )
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="small">
-          <Tooltip title="Edit">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => showModal(record)}
-              style={{ ...actionButtonStyle, color: '#1677ff' }}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Are you sure you want to delete this sub-service?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Tooltip title="Delete">
-              <Button 
-                type="text" 
-                icon={<DeleteOutlined />} 
-                style={{ ...actionButtonStyle, color: '#ff4d4f' }}
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
-      )
-    }
-  ];
-
-  const isLoading = servicesLoading || departmentsLoading;
-  const hasError = servicesError;
-
-  if (isLoading) {
-    return (
-      <div style={loadingStyle}>
-        <Spin size="large" style={{ color: '#1677ff' }} />
-      </div>
-    );
-  }
-
-  if (hasError) {
-    return (
-      <div style={errorStyle}>
-        <Alert
-          message="Error Loading Services"
-          description="There was an error loading the services data. Please try refreshing the page."
-          type="error"
-          showIcon
-          action={
-            <Button size="small" danger onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
 
   return (
-    <div style={containerStyle}>
-      {/* Page Header */}
-      <div style={pageHeaderStyle}>
-        <Title level={2} style={titleStyle}>
-          Services Management
-        </Title>
-        <div style={headerActionsStyle}>
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={() => window.location.reload()}
-            style={buttonStyle}
+    <div className="admin-page">
+      <div className="page-header">
+        <h2 className="page-title">Services Management</h2>
+        <p className="page-description">Manage your main services and sub-services</p>
+      </div>
+      
+      {/* Tabs */}
+      <div className="services-tabs">
+        <div className="tab-list">
+          <button
+            className={`tab-button ${activeTab === 'main' ? 'active' : ''}`}
+            onClick={() => setActiveTab('main')}
           >
-            Refresh
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={() => showModal()}
-            style={primaryButtonStyle}
+            <CarIcon />
+            Main Services ({mainServices.length})
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'sub' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sub')}
           >
-            Add New Service
-          </Button>
+            <ContainerIcon />
+            Sub-Services ({subServices.length})
+          </button>
         </div>
       </div>
-
-      {/* Services Tabs */}
-      <Card style={tabCardStyle}>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={[
-            {
-              key: 'main',
-              label: (
-                <span>
-                  <CarOutlined style={{ marginRight: '8px' }} />
-                  Main Services ({mainServices.length})
-                </span>
-              ),
-              children: (
-                <Table
-                  dataSource={mainServices}
-                  columns={mainServiceColumns}
-                  rowKey="_id"
-                  style={tableStyle}
-                  pagination={{
-                    pageSize: 10,
-                    showSizeChanger: true,
-                    showQuickJumper: true,
-                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} services`
-                  }}
-                />
-              )
-            },
-            {
-              key: 'sub',
-              label: (
-                <span>
-                  <ContainerOutlined style={{ marginRight: '8px' }} />
-                  Sub-Services ({subServices.length})
-                </span>
-              ),
-              children: (
-                <Table
-                  dataSource={subServices}
-                  columns={subServiceColumns}
-                  rowKey="_id"
-                  style={tableStyle}
-                  pagination={{
-                    pageSize: 10,
-                    showSizeChanger: true,
-                    showQuickJumper: true,
-                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} sub-services`
-                  }}
-                />
-              )
-            }
-          ]}
+      
+      <Card className="services-card">
+        <div className="card-header">
+          <div className="card-title">
+            <h4>
+              {activeTab === 'main' ? 'Main Services' : 'Sub-Services'} ({currentServices.length})
+            </h4>
+            <p className="card-subtitle">
+              {activeTab === 'main' 
+                ? 'Primary services that appear in the main navigation' 
+                : 'Detailed services under main service categories'
+              }
+            </p>
+          </div>
+          <Button 
+            variant="primary" 
+            onClick={handleAddService}
+            className="add-service-btn"
+          >
+            <PlusIcon /> Add {activeTab === 'main' ? 'Main' : 'Sub'}-Service
+          </Button>
+        </div>
+        
+        <Table
+          className="services-table"
+          columns={columns}
+          dataSource={Array.isArray(currentServices) ? currentServices : []}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+          }}
         />
       </Card>
 
       {/* Service Modal */}
       <Modal
-        title={
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a1a' }}>
-            {editingService ? 'Edit Service' : 'Add New Service'}
-          </div>
-        }
-        open={isModalVisible}
-        onCancel={handleCancel}
-        footer={null}
-        width={800}
-        style={modalStyle}
-        destroyOnHidden
+        isOpen={modalVisible}
+        onClose={handleCancel}
+        title={editingService ? 'Edit Service' : `Add New ${activeTab === 'main' ? 'Main' : 'Sub'}-Service`}
+        size="full"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            isMainService: true,
-            status: 'active',
-            isFeatured: false
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="title"
-                label="Service Title"
-                rules={[{ required: true, message: 'Please enter service title' }]}
-                style={formItemStyle}
-              >
+        <form onSubmit={handleSubmit} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+          {/* Basic Information */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Basic Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Service Title *
+                </label>
                 <Input 
-                  placeholder="Enter service title" 
-                  style={inputStyle}
+                  placeholder="e.g., Ute Canopies"
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  error={formErrors.title}
+                  required
                 />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="slug"
-                label="Slug"
-                rules={[{ required: true, message: 'Please enter slug' }]}
-                style={formItemStyle}
-              >
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Slug *
+                </label>
                 <Input 
-                  placeholder="service-slug" 
-                  style={inputStyle}
+                  placeholder="e.g., ute-canopies"
+                  value={formData.slug || ''}
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  error={formErrors.slug}
+                  required
                 />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="summary"
-            label="Summary"
-            style={formItemStyle}
-          >
-            <TextArea 
-              placeholder="Brief description of the service" 
-              rows={3}
-              style={inputStyle}
-            />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="department"
-                label="Department"
-                style={formItemStyle}
-              >
-                <Select 
-                  placeholder="Select department" 
-                  style={selectStyle}
-                  allowClear
-                >
-                  {departments.map(dept => (
-                    <Option key={dept._id} value={dept._id}>
-                      {dept.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-                style={formItemStyle}
-              >
-                <Select style={selectStyle}>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                  <Option value="draft">Draft</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="isMainService"
-                label="Service Type"
-                style={formItemStyle}
-              >
-                <Select style={selectStyle}>
-                  <Option value={true}>Main Service</Option>
-                  <Option value={false}>Sub-Service</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Parent Service"
-                style={formItemStyle}
-                dependencies={['isMainService']}
-              >
-                {({ getFieldValue }) => {
-                  const isMainService = getFieldValue('isMainService');
-                  return isMainService ? null : (
-                    <Form.Item name="parentService" noStyle>
-                      <Select 
-                        placeholder="Select parent service" 
-                        style={selectStyle}
-                        allowClear
-                      >
-                        {mainServices.map(service => (
-                          <Option key={service._id} value={service._id}>
-                            {service.title}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  );
-                }}
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="isFeatured"
-            label="Featured"
-            valuePropName="checked"
-            style={formItemStyle}
-          >
-            <Switch />
-          </Form.Item>
-
-          <Divider style={dividerStyle}>Images & Media</Divider>
-
-          <Form.Item
-            name="heroImage"
-            label="Hero Image"
-            style={formItemStyle}
-          >
-            <SimpleImageUpload 
-              value={uploadedHeroImage}
-              onChange={(image) => {
-                setUploadedHeroImage(image);
-                form.setFieldsValue({ heroImage: image });
-              }}
-              folder="services/hero"
-              maxSize={5}
-              required={true}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="gallery"
-            label="Gallery Images"
-            style={formItemStyle}
-          >
-            <GalleryUpload 
-              value={uploadedGallery}
-              onChange={(gallery) => {
-                setUploadedGallery(gallery);
-                form.setFieldsValue({ gallery: gallery });
-              }}
-              folder="services/gallery"
-              maxSize={5}
-              maxCount={10}
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-                loading={createServiceMutation.isLoading || updateServiceMutation.isLoading}
-                style={primaryButtonStyle}
-              >
-                {editingService ? 'Update' : 'Create'} Service
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Sub-Service Modal */}
-      <Modal
-        title={
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a1a' }}>
-            Add Sub-Service to {selectedMainService?.title}
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Short Description *
+              </label>
+              <Input 
+                placeholder="Brief description for display"
+                value={formData.shortDescription || ''}
+                onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
+                error={formErrors.shortDescription}
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Full Description *
+              </label>
+              <Input.Textarea 
+                rows={4}
+                placeholder="Detailed description of the service"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                error={formErrors.description}
+                required
+              />
+            </div>
           </div>
-        }
-        open={isSubServiceModalVisible}
-        onCancel={handleSubServiceCancel}
-        footer={null}
-        width={600}
-        style={modalStyle}
-        destroyOnHidden
-      >
-        <Form
-          form={subServiceForm}
-          layout="vertical"
-          onFinish={handleSubServiceSubmit}
-          initialValues={{
-            status: 'active',
-            isFeatured: false
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="title"
-                label="Sub-Service Title"
-                rules={[{ required: true, message: 'Please enter sub-service title' }]}
-                style={formItemStyle}
-              >
-                <Input 
-                  placeholder="Enter sub-service title" 
-                  style={inputStyle}
-                  onChange={(e) => {
-                    const title = e.target.value;
-                    const slug = generateSlug(title);
-                    subServiceForm.setFieldsValue({ slug });
-                  }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="slug"
-                label="Slug"
-                rules={[
-                  { required: true, message: 'Please enter slug' },
-                  { 
-                    pattern: /^[a-z0-9-]+$/, 
-                    message: 'Slug can only contain lowercase letters, numbers, and hyphens' 
-                  }
-                ]}
-                style={formItemStyle}
-              >
-                <Input 
-                  placeholder="sub-service-slug" 
-                  style={inputStyle}
-                  onChange={(e) => {
-                    // Ensure slug format
-                    const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                    e.target.value = value;
-                  }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
 
-          <Form.Item
-            name="summary"
-            label="Summary"
-            style={formItemStyle}
-          >
-            <TextArea 
-              placeholder="Brief description of the sub-service" 
-              rows={3}
-              style={inputStyle}
-            />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="department"
-                label="Department"
-                style={formItemStyle}
-              >
-                <Select 
-                  placeholder="Select department" 
-                  style={selectStyle}
+          {/* Category and Settings */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Category & Settings</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Category
+                </label>
+                <Select
+                  options={mainServicesForDropdown.map(service => ({
+                    value: service._id,
+                    label: service.title
+                  }))}
+                  value={formData.category}
+                  onChange={(value) => setFormData({...formData, category: value})}
+                  placeholder="Select category"
                   allowClear
-                >
-                  {departments.map(dept => (
-                    <Option key={dept._id} value={dept._id}>
-                      {dept.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-                style={formItemStyle}
-              >
-                <Select style={selectStyle}>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                  <Option value="draft">Draft</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Status
+                </label>
+                <Select
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'draft', label: 'Draft' }
+                  ]}
+                  value={formData.status || 'active'}
+                  onChange={(value) => setFormData({...formData, status: value})}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Display Order
+                </label>
+                <InputNumber 
+                  min={0}
+                  placeholder="1"
+                  value={formData.order || 0}
+                  onChange={(value) => setFormData({...formData, order: value})}
+                />
+              </div>
+            </div>
+            
+            {/* Parent Service Selection for Sub-Services */}
+            {activeTab === 'sub' && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Parent Service *
+                </label>
+                <Select
+                  options={mainServicesForDropdown.map(service => ({
+                    value: service._id,
+                    label: service.title
+                  }))}
+                  value={formData.parentService}
+                  onChange={(value) => setFormData({...formData, parentService: value})}
+                  placeholder="Select parent service"
+                  required
+                />
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Switch
+                  checked={formData.isFeatured || false}
+                  onChange={(checked) => setFormData({...formData, isFeatured: checked})}
+                />
+                <label style={{ fontWeight: '500' }}>Featured Service</label>
+              </div>
+              {activeTab === 'sub' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Switch
+                    checked={formData.isMainService || false}
+                    onChange={(checked) => setFormData({...formData, isMainService: checked})}
+                  />
+                  <label style={{ fontWeight: '500' }}>Main Service</label>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <Form.Item
-            name="isFeatured"
-            label="Featured"
-            valuePropName="checked"
-            style={formItemStyle}
-          >
-            <Switch />
-          </Form.Item>
+          {/* Images */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Images</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Service Image
+                </label>
+                <SimpleImageUpload 
+                  value={uploadedImage}
+                  onChange={(image) => {
+                    setUploadedImage(image);
+                    setFormData({...formData, image: image});
+                  }}
+                  folder="services"
+                  maxSize={5}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Service Gallery
+                </label>
+                <GalleryUpload 
+                  value={uploadedGallery}
+                  onChange={(gallery) => {
+                    setUploadedGallery(gallery);
+                    setFormData({...formData, gallery: gallery});
+                  }}
+                  folder="services/gallery"
+                  maxSize={5}
+                  maxCount={10}
+                />
+              </div>
+            </div>
+          </div>
 
-          <Divider style={dividerStyle}>Images & Media</Divider>
-
-          <Form.Item
-            name="heroImage"
-            label="Hero Image"
-            style={formItemStyle}
-          >
-            <SimpleImageUpload 
-              value={uploadedSubHeroImage}
-              onChange={(image) => {
-                setUploadedSubHeroImage(image);
-                subServiceForm.setFieldsValue({ heroImage: image });
-              }}
-              folder="services/sub-hero"
-              maxSize={5}
-              required={true}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="gallery"
-            label="Gallery Images"
-            style={formItemStyle}
-          >
-            <GalleryUpload 
-              value={uploadedSubGallery}
-              onChange={(gallery) => {
-                setUploadedSubGallery(gallery);
-                subServiceForm.setFieldsValue({ gallery: gallery });
-              }}
-              folder="services/sub-gallery"
-              maxSize={5}
-              maxCount={8}
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={handleSubServiceCancel}>
-                Cancel
-              </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-                loading={createSubServiceMutation.isLoading}
-                style={primaryButtonStyle}
-              >
-                Create Sub-Service
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+          {/* Form Actions */}
+          <div className="modal-footer">
+            <button 
+              type="button"
+              className="btn btn-outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={createServiceMutation.isPending || updateServiceMutation.isPending}
+            >
+              {createServiceMutation.isPending || updateServiceMutation.isPending ? 'Saving...' : (editingService ? 'Update Service' : 'Add Service')}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
 }
-

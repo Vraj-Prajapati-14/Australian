@@ -327,9 +327,6 @@ const ServiceDetailPage = () => {
             {service.department && (
               <div className="service-department-info">
                 <div className="department-badge">
-                  {/* <svg className="department-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"> */}
-                    {/* <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/> */}
-                  {/* </svg> */}
                   <span className="department-label">Department:</span>
                   <span className="department-name">{service.department.name}</span>
                 </div>
@@ -355,24 +352,6 @@ const ServiceDetailPage = () => {
 
             {/* Service Information */}
             <div className="service-info-section">
-            <div className="service-info-card">
-              {/* <h3>
-                <svg className="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
-                Service Information
-              </h3> */}
-              {/* <div className="service-info-item">
-                <span className="service-info-label">Category:</span>
-                <span className="service-info-value">{service.category || 'N/A'}</span>
-              </div> */}
-              {/* {parentService && (
-                <div className="service-info-item">
-                  <span className="service-info-label">Parent Service:</span>
-                  <span className="service-info-value">{parentService.title}</span>
-                </div>
-              )} */}
-            </div>
 
             {service.pricing && (
                 <div className="service-info-card">
@@ -467,43 +446,41 @@ const ServiceDetailPage = () => {
               <h2>Gallery</h2>
               <div className="gallery-carousel">
                 <button 
-                  className="gallery-nav gallery-prev" 
+                  className="carousel-nav carousel-nav-prev" 
                   onClick={() => setAutoScrollIndex((prev) => (prev - 1 + allImages.length) % allImages.length)}
                   disabled={allImages.length <= 5}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15,18 9,12 15,6"/>
-                  </svg>
+                  <span>‹</span>
                 </button>
                 
-                <div className="gallery-round-container">
-                  {allImages.map((image, index) => {
-                    // Calculate which images to show based on auto-scroll
-                    const displayIndex = (autoScrollIndex + index) % allImages.length;
-                    const isVisible = index < 5; // Show up to 5 images
-                    
-                    if (!isVisible) return null;
-                    
-                    return (
-                      <div key={displayIndex} className="gallery-round-item" onClick={() => openLightbox(displayIndex)}>
-                        <img
-                          src={allImages[displayIndex].url}
-                          alt={allImages[displayIndex].alt}
-                          className="gallery-round-image"
-                        />
-                      </div>
-                    );
-                  })}
+                <div className="carousel-container">
+                  <div className="gallery-round-container">
+                    {allImages.map((image, index) => {
+                      // Calculate which images to show based on auto-scroll
+                      const displayIndex = (autoScrollIndex + index) % allImages.length;
+                      const isVisible = index < 5; // Show up to 5 images
+                      
+                      if (!isVisible) return null;
+                      
+                      return (
+                        <div key={displayIndex} className="gallery-round-item" onClick={() => openLightbox(displayIndex)}>
+                          <img
+                            src={allImages[displayIndex].url}
+                            alt={allImages[displayIndex].alt}
+                            className="gallery-round-image"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
                 
                 <button 
-                  className="gallery-nav gallery-next" 
+                  className="carousel-nav carousel-nav-next" 
                   onClick={() => setAutoScrollIndex((prev) => (prev + 1) % allImages.length)}
                   disabled={allImages.length <= 5}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9,18 15,12 9,6"/>
-                  </svg>
+                  <span>›</span>
                 </button>
               </div>
             </div>
@@ -954,22 +931,28 @@ const ServiceDetailPage = () => {
           )}
         
 
-      {/* CTA Section */}
-      <section className="service-cta">
-        <div className="cta-content">
-          <h2>Ready to Get Started?</h2>
-          <p>
-            Contact us today for a free consultation and quote for your {service.title.toLowerCase()} project.
-          </p>
-          <div className="cta-buttons">
-            <Link to="/contact" className="cta-button-primary">
-              Contact Us
-            </Link>
-            <Link to="/services" className="cta-button-secondary">
-              View Services
-            </Link>
+      {/* CTA Section - Using exact same structure as HomePage and AboutPage */}
+      <section className="cta-section">
+        <Container>
+          <div className="cta-content">
+            <h2 className="cta-title">Ready to Get Started?</h2>
+            <p className="cta-subtitle">
+              Contact us today for a free consultation and quote for your {service.title.toLowerCase()} project.
+            </p>
+            <div className="cta-buttons">
+              <Link to="/contact">
+                <Button variant="primary" size="lg" className="cta-button-primary">
+                  Contact Us
+                </Button>
+              </Link>
+              <Link to="/services">
+                <Button variant="outline" size="lg" className="cta-button-secondary">
+                  View Services
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        </Container>
       </section>
 
 

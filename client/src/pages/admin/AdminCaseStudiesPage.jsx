@@ -1,53 +1,44 @@
 import { useState } from 'react';
+import '../../styles/admin-forms.css';
 import { 
-  Table, 
   Button, 
   Modal, 
-  Form, 
   Input, 
+  Card, 
+  Table, 
+  Tag, 
   Select, 
   Switch, 
-  Space, 
-  Card, 
-  Row, 
-  Col, 
-  Typography, 
-  Tag, 
-  Popconfirm,
-  App,
-  Tooltip,
-  Badge,
-  Image as AntdImage,
-  DatePicker,
-  InputNumber,
-  Divider
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  SettingOutlined,
-  FileOutlined,
-  CalendarOutlined
-} from '@ant-design/icons';
+  DatePicker, 
+  InputNumber 
+} from '../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import SimpleImageUpload from '../../components/SimpleImageUpload';
 import GalleryUpload from '../../components/GalleryUpload';
 import dayjs from 'dayjs';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// Helper components for icons
+const PlusIcon = () => <span>+</span>;
+const EditIcon = () => <span>✏️</span>;
+const DeleteIcon = () => <span>🗑️</span>;
+const SettingIcon = () => <span>⚙️</span>;
+const FileIcon = () => <span>📄</span>;
 
 export default function AdminCaseStudiesPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCaseStudy, setEditingCaseStudy] = useState(null);
   const [uploadedHeroImage, setUploadedHeroImage] = useState(null);
   const [uploadedGallery, setUploadedGallery] = useState([]);
-  const [form] = Form.useForm();
+  const [formData, setFormData] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const queryClient = useQueryClient();
-  const { message } = App.useApp();
+  
+  // Simple message system
+  const showMessage = (type, content) => {
+    console.log(`${type}: ${content}`);
+    alert(`${type}: ${content}`);
+  };
 
   // Fetch case studies data
   const { data: caseStudies = [], isLoading: loading, error: caseStudiesError } = useQuery({ 
@@ -63,7 +54,7 @@ export default function AdminCaseStudiesPage() {
     }
   });
 
-  // Fetch sub-services for dropdown (not main services)
+  // Fetch sub-services for dropdown
   const { data: services = [], error: servicesError } = useQuery({ 
     queryKey: ['sub-services'], 
     queryFn: async () => {
@@ -96,21 +87,22 @@ export default function AdminCaseStudiesPage() {
     mutationFn: (data) => api.post('/case-studies', data),
     onSuccess: () => {
       queryClient.invalidateQueries(['case-studies']);
-      message.success('Case study created successfully');
+      showMessage('success', 'Case study created successfully');
       setModalVisible(false);
       setUploadedHeroImage(null);
       setUploadedGallery([]);
-      form.resetFields();
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Create case study error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error creating case study. Please try again.');
+        showMessage('error', 'Error creating case study. Please try again.');
       }
     }
   });
@@ -119,22 +111,23 @@ export default function AdminCaseStudiesPage() {
     mutationFn: ({ id, data }) => api.put(`/case-studies/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['case-studies']);
-      message.success('Case study updated successfully');
+      showMessage('success', 'Case study updated successfully');
       setModalVisible(false);
       setEditingCaseStudy(null);
       setUploadedHeroImage(null);
       setUploadedGallery([]);
-      form.resetFields();
+      setFormData({});
+      setFormErrors({});
     },
     onError: (error) => {
       console.error('Update case study error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else if (error.response?.status === 400) {
-        message.error(error.response.data?.message || 'Invalid data provided');
+        showMessage('error', error.response.data?.message || 'Invalid data provided');
       } else {
-        message.error('Error updating case study. Please try again.');
+        showMessage('error', 'Error updating case study. Please try again.');
       }
     }
   });
@@ -143,15 +136,15 @@ export default function AdminCaseStudiesPage() {
     mutationFn: (id) => api.delete(`/case-studies/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['case-studies']);
-      message.success('Case study deleted successfully');
+      showMessage('success', 'Case study deleted successfully');
     },
     onError: (error) => {
       console.error('Delete case study error:', error);
       if (error.response?.status === 401) {
-        message.error('Session expired. Please log in again.');
+        showMessage('error', 'Session expired. Please log in again.');
         window.location.href = '/admin/login';
       } else {
-        message.error('Error deleting case study. Please try again.');
+        showMessage('error', 'Error deleting case study. Please try again.');
       }
     }
   });
@@ -160,13 +153,22 @@ export default function AdminCaseStudiesPage() {
     setEditingCaseStudy(null);
     setUploadedHeroImage(null);
     setUploadedGallery([]);
-    form.resetFields();
-    form.setFieldsValue({ 
+    setFormData({ 
       status: 'active',
       isFeatured: false,
       order: 0
     });
+    setFormErrors({});
     setModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setModalVisible(false);
+    setEditingCaseStudy(null);
+    setUploadedHeroImage(null);
+    setUploadedGallery([]);
+    setFormData({});
+    setFormErrors({});
   };
 
   const handleEditCaseStudy = (caseStudy) => {
@@ -179,14 +181,15 @@ export default function AdminCaseStudiesPage() {
       ? caseStudy.keyFeatures.join('\n') 
       : caseStudy.keyFeatures || '';
     
-    form.setFieldsValue({
+    setFormData({
       ...caseStudy,
       service: caseStudy.service?._id,
       department: caseStudy.department?._id,
-      completionDate: caseStudy.completionDate ? dayjs(caseStudy.completionDate) : null,
-      startDate: caseStudy.startDate ? dayjs(caseStudy.startDate) : null,
+      completionDate: caseStudy.completionDate || '',
+      startDate: caseStudy.startDate || '',
       keyFeatures: keyFeaturesText
     });
+    setFormErrors({});
     setModalVisible(true);
   };
 
@@ -209,46 +212,38 @@ export default function AdminCaseStudiesPage() {
     }
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       const token = localStorage.getItem('aes_admin_token');
       if (!token) {
-        message.error('Please log in to continue');
+        showMessage('error', 'Please log in to continue');
         return;
       }
 
-      // Convert dayjs to ISO string if present
-      if (values.completionDate && values.completionDate.isValid()) {
-        values.completionDate = values.completionDate.toISOString();
-      }
-      
-      if (values.startDate && values.startDate.isValid()) {
-        values.startDate = values.startDate.toISOString();
-      }
-
       // Process keyFeatures - convert from text to array
-      if (values.keyFeatures && typeof values.keyFeatures === 'string') {
-        values.keyFeatures = values.keyFeatures
+      if (formData.keyFeatures && typeof formData.keyFeatures === 'string') {
+        formData.keyFeatures = formData.keyFeatures
           .split('\n')
           .map(feature => feature.trim())
           .filter(feature => feature.length > 0);
       }
 
       // Handle image data
-      const heroImageData = uploadedHeroImage || editingCaseStudy?.heroImage || values.heroImage;
-      const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingCaseStudy?.gallery || values.gallery || [];
+      const heroImageData = uploadedHeroImage || editingCaseStudy?.heroImage || formData.heroImage;
+      const galleryData = uploadedGallery.length > 0 ? uploadedGallery : editingCaseStudy?.gallery || formData.gallery || [];
 
       // Prepare the data object with proper image structure
-      const formData = {
-        ...values,
+      const submitData = {
+        ...formData,
         heroImage: heroImageData,
         gallery: galleryData
       };
       
       if (editingCaseStudy) {
-        await updateCaseStudyMutation.mutateAsync({ id: editingCaseStudy._id, data: formData });
+        await updateCaseStudyMutation.mutateAsync({ id: editingCaseStudy._id, data: submitData });
       } else {
-        await createCaseStudyMutation.mutateAsync(formData);
+        await createCaseStudyMutation.mutateAsync(submitData);
       }
     } catch (error) {
       console.error('Error saving case study:', error);
@@ -262,19 +257,29 @@ export default function AdminCaseStudiesPage() {
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {record.heroImage?.url ? (
-            <AntdImage
+            <img
               src={record.heroImage.url}
               alt={record.title}
               width={80}
               height={60}
               style={{ objectFit: 'cover', borderRadius: 4 }}
-              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
-          ) : (
-            <div style={{ width: 80, height: 60, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FileOutlined style={{ color: '#999' }} />
-            </div>
-          )}
+          ) : null}
+          <div style={{ 
+            width: 80, 
+            height: 60, 
+            background: '#f0f0f0', 
+            borderRadius: 4, 
+            display: record.heroImage?.url ? 'none' : 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            <FileIcon />
+          </div>
           <div>
             <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{record.title}</div>
             <div style={{ fontSize: 12, color: '#666' }}>{record.shortDescription}</div>
@@ -310,10 +315,12 @@ export default function AdminCaseStudiesPage() {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Badge 
-          status={status === 'active' ? 'success' : 'default'} 
-          text={status.charAt(0).toUpperCase() + status.slice(1)} 
-        />
+        <span style={{ 
+          color: status === 'active' ? '#52c41a' : '#999',
+          fontWeight: 'bold'
+        }}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
       )
     },
     {
@@ -331,105 +338,62 @@ export default function AdminCaseStudiesPage() {
       dataIndex: 'completionDate',
       key: 'completionDate',
       render: (date) => (
-        <Text type="secondary">
+        <span style={{ color: '#666' }}>
           {date ? dayjs(date).format('MMM DD, YYYY') : 'N/A'}
-        </Text>
-      )
-    },
-    {
-      title: 'Gallery',
-      key: 'gallery',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {record.gallery && record.gallery.length > 0 ? (
-            record.gallery.slice(0, 3).map((image, index) => (
-              <div key={index} style={{ position: 'relative' }}>
-                <AntdImage
-                  src={image.url}
-                  alt={image.alt || `Gallery ${index + 1}`}
-                  width={40}
-                  height={30}
-                  style={{ objectFit: 'cover', borderRadius: 4 }}
-                  fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-                />
-                {index === 2 && record.gallery.length > 3 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    borderRadius: 4
-                  }}>
-                    +{record.gallery.length - 3}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <Text type="secondary" style={{ fontSize: '12px' }}>No images</Text>
-          )}
-        </div>
+        </span>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit Case Study">
-            <Button 
-              type="text" 
-              icon={<EditOutlined />} 
-              onClick={() => handleEditCaseStudy(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Toggle Status">
-            <Button 
-              type="text" 
-              icon={<SettingOutlined />} 
-              onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Delete this case study?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDeleteCaseStudy(record._id)}
-            okText="Yes"
-            cancelText="No"
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleEditCaseStudy(record)}
+            title="Edit Case Study"
           >
-            <Tooltip title="Delete Case Study">
-              <Button 
-                type="text" 
-                danger 
-                icon={<DeleteOutlined />} 
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
+            <EditIcon />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleStatusChange(record._id, record.status === 'active' ? 'inactive' : 'active')}
+            title="Toggle Status"
+          >
+            <SettingIcon />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => {
+              if (window.confirm('Delete this case study? This action cannot be undone.')) {
+                handleDeleteCaseStudy(record._id);
+              }
+            }}
+            title="Delete Case Study"
+            style={{ color: '#ff4d4f' }}
+          >
+            <DeleteIcon />
+          </Button>
+        </div>
       )
     }
   ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '100%', overflowX: 'auto' }}>
-      <Title level={2}>Case Studies Management</Title>
+    <div className="admin-page">
+      <h2 style={{ marginBottom: '24px', fontSize: '24px', fontWeight: 'bold' }}>Case Studies Management</h2>
       
       <Card>
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <Title level={4}>Case Studies ({caseStudies.length})</Title>
+          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Case Studies ({caseStudies.length})</h4>
           <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
+            variant="primary" 
             onClick={handleAddCaseStudy}
           >
-            Add Case Study
+            <PlusIcon /> Add Case Study
           </Button>
         </div>
         
@@ -444,478 +408,283 @@ export default function AdminCaseStudiesPage() {
             showQuickJumper: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
           }}
-          scroll={{ x: 1200 }}
         />
       </Card>
 
       {/* Case Study Modal */}
       <Modal
+        isOpen={modalVisible}
+        onClose={handleCancel}
         title={editingCaseStudy ? 'Edit Case Study' : 'Add New Case Study'}
-        open={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setUploadedHeroImage(null);
-          setUploadedGallery([]);
-        }}
-        footer={null}
-        width={900}
-        style={{ top: 20 }}
-        className="admin-modal"
+        size="full"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          className="admin-form"
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="title"
-                label="Case Study Title"
-                rules={[{ required: true, message: 'Please enter case study title' }]}
-              >
-                <Input placeholder="e.g., Ute Canopy Installation for City Council" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="slug"
-                label="Slug"
-                rules={[{ required: true, message: 'Please enter slug' }]}
-              >
-                <Input placeholder="e.g., ute-canopy-city-council" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="shortDescription"
-            label="Short Description"
-            rules={[{ required: true, message: 'Please enter short description' }]}
-          >
-            <Input placeholder="Brief description for display" />
-          </Form.Item>
-          
-          <Form.Item
-            name="description"
-            label="Full Description"
-            rules={[{ required: true, message: 'Please enter full description' }]}
-          >
-            <TextArea rows={4} placeholder="Detailed description of the case study" />
-          </Form.Item>
-          
-          <Divider>Client Information</Divider>
-          
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="clientName"
-                label="Client Name"
-                rules={[{ required: true, message: 'Please enter client name' }]}
-              >
-                <Input placeholder="e.g., Dr. Michael Chen" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="clientPosition"
-                label="Client Position"
-              >
-                <Input placeholder="e.g., Medical Director" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="clientCompany"
-                label="Client Company"
-              >
-                <Input placeholder="e.g., MediCare Plus" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="service"
-                label="Related Service"
-              >
-                <Select placeholder="Select related service" allowClear>
-                  {services.map(service => (
-                    <Option key={service._id} value={service._id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{service.title}</span>
-                        <Tag size="small" color={service.status === 'active' ? 'green' : 'red'}>
-                          {service.status}
-                        </Tag>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="department"
-                label="Department"
-              >
-                <Select placeholder="Select department" allowClear>
-                  {departments.map(dept => (
-                    <Option key={dept._id} value={dept._id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{dept.name}</span>
-                        <Tag size="small" color={dept.status === 'active' ? 'green' : 'red'}>
-                          {dept.status}
-                        </Tag>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="industry"
-                label="Industry"
-              >
-                <Input placeholder="e.g., Healthcare, Construction" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="heroImage"
-                label="Hero Image"
-                rules={[
-                  {
-                    validator: (_, value) => {
-                      const hasImage = uploadedHeroImage || editingCaseStudy?.heroImage || value;
-                      if (!hasImage) {
-                        return Promise.reject(new Error('Please upload a hero image'));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
+        <form onSubmit={handleSubmit} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+          {/* Basic Information */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Basic Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Case Study Title *
+                </label>
+                <Input 
+                  placeholder="e.g., Ute Canopy Installation for City Council"
+                  value={formData.title || ''}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  error={formErrors.title}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Slug *
+                </label>
+                <Input 
+                  placeholder="e.g., ute-canopy-city-council"
+                  value={formData.slug || ''}
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  error={formErrors.slug}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Short Description *
+              </label>
+              <Input 
+                placeholder="Brief description for display"
+                value={formData.shortDescription || ''}
+                onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
+                error={formErrors.shortDescription}
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Full Description *
+              </label>
+              <Input.Textarea 
+                rows={4}
+                placeholder="Detailed description of the case study"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                error={formErrors.description}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Client Information */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Client Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Client Name *
+                </label>
+                <Input 
+                  placeholder="e.g., Dr. Michael Chen"
+                  value={formData.clientName || ''}
+                  onChange={(e) => setFormData({...formData, clientName: e.target.value})}
+                  error={formErrors.clientName}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Client Position
+                </label>
+                <Input 
+                  placeholder="e.g., Medical Director"
+                  value={formData.clientPosition || ''}
+                  onChange={(e) => setFormData({...formData, clientPosition: e.target.value})}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Client Company
+                </label>
+                <Input 
+                  placeholder="e.g., MediCare Plus"
+                  value={formData.clientCompany || ''}
+                  onChange={(e) => setFormData({...formData, clientCompany: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Service and Department */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Service & Department</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Related Service
+                </label>
+                <Select
+                  options={services.map(service => ({
+                    value: service._id,
+                    label: service.title
+                  }))}
+                  value={formData.service}
+                  onChange={(value) => setFormData({...formData, service: value})}
+                  placeholder="Select related service"
+                  allowClear
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Department
+                </label>
+                <Select
+                  options={departments.map(dept => ({
+                    value: dept._id,
+                    label: dept.name
+                  }))}
+                  value={formData.department}
+                  onChange={(value) => setFormData({...formData, department: value})}
+                  placeholder="Select department"
+                  allowClear
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Industry
+                </label>
+                <Input 
+                  placeholder="e.g., Healthcare, Construction"
+                  value={formData.industry || ''}
+                  onChange={(e) => setFormData({...formData, industry: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Images and Settings */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Images & Settings</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Hero Image *
+                </label>
                 <SimpleImageUpload 
                   value={uploadedHeroImage}
                   onChange={(image) => {
                     setUploadedHeroImage(image);
-                    form.setFieldsValue({ heroImage: image });
-                    form.validateFields(['heroImage']);
+                    setFormData({...formData, heroImage: image});
                   }}
                   folder="case-studies/hero"
                   maxSize={5}
                   required={true}
                 />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="order"
-                label="Display Order"
-                initialValue={0}
-              >
-                <InputNumber min={0} placeholder="1" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="status"
-                label="Status"
-                initialValue="active"
-              >
-                <Select>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                  <Option value="draft">Draft</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="isFeatured"
-                label="Featured Case Study"
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="completionDate"
-                label="Completion Date"
-              >
-                <DatePicker 
-                  placeholder="Select completion date" 
-                  style={{ width: '100%' }}
-                  format="YYYY-MM-DD"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="gallery"
-            label="Case Study Gallery"
-          >
-            <GalleryUpload 
-              value={uploadedGallery}
-              onChange={(gallery) => {
-                setUploadedGallery(gallery);
-                form.setFieldsValue({ gallery: gallery });
-              }}
-              folder="case-studies/gallery"
-              maxSize={5}
-              maxCount={10}
-            />
-          </Form.Item>
-          
-          <Divider>Project Timeline & Details</Divider>
-          
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item
-                name="startDate"
-                label="Start Date"
-              >
-                <DatePicker 
-                  placeholder="Project start date" 
-                  style={{ width: '100%' }}
-                  format="YYYY-MM-DD"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                name="duration"
-                label="Duration"
-              >
-                <Input placeholder="e.g., 6 months, 3 weeks" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                name="teamSize"
-                label="Team Size"
-              >
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Display Order
+                </label>
                 <InputNumber 
-                  min={1} 
-                  placeholder="8" 
-                  style={{ width: '100%' }}
+                  min={0}
+                  placeholder="1"
+                  value={formData.order || 0}
+                  onChange={(value) => setFormData({...formData, order: value})}
                 />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                name="location"
-                label="Location"
-              >
-                <Input placeholder="e.g., Sydney, NSW" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="projectScope"
-                label="Project Scope"
-              >
-                <TextArea 
-                  rows={3} 
-                  placeholder="Describe the scope of the project"
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Status
+                </label>
+                <Select
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'draft', label: 'Draft' }
+                  ]}
+                  value={formData.status || 'active'}
+                  onChange={(value) => setFormData({...formData, status: value})}
                 />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="challenges"
-                label="Challenges Faced"
-              >
-                <TextArea 
-                  rows={3} 
-                  placeholder="Describe challenges encountered during the project"
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Switch
+                  checked={formData.isFeatured || false}
+                  onChange={(checked) => setFormData({...formData, isFeatured: checked})}
                 />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="solutions"
-            label="Solutions Implemented"
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="Describe the solutions implemented to address challenges"
-            />
-          </Form.Item>
-          
-          <Divider>Project Stats (Hero Section)</Divider>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name={['projectStats', 'stat1', 'label']}
-                label="Stat 1 Label"
-              >
-                <Input placeholder="e.g., Team Size" />
-              </Form.Item>
-              <Form.Item
-                name={['projectStats', 'stat1', 'value']}
-                label="Stat 1 Value"
-              >
-                <Input placeholder="e.g., 8 developers" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name={['projectStats', 'stat2', 'label']}
-                label="Stat 2 Label"
-              >
-                <Input placeholder="e.g., Duration" />
-              </Form.Item>
-              <Form.Item
-                name={['projectStats', 'stat2', 'value']}
-                label="Stat 2 Value"
-              >
-                <Input placeholder="e.g., 6 months" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name={['projectStats', 'stat3', 'label']}
-                label="Stat 3 Label"
-              >
-                <Input placeholder="e.g., Client" />
-              </Form.Item>
-              <Form.Item
-                name={['projectStats', 'stat3', 'value']}
-                label="Stat 3 Value"
-              >
-                <Input placeholder="e.g., MediCare Plus" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name={['projectStats', 'stat4', 'label']}
-                label="Stat 4 Label"
-              >
-                <Input placeholder="e.g., Industry" />
-              </Form.Item>
-              <Form.Item
-                name={['projectStats', 'stat4', 'value']}
-                label="Stat 4 Value"
-              >
-                <Input placeholder="e.g., Healthcare" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Divider>Key Features</Divider>
-          
-          <Form.Item
-            name="keyFeatures"
-            label="Key Features (One per line)"
-            tooltip="Enter each key feature on a new line"
-          >
-            <TextArea 
-              rows={6} 
-              placeholder="Patient portal with secure access
+                <label style={{ fontWeight: '500' }}>Featured Case Study</label>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Completion Date
+                </label>
+                <DatePicker 
+                  placeholder="Select completion date"
+                  value={formData.completionDate}
+                  onChange={(value) => setFormData({...formData, completionDate: value})}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Case Study Gallery
+              </label>
+              <GalleryUpload 
+                value={uploadedGallery}
+                onChange={(gallery) => {
+                  setUploadedGallery(gallery);
+                  setFormData({...formData, gallery: gallery});
+                }}
+                folder="case-studies/gallery"
+                maxSize={5}
+                maxCount={10}
+              />
+            </div>
+          </div>
+
+          {/* Key Features */}
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Key Features</h3>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                Key Features (One per line)
+              </label>
+              <Input.Textarea 
+                rows={6}
+                placeholder="Patient portal with secure access
 Automated appointment scheduling
 Electronic health records (EHR)
 Billing and insurance integration
 HIPAA-compliant security
 Telemedicine integration"
-            />
-          </Form.Item>
-          
-          <Divider>Results & Metrics</Divider>
-          
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name={['results', 'vehiclesUpgraded']}
-                label="Vehicles Upgraded"
-              >
-                <InputNumber 
-                  min={0} 
-                  placeholder="0" 
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name={['results', 'costSavings']}
-                label="Cost Savings (%)"
-              >
-                <InputNumber 
-                  min={0} 
-                  max={100} 
-                  placeholder="0" 
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name={['results', 'efficiencyImprovement']}
-                label="Efficiency Improvement (%)"
-              >
-                <InputNumber 
-                  min={0} 
-                  max={100} 
-                  placeholder="0" 
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Form.Item
-            name="testimonial"
-            label="Client Testimonial"
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="Client testimonial about the project"
-            />
-          </Form.Item>
-          
-          <Form.Item
-            name="technologies"
-            label="Technologies Used"
-          >
-            <Select
-              mode="tags"
-              placeholder="Add technologies used in this case study"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-          
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit" loading={createCaseStudyMutation.isPending || updateCaseStudyMutation.isPending}>
-                {editingCaseStudy ? 'Update Case Study' : 'Add Case Study'}
-              </Button>
-            </Space>
+                value={formData.keyFeatures || ''}
+                onChange={(e) => setFormData({...formData, keyFeatures: e.target.value})}
+              />
+            </div>
           </div>
-        </Form>
+
+          {/* Form Actions */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+            <Button 
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              type="submit"
+              loading={createCaseStudyMutation.isPending || updateCaseStudyMutation.isPending}
+            >
+              {editingCaseStudy ? 'Update Case Study' : 'Add Case Study'}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
-} 
+}

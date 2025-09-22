@@ -1,506 +1,537 @@
 import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiArrowLeft, FiExternalLink, FiGithub, FiUsers, FiCalendar, FiTarget, FiCheckCircle, FiStar, FiTrendingUp, FiShield, FiZap } from 'react-icons/fi';
 import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { Container, Button } from '../components/ui';
-import { useThemeSettings } from '../hooks/useThemeSettings';
 import '../styles/case-study-detail.css';
 
 const CaseStudyDetailPage = () => {
   const { slug } = useParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const settings = useThemeSettings();
 
-  // Fetch case study by slug
-  const { data: caseStudyData, isLoading, error } = useQuery({ 
-    queryKey: ['case-study', slug], 
-    queryFn: async () => (await api.get(`/case-studies/${slug}`)).data,
-    enabled: !!slug
+  // Fetch case studies from database
+  const { data: caseStudiesData, isLoading } = useQuery({ 
+    queryKey: ['case-studies'], 
+    queryFn: async () => (await api.get('/case-studies')).data 
   });
 
-  const caseStudy = caseStudyData?.data;
-  const general = settings?.general || {};
+  const caseStudies = caseStudiesData?.data || [];
 
-  // Get all images (hero + gallery)
-  const allImages = [
-    ...(caseStudy?.heroImage?.url ? [caseStudy.heroImage] : []),
-    ...(caseStudy?.gallery || [])
-  ];
+  // Enhanced static case study data matching portfolio style (fallback)
+  const staticCaseStudies = {
+    'mining-fleet-optimization': {
+      id: 1,
+      title: "Mining Fleet Optimization Project",
+      subtitle: "Complete Fleet Transformation with Advanced Safety Systems",
+      category: "mining",
+      categoryLabel: "Mining",
+      client: "Western Mining Corporation",
+      duration: "4 months",
+      team: "8 developers",
+      image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      heroImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
+      ],
+      challenge: "A leading mining company needed to modernize their aging fleet while improving safety standards and operational efficiency. Their existing vehicles were outdated, lacked proper safety systems, and had no centralized tracking or management capabilities.",
+      solution: "We designed and implemented a comprehensive fleet optimization solution with custom service bodies, advanced tracking systems, and integrated safety monitoring. The solution included IoT sensors, predictive analytics, and a mobile app for field technicians.",
+      results: [
+        "45 vehicles upgraded with new systems",
+        "35% improvement in operational efficiency", 
+        "$250k in annual cost savings",
+        "Zero safety incidents post-implementation",
+        "50% reduction in maintenance downtime",
+        "Real-time visibility into all fleet operations"
+      ],
+      technologies: ["Custom Service Bodies", "GPS Tracking", "Safety Monitoring", "Tool Management Systems", "IoT Sensors", "Predictive Analytics"],
+      features: [
+        "Custom service body design optimized for mining operations",
+        "Advanced GPS tracking system with geofencing",
+        "Real-time safety monitoring with automated alerts",
+        "Integrated tool management with RFID tracking",
+        "Automated maintenance scheduling based on usage data",
+        "Predictive analytics for equipment failure prevention",
+        "Mobile app for field technicians",
+        "Cloud-based fleet management dashboard"
+      ],
+      testimonial: {
+        text: "The transformation of our fleet has been remarkable. Productivity increased by 35% and maintenance costs dropped significantly. The custom service bodies and safety systems have revolutionized how we operate in the field.",
+        author: "Michael Thompson",
+        position: "Fleet Operations Manager",
+        company: "Western Mining Corporation",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+      },
+      links: {
+        live: "https://mining-fleet-demo.com",
+        github: "https://github.com/company/mining-fleet"
+      },
+      stats: {
+        vehicles: "45+",
+        efficiency: "35%+",
+        savings: "$250K+"
+      },
+      process: [
+        { phase: "Discovery & Analysis", description: "Analyzed existing fleet operations, identified pain points, and gathered requirements from field teams", duration: "2 weeks" },
+        { phase: "Design & Planning", description: "Created custom service body designs and developed comprehensive implementation plan", duration: "3 weeks" },
+        { phase: "Development & Testing", description: "Built custom service bodies, integrated tracking systems, and conducted extensive testing", duration: "8 weeks" },
+        { phase: "Deployment & Training", description: "Rolled out new vehicles and provided comprehensive training to all staff", duration: "2 weeks" },
+        { phase: "Monitoring & Optimization", description: "Monitored performance and made continuous improvements based on real-world usage", duration: "Ongoing" }
+      ]
+    },
+    'emergency-services-upgrade': {
+      id: 2,
+      title: "Emergency Services Vehicle Upgrade",
+      subtitle: "Advanced Emergency Response Fleet with Life-Saving Technology",
+      category: "emergency",
+      categoryLabel: "Emergency Services",
+      client: "Metropolitan Emergency Services",
+      duration: "3 months",
+      team: "6 developers",
+      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      heroImage: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1551601651-2a8555f1a136?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1551601651-2a8555f1a136?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
+      ],
+      challenge: "The emergency services department needed to upgrade their aging fleet to improve response times and enhance medical capabilities. The existing vehicles lacked modern technology and were not optimized for rapid deployment.",
+      solution: "We designed and built specialized emergency response vehicles with cutting-edge technology, advanced medical equipment, and rapid deployment capabilities. Each vehicle was customized for specific emergency scenarios.",
+      results: [
+        "12 emergency vehicles upgraded with new technology",
+        "40% improvement in response times",
+        "$180k in operational cost savings",
+        "Enhanced medical capabilities for critical situations",
+        "Improved communication with dispatch centers",
+        "Zero equipment failures during emergency responses"
+      ],
+      technologies: ["Emergency Lighting", "Communication Systems", "Medical Equipment", "Rapid Deployment", "GPS Navigation", "Patient Monitoring"],
+      features: [
+        "Advanced emergency lighting system with multiple modes",
+        "Integrated communication system with dispatch coordination",
+        "State-of-the-art medical equipment and supplies",
+        "Rapid deployment mechanisms for quick response",
+        "GPS navigation with traffic optimization",
+        "Real-time patient monitoring systems",
+        "Automated inventory tracking for medical supplies",
+        "Weather-resistant design for all conditions"
+      ],
+      testimonial: {
+        text: "Response times improved by 40% and our emergency teams are now better equipped than ever before. The new vehicles have saved countless lives and improved our ability to serve the community.",
+        author: "Sarah Martinez",
+        position: "Emergency Services Director",
+        company: "Metropolitan Emergency Services",
+        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+      },
+      links: {
+        live: "https://emergency-fleet-demo.com",
+        github: "https://github.com/company/emergency-fleet"
+      },
+      stats: {
+        vehicles: "12+",
+        response: "40%+",
+        savings: "$180K+"
+      },
+      process: [
+        { phase: "Requirements Analysis", description: "Analyzed emergency response protocols and identified critical requirements for vehicle upgrades", duration: "2 weeks" },
+        { phase: "Design & Engineering", description: "Designed specialized vehicle layouts and integrated advanced technology systems", duration: "4 weeks" },
+        { phase: "Manufacturing & Integration", description: "Built custom vehicles and integrated all emergency response systems", duration: "10 weeks" },
+        { phase: "Testing & Certification", description: "Conducted comprehensive testing and obtained all necessary certifications", duration: "2 weeks" },
+        { phase: "Training & Deployment", description: "Trained emergency personnel and deployed vehicles to service areas", duration: "2 weeks" }
+      ]
+    },
+    'construction-fleet-modernization': {
+      id: 3,
+      title: "Construction Company Fleet Modernization",
+      subtitle: "Smart Construction Fleet with Integrated Management Systems",
+      category: "construction",
+      categoryLabel: "Construction",
+      client: "Premier Construction Group",
+      duration: "6 months",
+      team: "8 developers",
+      image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      heroImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+      images: [
+        "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80"
+      ],
+      challenge: "The construction company needed to modernize their fleet to improve tool tracking, reduce losses, and enhance safety compliance. Their existing vehicles lacked proper organization and had no systematic approach to tool management.",
+      solution: "We implemented a comprehensive fleet modernization solution with integrated tool management systems, GPS tracking, and safety monitoring. The solution included RFID technology and mobile apps for real-time visibility.",
+      results: [
+        "28 construction vehicles modernized with new systems",
+        "28% improvement in operational efficiency",
+        "$320k in annual cost savings",
+        "90% reduction in tool loss and theft",
+        "Improved safety compliance across all sites",
+        "Real-time visibility into fleet and tool status"
+      ],
+      technologies: ["Tool Management Systems", "GPS Tracking", "Safety Monitoring", "Fleet Analytics", "RFID Technology", "Mobile Apps"],
+      features: [
+        "Comprehensive tool management system with RFID tracking",
+        "Real-time GPS tracking for all vehicles and equipment",
+        "Advanced safety monitoring with automated compliance reporting",
+        "Fleet analytics dashboard for performance optimization",
+        "Mobile app for field workers and supervisors",
+        "Automated inventory management for tools and materials",
+        "Integration with project management software",
+        "Weather-resistant design for construction environments"
+      ],
+      testimonial: {
+        text: "Our construction teams are now more efficient and organized. The integrated tool management system has been a game-changer, reducing tool loss by 90% and improving project completion times significantly.",
+        author: "David Chen",
+        position: "Operations Director",
+        company: "Premier Construction Group",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+      },
+      links: {
+        live: "https://construction-fleet-demo.com",
+        github: "https://github.com/company/construction-fleet"
+      },
+      stats: {
+        vehicles: "28+",
+        efficiency: "28%+",
+        savings: "$320K+"
+      },
+      process: [
+        { phase: "Site Analysis", description: "Analyzed construction sites and current fleet operations to identify improvement opportunities", duration: "2 weeks" },
+        { phase: "System Design", description: "Designed integrated tool management and tracking systems for construction environments", duration: "3 weeks" },
+        { phase: "Implementation", description: "Installed new systems and trained staff on new procedures and technology", duration: "6 weeks" },
+        { phase: "Testing & Optimization", description: "Tested systems in real construction environments and made necessary adjustments", duration: "2 weeks" },
+        { phase: "Full Deployment", description: "Rolled out systems across all construction sites and provided ongoing support", duration: "1 week" }
+      ]
+    }
+  };
 
+  // Find case study from database or fallback to static data
+  const caseStudy = caseStudies.find(study => study.slug === slug) || staticCaseStudies[slug];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="case-study-detail">
+        <div className="container">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading case study...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!caseStudy) {
+    return (
+      <div className="case-study-detail">
+        <div className="container">
+          <div className="text-center py-20">
+            <h1 className="text-3xl font-bold mb-4">Case Study Not Found</h1>
+            <p className="text-gray-600 mb-8">The case study you're looking for doesn't exist.</p>
+            <Link to="/case-studies" className="btn btn-primary">
+              <FiArrowLeft className="mr-2" /> Back to Case Studies
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle images - use database images or fallback to hero image
+  const images = caseStudy.images || 
+                 (caseStudy.gallery && caseStudy.gallery.length > 0 ? caseStudy.gallery.map(img => img.url || img) : []) ||
+                 (caseStudy.heroImage ? [caseStudy.heroImage.url || caseStudy.heroImage] : []) ||
+                 [caseStudy.image || '/api/placeholder/800/600'];
+  
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const goToImage = (index) => {
     setCurrentImageIndex(index);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
-  if (error || !caseStudy) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Case Study Not Found</h1>
-          <p className="text-gray-600 mb-6">The case study you're looking for doesn't exist or has been removed.</p>
-          <Link to="/case-studies" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-            View All Case Studies
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
+    <div className="case-study-detail">
       <Helmet>
-        <title>{caseStudy.seoTitle || caseStudy.title} - {general.siteName || general.companyName || 'Australian Engineering Solutions'}</title>
-        <meta name="description" content={caseStudy.seoDescription || caseStudy.shortDescription || caseStudy.description} />
+        <title>{caseStudy.title} - Case Study</title>
+        <meta name="description" content={caseStudy.subtitle} />
       </Helmet>
 
       {/* Hero Section */}
       <section className="case-study-detail-hero">
-        <Container>
-          <div className="case-study-detail-content">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="case-study-detail-content"
+          >
             <Link to="/case-studies" className="back-link">
-              <span className="back-arrow">←</span>
+              <FiArrowLeft className="mr-2" />
               Back to Case Studies
             </Link>
-            
-            <div className="project-category-badge">
-              {caseStudy.service?.title || caseStudy.department?.name || 'Engineering Project'}
-            </div>
-            
-            <h1 className="case-studies-hero-title">
-              {caseStudy.title}
-            </h1>
-            <p className="case-studies-hero-subtitle">
-              {caseStudy.shortDescription || caseStudy.description}
-            </p>
-            
-            {/* Project Stats in Hero */}
-            {caseStudy.projectStats && (
-              <div className="project-stats-grid">
-                {caseStudy.projectStats.stat1 && (
-                  <div className="project-stat-item">
-                    <div className="project-stat-icon">👥</div>
-                    <div className="project-stat-label">{caseStudy.projectStats.stat1.label}</div>
-                    <div className="project-stat-value">{caseStudy.projectStats.stat1.value}</div>
-                  </div>
-                )}
-                {caseStudy.projectStats.stat2 && (
-                  <div className="project-stat-item">
-                    <div className="project-stat-icon">📅</div>
-                    <div className="project-stat-label">{caseStudy.projectStats.stat2.label}</div>
-                    <div className="project-stat-value">{caseStudy.projectStats.stat2.value}</div>
-                  </div>
-                )}
-                {caseStudy.projectStats.stat3 && (
-                  <div className="project-stat-item">
-                    <div className="project-stat-icon">🏢</div>
-                    <div className="project-stat-label">{caseStudy.projectStats.stat3.label}</div>
-                    <div className="project-stat-value">{caseStudy.projectStats.stat3.value}</div>
-                  </div>
-                )}
+
+            <span className="project-category-badge">
+              {caseStudy.categoryLabel || caseStudy.category || caseStudy.department?.name || caseStudy.service?.name || 'Project'}
+            </span>
+
+            <h1 className="case-studies-hero-title">{caseStudy.title}</h1>
+            <p className="case-studies-hero-subtitle">{caseStudy.subtitle || caseStudy.shortDescription || caseStudy.description}</p>
+
+            {/* Project Stats */}
+            <div className="project-stats-grid">
+              <div className="project-stat-item">
+                <div className="project-stat-icon">🚛</div>
+                <div className="project-stat-label">Vehicles</div>
+                <div className="project-stat-value">{caseStudy.stats?.vehicles || caseStudy.results?.vehiclesUpgraded || caseStudy.projectStats?.stat1?.value || 'N/A'}</div>
               </div>
-            )}
-          </div>
-        </Container>
+              <div className="project-stat-item">
+                <div className="project-stat-icon">💰</div>
+                <div className="project-stat-label">Savings</div>
+                <div className="project-stat-value">{caseStudy.stats?.savings || caseStudy.results?.costSavings || caseStudy.projectStats?.stat2?.value || 'N/A'}</div>
+              </div>
+              <div className="project-stat-item">
+                <div className="project-stat-icon">📈</div>
+                <div className="project-stat-label">Efficiency</div>
+                <div className="project-stat-value">{caseStudy.stats?.efficiency || caseStudy.results?.efficiencyImprovement || caseStudy.projectStats?.stat3?.value || 'N/A'}</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* Case Study Content */}
+      {/* Main Content */}
       <section className="case-studies-grid">
-        <Container>
-          <div className="case-study-detail-content">
-            {/* Image Carousel */}
-            {allImages.length > 0 && (
+        <div className="case-study-detail-content">
+          {/* Main Content - Centered */}
+          <div className="case-study-detail-main">
+              {/* Image Gallery */}
               <div className="case-study-gallery">
                 <div className="case-study-carousel">
                   <div className="case-study-carousel-main">
-                    <img 
-                      src={allImages[currentImageIndex]?.url} 
-                      alt={allImages[currentImageIndex]?.alt || caseStudy.title}
+                    <img
+                      src={images[currentImageIndex]}
+                      alt={caseStudy.title}
                       className="case-study-carousel-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
-                    {allImages.length > 1 && (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white" style={{ display: 'none' }}>
+                      <div className="text-center">
+                        <h3 className="text-2xl font-bold mb-2">{caseStudy.title}</h3>
+                        <p className="opacity-90">{caseStudy.subtitle || caseStudy.shortDescription}</p>
+                      </div>
+                    </div>
+                    
+                    {images.length > 1 && (
                       <>
-                        <button 
-                          className="case-study-carousel-nav prev"
-                          onClick={prevImage}
-                          aria-label="Previous image"
-                        >
-                          <span className="case-study-carousel-nav-icon"></span>
+                        <button className="case-study-carousel-nav prev" onClick={prevImage}>
+                          <div className="case-study-carousel-nav-icon"></div>
+                          <span className="sr-only">Previous image</span>
                         </button>
-                        <button 
-                          className="case-study-carousel-nav next"
-                          onClick={nextImage}
-                          aria-label="Next image"
-                        >
-                          <span className="case-study-carousel-nav-icon"></span>
+                        <button className="case-study-carousel-nav next" onClick={nextImage}>
+                          <div className="case-study-carousel-nav-icon"></div>
+                          <span className="sr-only">Next image</span>
                         </button>
                       </>
                     )}
                   </div>
-                  
-                  {allImages.length > 1 && (
-                    <>
-                      <div className="case-study-carousel-indicators">
-                        {allImages.map((_, index) => (
-                          <button
-                            key={index}
-                            className={`case-study-carousel-indicator ${index === currentImageIndex ? 'active' : ''}`}
-                            onClick={() => goToImage(index)}
-                            aria-label={`Go to image ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-                      
-                      <div className="case-study-carousel-thumbnails">
-                        {allImages.map((image, index) => (
-                          <img
-                            key={index}
-                            src={image.url}
-                            alt={image.alt || `Thumbnail ${index + 1}`}
-                            className={`case-study-carousel-thumbnail ${index === currentImageIndex ? 'active' : ''}`}
-                            onClick={() => goToImage(index)}
-                          />
-                        ))}
-                      </div>
-                    </>
+
+                  {images.length > 1 && (
+                    <div className="case-study-carousel-indicators">
+                      {images.map((_, index) => (
+                        <button
+                          key={index}
+                          className={`case-study-carousel-indicator ${index === currentImageIndex ? 'active' : ''}`}
+                          onClick={() => goToImage(index)}
+                          aria-label={`Go to image ${index + 1}`}
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
-            )}
 
-            {/* Case Study Details */}
-            <div className="case-study-detail-grid">
-              {/* Main Content */}
-              <div className="case-study-detail-main">
-                {/* Project Overview */}
-                <div className="project-overview">
-                  <h2>Project Overview</h2>
-                  <p>{caseStudy.description}</p>
-                </div>
+              {/* Project Overview */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="project-overview"
+              >
+                <h2>The Challenge</h2>
+                <p>{caseStudy.challenge || caseStudy.challenges || caseStudy.description || 'No challenge description available.'}</p>
+              </motion.div>
 
-                {caseStudy.projectScope && (
-                  <div className="content-section">
-                    <h3>Project Scope</h3>
-                    <p>{caseStudy.projectScope}</p>
-                  </div>
-                )}
+              {/* Solution */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="content-section"
+              >
+                <h2>Our Solution</h2>
+                <p>{caseStudy.solution || caseStudy.solutions || caseStudy.description || 'No solution description available.'}</p>
+              </motion.div>
 
-                {caseStudy.challenges && (
-                  <div className="content-section">
-                    <h3>Challenges</h3>
-                    <p>{caseStudy.challenges}</p>
-                  </div>
-                )}
-
-                {caseStudy.solutions && (
-                  <div className="content-section">
-                    <h3>Solutions</h3>
-                    <p>{caseStudy.solutions}</p>
-                  </div>
-                )}
-
-                {/* Development Process Section */}
-                {caseStudy.developmentProcess && caseStudy.developmentProcess.length > 0 && (
-                  <div className="development-process-section">
-                    <h3>Development Process</h3>
-                    <div className="development-process-timeline">
-                      {caseStudy.developmentProcess.map((process, index) => (
-                        <div key={index} className="development-process-item">
-                          <div className="process-step-number">{process.step}</div>
-                          <div className="process-step-content">
-                            <h4 className="process-step-title">{process.title}</h4>
-                            <p className="process-step-description">{process.description}</p>
-                            {process.duration && (
-                              <div className="process-step-duration">{process.duration}</div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Technologies Used Section */}
-                {caseStudy.technologies && caseStudy.technologies.length > 0 && (
-                  <div className="technologies-section">
-                    <h3>Technologies Used</h3>
-                    <div className="technologies-grid">
-                      {caseStudy.technologies.map((tech, index) => (
-                        <div key={index} className="technology-tag">
-                          {tech}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Sidebar */}
-              <div className="case-study-detail-sidebar">
-                <h3>Project Details</h3>
-                
-                <div className="case-study-detail-meta">
-                  <div className="case-study-detail-meta-item">
-                    <span className="case-study-detail-meta-label">Client:</span>
-                    <span className="case-study-detail-meta-value">{caseStudy.clientName || 'Confidential'}</span>
-                  </div>
-
-                  <div className="case-study-detail-meta-item">
-                    <span className="case-study-detail-meta-label">Status:</span>
-                    <span className="case-study-detail-meta-value capitalize">{caseStudy.status || 'Completed'}</span>
-                  </div>
-
-                  {caseStudy.completionDate && (
-                    <div className="case-study-detail-meta-item">
-                      <span className="case-study-detail-meta-label">Completion Date:</span>
-                      <span className="case-study-detail-meta-value">
-                        {new Date(caseStudy.completionDate).toLocaleDateString('en-AU', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                  )}
-
-                  {caseStudy.service && (
-                    <div className="case-study-detail-meta-item">
-                      <span className="case-study-detail-meta-label">Service:</span>
-                      <span className="case-study-detail-meta-value">
-                        {typeof caseStudy.service === 'object' ? caseStudy.service.title : caseStudy.service}
-                      </span>
-                    </div>
-                  )}
-
-                  {caseStudy.department && (
-                    <div className="case-study-detail-meta-item">
-                      <span className="case-study-detail-meta-label">Department:</span>
-                      <span className="case-study-detail-meta-value">
-                        {typeof caseStudy.department === 'object' ? caseStudy.department.name : caseStudy.department}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Results */}
-                {caseStudy.results && (
-                  <div className="case-study-detail-results">
-                    <h4>Results</h4>
-                    <div className="case-study-detail-results-grid">
-                      {caseStudy.results.vehiclesUpgraded && (
-                        <div className="case-study-detail-result-item">
-                          <span className="case-study-detail-result-label">Vehicles Upgraded:</span>
-                          <span className="case-study-detail-result-value">{caseStudy.results.vehiclesUpgraded}</span>
-                        </div>
-                      )}
-                      {caseStudy.results.costSavings && (
-                        <div className="case-study-detail-result-item">
-                          <span className="case-study-detail-result-label">Cost Savings:</span>
-                          <span className="case-study-detail-result-value">${caseStudy.results.costSavings}k</span>
-                        </div>
-                      )}
-                      {caseStudy.results.efficiencyImprovement && (
-                        <div className="case-study-detail-result-item">
-                          <span className="case-study-detail-result-label">Efficiency Improvement:</span>
-                          <span className="case-study-detail-result-value">{caseStudy.results.efficiencyImprovement}%</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Tags */}
-                {caseStudy.tags && caseStudy.tags.length > 0 && (
-                  <div className="mt-6">
-                    <h4>Tags</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {caseStudy.tags.map((tag, index) => (
-                        <span key={index} className="case-study-tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Key Features Section - Full Width */}
-            {caseStudy.keyFeatures && caseStudy.keyFeatures.length > 0 && (
-              <div className="key-features-section">
-                <h3>Key Features</h3>
-                <div className="key-features-list">
-                  {caseStudy.keyFeatures.map((feature, index) => (
-                    <div key={index} className="key-feature-item">
-                      <div className="key-feature-icon"></div>
-                      <div className="key-feature-text">{feature}</div>
+              {/* Technologies */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="technologies-section"
+              >
+                <h3>Technologies Used</h3>
+                <div className="technologies-grid">
+                  {(caseStudy.technologies || caseStudy.tags || []).map((tech, index) => (
+                    <div key={index} className="technology-tag">
+                      {typeof tech === 'string' ? tech : (tech?.name || tech?.title || 'Technology')}
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              </motion.div>
 
-            {/* Key Results Section - Full Width with Carousel */}
-            {caseStudy.results && (caseStudy.results.customResults || caseStudy.results.vehiclesUpgraded || caseStudy.results.costSavings || caseStudy.results.efficiencyImprovement) && (
-              <div className="key-results-section">
-                <h3>Key Results</h3>
+              {/* Key Features */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="key-features-section"
+              >
+                <h3>Key Features</h3>
+                <div className="key-features-list">
+                  {(caseStudy.features || caseStudy.keyFeatures || caseStudy.tags || []).map((feature, index) => (
+                    <div key={index} className="key-feature-item">
+                      <div className="key-feature-icon">
+                        <FiCheckCircle />
+                      </div>
+                      <div className="key-feature-text">{typeof feature === 'string' ? feature : (feature?.name || feature?.title || 'Feature')}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Development Process */}
+              {(caseStudy.process || caseStudy.developmentProcess) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  className="development-process-section"
+                >
+                  <h3>Development Process</h3>
+                  <div className="process-steps">
+                    {(caseStudy.process || caseStudy.developmentProcess || []).map((phase, index) => (
+                      <div key={index} className="process-step">
+                        <div className="process-step-number">{index + 1}</div>
+                        <div className="process-step-title">{phase.phase || phase.title}</div>
+                        <div className="process-step-description">{phase.description}</div>
+                        <div className="process-step-duration">{phase.duration}</div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Key Results */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="key-results-section"
+              >
+                <h3>
+                  <FiTrendingUp className="mr-2" />
+                  Key Results
+                </h3>
                 <div className="key-results-carousel">
-                  <div className="key-results-track auto-scroll">
+                  <div className="key-results-track">
                     <div className="key-results-grid">
-                      {caseStudy.results.customResults && caseStudy.results.customResults.map((result, index) => (
+                      {(caseStudy.resultsArray || caseStudy.results?.customResults || []).map((result, index) => (
                         <div key={index} className="key-result-item">
                           <div className="key-result-header">
                             <div className="key-result-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 13h2l3-7 5 12 3-9h2l-4 16-6-14-3 7z"/>
-                              </svg>
+                              <FiTrendingUp />
                             </div>
                             <div className="key-result-title">Result {index + 1}</div>
                           </div>
-                          <div className="key-result-description">{result.value}</div>
+                          <div className="key-result-description">{typeof result === 'string' ? result : (result?.label || result?.value || 'Result')}</div>
                         </div>
                       ))}
-                      
-                      {caseStudy.results.vehiclesUpgraded && (
-                        <div className="key-result-item">
-                          <div className="key-result-header">
-                            <div className="key-result-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                              </svg>
-                            </div>
-                            <div className="key-result-title">Vehicles Upgraded</div>
-                          </div>
-                          <div className="key-result-description">{caseStudy.results.vehiclesUpgraded} vehicles</div>
-                        </div>
-                      )}
-                      
-                      {caseStudy.results.costSavings && (
-                        <div className="key-result-item">
-                          <div className="key-result-header">
-                            <div className="key-result-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-                              </svg>
-                            </div>
-                            <div className="key-result-title">Cost Savings</div>
-                          </div>
-                          <div className="key-result-description">${caseStudy.results.costSavings}k saved</div>
-                        </div>
-                      )}
-                      
-                      {caseStudy.results.efficiencyImprovement && (
-                        <div className="key-result-item">
-                          <div className="key-result-header">
-                            <div className="key-result-icon">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
-                              </svg>
-                            </div>
-                            <div className="key-result-title">Efficiency</div>
-                          </div>
-                          <div className="key-result-description">{caseStudy.results.efficiencyImprovement}% improvement</div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              </motion.div>
 
-            {/* Testimonial Section - Card Design Like Second Image */}
-            {caseStudy.testimonial && (
-              <div className="case-study-detail-testimonial">
-                <div className="testimonial-rating">
-                  <span className="testimonial-star">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                  <span className="testimonial-star">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                  <span className="testimonial-star">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                  <span className="testimonial-star">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                  <span className="testimonial-star">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </span>
-                </div>
-                
-                <blockquote>
-                  {caseStudy.testimonial}
-                </blockquote>
-                
-                <div className="testimonial-header">
-                  <div className="testimonial-avatar">
-                    👤
+              {/* Testimonial */}
+              {(caseStudy.testimonialObject || (caseStudy.testimonial && typeof caseStudy.testimonial === 'string')) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.7 }}
+                  className="case-study-detail-testimonial"
+                >
+                  <div className="testimonial-rating">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="testimonial-star">
+                        <FiStar />
+                      </div>
+                    ))}
                   </div>
-                  <div className="testimonial-info">
-                    <div className="testimonial-name">
-                      {caseStudy.clientName || 'Project Client'}
+                  <blockquote>"{caseStudy.testimonialObject?.text || (typeof caseStudy.testimonial === 'string' ? caseStudy.testimonial : '')}"</blockquote>
+                  <div className="testimonial-header">
+                    <div className="testimonial-avatar">
+                      <img src={caseStudy.testimonialObject?.avatar || '/api/placeholder/50/50'} alt={caseStudy.testimonialObject?.author || 'Client'} />
                     </div>
-                    <div className="testimonial-position">
-                      {caseStudy.clientPosition || 'Project Manager'}
-                    </div>
-                    <div className="testimonial-company">
-                      {caseStudy.clientCompany || 'Client Company'}
+                    <div className="testimonial-info">
+                      <div className="testimonial-name">{caseStudy.testimonialObject?.author || caseStudy.clientName || 'Client'}</div>
+                      <div className="testimonial-position">{caseStudy.testimonialObject?.position || caseStudy.clientPosition || 'Client'}</div>
+                      <div className="testimonial-company">{caseStudy.testimonialObject?.company || caseStudy.clientCompany || caseStudy.client || 'Client Company'}</div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-
+                </motion.div>
+              )}
           </div>
-        </Container>
+        </div>
       </section>
 
-      {/* CTA Section - Full Width */}
+      {/* CTA Section */}
       <section className="case-study-detail-cta">
-        <Container>
-          <div className="cta-content">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+            className="cta-content"
+          >
             <h2 className="cta-title">Ready to Start Your Project?</h2>
             <p className="cta-subtitle">
-              Let us help you achieve similar results for your business.
+              Let's discuss how we can help you achieve similar results for your business. Our team is ready to turn your vision into reality.
             </p>
             <div className="case-study-detail-cta-buttons">
               <Link to="/contact" className="cta-button-primary">
-                Get Started
+                Get Free Consultation
               </Link>
               <Link to="/case-studies" className="cta-button-secondary">
-                View More Case Studies
+                View More Projects
               </Link>
             </div>
-          </div>
-        </Container>
+          </motion.div>
+        </div>
       </section>
-    </>
+    </div>
   );
 };
 

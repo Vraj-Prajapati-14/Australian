@@ -59,8 +59,8 @@
 
 /* ===== HERO SECTION - PURPLE GRADIENT LIKE PORTFOLIO ===== */
 .case-study-detail-hero {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-  padding: 120px 0 80px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 6rem 0;
   color: white;
   position: relative;
   overflow: hidden;
@@ -74,8 +74,27 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  animation: float 6s ease-in-out infinite;
+}
+
+.case-study-detail-hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
   opacity: 0.3;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
 .case-study-detail-hero .container {
@@ -90,6 +109,8 @@
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 /* Back Navigation */
@@ -102,16 +123,13 @@
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 32px;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .back-link:hover {
   color: rgba(255, 255, 255, 1);
   text-decoration: none;
-}
-
-.back-arrow {
-  font-size: 16px;
+  transform: translateX(-4px);
 }
 
 /* Project Category Badge */
@@ -134,47 +152,55 @@
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .case-studies-hero-subtitle {
-  font-size: clamp(1.125rem, 2.5vw, 1.25rem);
-  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.95);
   line-height: 1.6;
   font-weight: 400;
-  margin-bottom: 40px;
+  margin-bottom: 2rem;
 }
 
 /* Project Stats - Portfolio Style */
 .project-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 24px;
-  margin-top: 40px;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
 }
 
 .project-stat-item {
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
+  padding: 1.25rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.project-stat-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 .project-stat-icon {
   font-size: 1.5rem;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   opacity: 0.9;
 }
 
 .project-stat-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
   font-weight: 500;
 }
 
@@ -186,8 +212,8 @@
 
 /* ===== MAIN CONTENT SECTION ===== */
 .case-studies-grid {
-  background: #ffffff;
-  padding: 80px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 4rem 0;
 }
 
 /* Override any Tailwind max-width classes */
@@ -319,42 +345,37 @@
 /* ===== CONTENT LAYOUT ===== */
 .case-study-detail-content {
   width: 100% !important;
-  max-width: none !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
 }
 
-.case-study-detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  align-items: start;
+.case-study-detail-main {
   width: 100% !important;
-  max-width: none !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
 }
 
 /* ===== MAIN CONTENT SECTIONS ===== */
-.case-study-detail-main {
-  background: #ffffff;
-  width: 100%;
-}
 
 .project-overview {
-  margin-bottom: 30px;
-  padding: 30px 25px;
-  background: #f8fafc;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   width: 100%;
   text-align: center;
   box-sizing: border-box;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .project-overview h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 24px;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
   line-height: 1.2;
-  letter-spacing: -0.02em;
   text-align: center;
 }
 
@@ -369,33 +390,32 @@
 
 /* Section Styling - Portfolio Style */
 .content-section {
-  margin-bottom: 30px;
-  padding: 25px 20px;
-  background: #ffffff;
-  border-radius: 12px;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
   width: 100%;
   text-align: center;
   box-sizing: border-box;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .content-section h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 24px;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
   line-height: 1.2;
-  letter-spacing: -0.02em;
   text-align: center;
 }
 
 .content-section h3 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
-  color: #3b82f6;
-  margin-bottom: 20px;
+  color: #2563eb;
+  margin-bottom: 1.5rem;
   line-height: 1.3;
-  letter-spacing: -0.01em;
   text-align: center;
 }
 
@@ -403,7 +423,7 @@
   font-size: 1.125rem;
   color: #4b5563;
   line-height: 1.7;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   text-align: center;
   max-width: 900px;
   margin-left: auto;
@@ -458,82 +478,76 @@
 
 /* ===== TECHNOLOGIES SECTION ===== */
 .technologies-section {
-  background: #f8fafc;
-  padding: 60px 0;
+  background: white;
+  padding: 2rem;
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 2rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .technologies-section h3 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 40px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
   line-height: 1.2;
 }
 
 .technologies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
 }
 
 .technology-tag {
-  background: transparent;
-  color: #000000;
-  padding: 16px 24px;
+  background: #f8fafc;
+  color: #374151;
+  padding: 1rem 1.5rem;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  border: 2px solid #000000;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
 }
 
-.technology-tag::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: #000000;
-  transition: left 0.3s ease;
-  z-index: -1;
+.technology-tag:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
 }
-
-/* Hover effects removed as requested */
 
 /* ===== KEY FEATURES SECTION - FULL WIDTH ===== */
 .key-features-section {
-  background: #ffffff;
-  padding: 40px 30px;
-  margin: 40px 0;
+  background: white;
+  padding: 2rem;
+  margin: 2rem 0;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   width: 100%;
   text-align: center;
   box-sizing: border-box;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .key-features-section h3 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 40px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
   text-align: center;
 }
 
 .key-features-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
   max-width: 100%;
@@ -544,8 +558,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 20px;
+  gap: 1rem;
+  padding: 1.5rem;
   background: #f8fafc;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
@@ -565,10 +579,9 @@
 }
 
 .key-feature-icon {
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: 2px solid #000000;
+  width: 2rem;
+  height: 2rem;
+  background: #10b981;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -579,13 +592,13 @@
 
 .key-feature-icon::after {
   content: '✓';
-  color: #000000;
+  color: white;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .key-feature-text {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #4b5563;
   line-height: 1.6;
   font-weight: 600;
@@ -670,9 +683,9 @@
 
 /* ===== KEY RESULTS SECTION - FULL WIDTH ===== */
 .key-results-section {
-  background: #ffffff;
-  padding: 40px 30px;
-  margin: 40px 0;
+  background: white;
+  padding: 2rem;
+  margin: 2rem 0;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   width: 100%;
@@ -681,13 +694,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .key-results-section h3 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 40px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -724,7 +738,7 @@
 .key-result-item {
   background: #ffffff;
   border-radius: 12px;
-  padding: 24px 20px;
+  padding: 1.5rem;
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
   position: relative;
@@ -741,14 +755,14 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: #000000;
+  background: linear-gradient(90deg, #667eea, #764ba2);
   border-radius: 12px 12px 0 0;
 }
 
 .key-result-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  border-color: #6366f1;
+  border-color: #667eea;
 }
 
 .key-result-header {
@@ -759,28 +773,27 @@
 }
 
 .key-result-icon {
-  width: 48px;
-  height: 48px;
-  background: transparent;
-  border: none;
+  width: 3rem;
+  height: 3rem;
+  background: #667eea;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .key-result-icon svg {
-  width: 24px;
-  height: 24px;
-  stroke: #1f2937;
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: white;
   stroke-width: 2;
 }
 
 .key-result-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #111827;
+  color: #1f2937;
   text-align: center;
 }
 
@@ -807,9 +820,9 @@
 
 /* ===== SIDEBAR - MODERN STYLE ===== */
 .case-study-detail-sidebar {
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  background: white;
   border-radius: 20px;
-  padding: 35px;
+  padding: 2rem;
   border: 1px solid #e2e8f0;
   height: fit-content;
   position: sticky;
@@ -817,38 +830,34 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
-  backdrop-filter: blur(10px);
 }
 
 .case-study-detail-sidebar h3 {
   font-size: 1.5rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
   line-height: 1.3;
-  padding-bottom: 12px;
-  border-bottom: 3px solid #6366f1;
+  padding-bottom: 1rem;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   position: relative;
 }
 
 .case-study-detail-sidebar h3::after {
   content: '';
   position: absolute;
-  bottom: -3px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #667eea, #764ba2);
   border-radius: 2px;
 }
 
 /* Meta Information - Modern Style */
 .case-study-detail-meta {
-  margin-bottom: 28px;
+  margin-bottom: 2rem;
 }
 
 .case-study-detail-meta-item {
@@ -998,12 +1007,12 @@
 
 /* ===== TESTIMONIAL SECTION - CARD DESIGN LIKE SECOND IMAGE ===== */
 .case-study-detail-testimonial {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 32px;
-  margin: 40px auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  margin: 2rem auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
   max-width: 600px;
@@ -1020,8 +1029,10 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: #8b5cf6;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
 }
 
 /* Navigation arrows in top right */
@@ -1057,13 +1068,12 @@
 
 /* Quote text */
 .case-study-detail-testimonial blockquote {
-  font-size: 1.1rem;
-  color: #374151;
+  font-size: 1.25rem;
+  color: white;
   line-height: 1.6;
   font-style: italic;
-  margin: 0 0 24px 0;
+  margin: 0 0 2rem 0;
   position: relative;
-  padding-left: 30px;
   text-align: center;
   width: 100%;
 }
@@ -1074,7 +1084,7 @@
   left: 0;
   top: -8px;
   font-size: 3rem;
-  color: #d1d5db;
+  color: rgba(255, 255, 255, 0.3);
   font-family: serif;
   line-height: 1;
 }
@@ -1118,20 +1128,20 @@
 .testimonial-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #111827;
+  color: white;
   margin-bottom: 2px;
 }
 
 .testimonial-position {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   margin-bottom: 2px;
 }
 
 .testimonial-company {
   font-size: 0.85rem;
-  color: #3b82f6;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   text-decoration: underline;
 }
@@ -1143,31 +1153,32 @@
 
 /* ===== CTA SECTION - SAME AS CASE STUDIES PAGE ===== */
 .case-study-detail-cta {
-  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-  padding: 6rem 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 4rem 0;
   position: relative;
+  overflow: hidden;
 }
 
 .case-study-detail-cta .cta-content {
   text-align: center;
-  color: white;
+  color: #1f2937;
   max-width: 800px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
 .case-study-detail-cta .cta-title {
-  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-size: clamp(2rem, 4vw, 2.5rem);
   font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: white;
+  margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .case-study-detail-cta .cta-subtitle {
   font-size: 1.125rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
   line-height: 1.6;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .case-study-detail-cta-buttons {
@@ -1225,21 +1236,12 @@
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
-  .case-study-detail-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    width: 100%;
-  }
-  
-  .case-study-detail-sidebar {
-    position: relative;
-    top: 0;
-    order: -1;
-    width: 100%;
+  .case-study-detail-content {
+    padding: 0 1.5rem !important;
   }
   
   .case-study-detail-main {
-    width: 100%;
+    max-width: 100% !important;
   }
   
   .case-study-carousel-main {
@@ -1266,8 +1268,12 @@
     padding: 60px 0;
   }
   
-  .case-studies-grid .container {
-    padding: 0 20px;
+  .case-study-detail-content {
+    padding: 0 1rem !important;
+  }
+  
+  .case-study-detail-main {
+    max-width: 100% !important;
   }
   
   .case-study-gallery {

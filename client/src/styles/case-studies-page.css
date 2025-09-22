@@ -1,10 +1,10 @@
 /* ===== CASE STUDIES PAGE STYLES ===== */
-/* Clean, modern design matching the provided images */
+/* Professional Portfolio Design with Purple Gradient */
 
-/* Hero Section - Enhanced Professional Design */
+/* Hero Section - Portfolio Style */
 .case-studies-hero {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 200px 0 100px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 6rem 0;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   position: relative;
@@ -18,9 +18,29 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="%23e2e8f0" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  animation: float 6s ease-in-out infinite;
+  z-index: 1;
+}
+
+.case-studies-hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
   opacity: 0.3;
   z-index: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
 .case-studies-hero .container {
@@ -35,27 +55,30 @@
   text-align: center;
   max-width: 900px;
   margin: 0 auto;
-  color: #1e293b;
+  color: white;
+  position: relative;
+  z-index: 2;
 }
 
 .case-studies-hero-title {
-  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
-  color: #1e293b !important;
-  margin-bottom: 24px;
+  color: white !important;
+  margin-bottom: 1.5rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .case-studies-hero-subtitle {
-  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
-  color: #64748b !important;
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.95) !important;
   line-height: 1.6;
-  max-width: 700px;
-  margin: 0 auto 30px auto;
+  max-width: 800px;
+  margin: 0 auto;
   font-weight: 400;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Search Bar */
@@ -111,13 +134,18 @@
   color: #3b82f6;
 }
 
-/* Filter Navigation - Enhanced Design */
+/* Filter Navigation - Portfolio Style */
 .case-studies-filters {
-  background: #ffffff;
-  padding: 30px 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  padding: 2rem 0;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
-  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .case-studies-filters .container {
@@ -130,23 +158,24 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .filter-button {
-  background: #ffffff;
-  color: #64748b;
-  border: 2px solid #e2e8f0;
-  padding: 14px 28px;
-  border-radius: 30px;
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   display: inline-block;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filter-button::before {
@@ -156,8 +185,8 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-  transition: left 0.3s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .filter-button:hover::before {
@@ -166,25 +195,25 @@
 
 .filter-button:hover {
   background: #f8fafc;
-  color: #3b82f6;
-  border-color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
   text-decoration: none;
 }
 
 .filter-button.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
   transform: translateY(-2px);
 }
 
-/* Case Studies Grid - Enhanced Design */
+/* Case Studies Grid - Portfolio Style */
 .case-studies-grid {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  padding: 80px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 4rem 0;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   position: relative;
@@ -198,8 +227,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23e2e8f0"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-  opacity: 0.4;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
   z-index: 1;
 }
 
@@ -213,18 +243,18 @@
 
 .case-studies-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 40px;
-  margin-top: 60px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 0;
 }
 
-/* Case Study Card - Enhanced Design */
+/* Case Study Card - Portfolio Style */
 .case-study-card {
-  background: #ffffff;
+  background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(229, 231, 235, 0.5);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   display: flex;
@@ -239,9 +269,9 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
   transform: scaleX(0);
-  transition: transform 0.4s ease;
+  transition: transform 0.3s ease;
 }
 
 .case-study-card:hover::before {
@@ -249,9 +279,8 @@
 }
 
 .case-study-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-  border-color: #dbeafe;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .case-study-image {
@@ -269,7 +298,7 @@
 }
 
 .case-study-card:hover .case-study-image img {
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .case-study-status {
@@ -304,7 +333,7 @@
 }
 
 .case-study-content {
-  padding: 32px;
+  padding: 2rem;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -337,65 +366,69 @@
 }
 
 .case-study-title {
-  font-size: 1.375rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
   line-height: 1.3;
-  letter-spacing: -0.01em;
 }
 
 .case-study-description {
-  color: #64748b;
-  line-height: 1.7;
+  color: #6b7280;
+  line-height: 1.6;
   font-size: 0.95rem;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
 .case-study-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 24px;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .case-study-tag {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .case-study-tag:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
   transform: translateY(-1px);
 }
 
 .case-study-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
   border: none;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
+  padding: 0.35rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.5rem;
   justify-content: center;
   width: 100%;
   position: relative;
   overflow: hidden;
+  margin-top: 1.2rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
 }
 
 .case-study-button::before {
@@ -414,9 +447,9 @@
 }
 
 .case-study-button:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px -5px rgba(102, 126, 234, 0.18);
   text-decoration: none;
   color: #ffffff;
 }
@@ -433,6 +466,40 @@
 .case-study-button:hover .arrow-icon {
   background: #ffffff;
   transform: translateX(2px);
+}
+
+/* Case Study Links */
+.case-study-links {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.2rem;
+}
+
+.case-study-action {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 0.35rem 1.1rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  margin: 1.2rem auto 0 auto;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+}
+
+.case-study-action:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px -5px rgba(102, 126, 234, 0.18);
+  text-decoration: none;
+  color: #ffffff;
 }
 
 /* Empty State */

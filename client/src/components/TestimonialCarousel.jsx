@@ -95,33 +95,35 @@ export default function TestimonialCarousel({ testimonials = [] }) {
       {needsCarousel && (
         <>
           <button 
-            className="carousel-nav carousel-prev" 
+            className="carousel-nav carousel-nav-prev" 
             onClick={prevSlide}
             aria-label="Previous testimonials"
           >
-            <LeftOutlined />
+            <span>‹</span>
           </button>
 
           <button 
-            className="carousel-nav carousel-next" 
+            className="carousel-nav carousel-nav-next" 
             onClick={nextSlide}
             aria-label="Next testimonials"
           >
-            <RightOutlined />
+            <span>›</span>
           </button>
         </>
       )}
 
       {/* Testimonials container */}
-      <div className="testimonials-container" ref={containerRef}>
-        {visibleTestimonials.map((testimonial, index) => (
-          <div 
-            key={testimonial._id} 
-            className="testimonial-card"
-            style={{
-              animationDelay: `${index * 0.1}s`
-            }}
-          >
+      <div className="carousel-container" ref={containerRef}>
+        <div className="carousel-track">
+          {visibleTestimonials.map((testimonial, index) => (
+            <div 
+              key={testimonial._id} 
+              className="carousel-slide"
+              style={{
+                animationDelay: `${index * 0.1}s`
+              }}
+            >
+              <div className="testimonial-card">
             <div className="testimonial-header">
               <div className="testimonial-avatar">
                                  {testimonial.avatar?.url ? (
@@ -159,8 +161,10 @@ export default function TestimonialCarousel({ testimonials = [] }) {
                 <span className="service-tag">Featured</span>
               </div>
             )}
-          </div>
-        ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Progress indicators */}
@@ -169,7 +173,7 @@ export default function TestimonialCarousel({ testimonials = [] }) {
           {Array.from({ length: totalSlides }, (_, index) => (
             <button
               key={index}
-              className={`indicator ${index === currentIndex ? 'active' : ''}`}
+              className={`carousel-indicator ${index === currentIndex ? 'active' : ''}`}
               onClick={() => setCurrentIndex(index)}
               aria-label={`Go to slide ${index + 1}`}
             />

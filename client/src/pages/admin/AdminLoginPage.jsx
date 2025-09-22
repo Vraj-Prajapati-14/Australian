@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Alert, Spin } from 'antd';
-import { UserOutlined, LockOutlined, LoginOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { Input, Button, Card } from '../../components/ui';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 
-const { Title, Text } = Typography;
+// Helper components for icons
+const UserIcon = () => <span>👤</span>;
+const LockIcon = () => <span>🔒</span>;
+const LoginIcon = () => <span>🚪</span>;
 
 export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await api.post('/auth/login', values);
+      const response = await api.post('/auth/login', formData);
       const { token, admin } = response.data;
       
       if (token && admin) {
@@ -144,81 +148,63 @@ export default function AdminLoginPage() {
       <Card style={cardStyle}>
         {/* Logo/Header */}
         <div style={logoStyle}>
-          <Title level={1} style={titleStyle}>
+          <h1 style={titleStyle}>
             HIDRIVE Admin
-          </Title>
-          <Text style={subtitleStyle}>
+          </h1>
+          <p style={subtitleStyle}>
             Sign in to your admin account
-          </Text>
+          </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <Alert
-            message={error}
-            type="error"
-            showIcon
-            style={alertStyle}
-          />
+          <div style={alertStyle}>
+            <p style={{ margin: 0, color: '#ff4d4f' }}>{error}</p>
+          </div>
         )}
 
         {/* Login Form */}
-        <Form
-          name="admin-login"
-          onFinish={handleSubmit}
-          layout="vertical"
-          size="large"
-          style={formStyle}
-        >
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: 'Please enter your email' },
-              { type: 'email', message: 'Please enter a valid email' }
-            ]}
-          >
+        <form onSubmit={handleSubmit} style={formStyle}>
+          <div style={{ marginBottom: '16px' }}>
             <Input
-              prefix={<UserOutlined style={{ color: '#bfbfbf', fontSize: '16px' }} />}
+              type="email"
               placeholder="Email address"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
               style={inputStyle}
               autoComplete="email"
+              required
             />
-          </Form.Item>
+          </div>
 
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: 'Please enter your password' },
-              { min: 6, message: 'Password must be at least 6 characters' }
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: '#bfbfbf', fontSize: '16px' }} />}
+          <div style={{ marginBottom: '24px' }}>
+            <Input
+              type="password"
               placeholder="Password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
               style={inputStyle}
               autoComplete="current-password"
-              iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+              required
             />
-          </Form.Item>
+          </div>
 
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              icon={!loading && <LoginOutlined />}
-              style={buttonStyle}
-            >
-              {loading ? 'Signing In...' : 'Sign In'}
-            </Button>
-          </Form.Item>
-        </Form>
+          <Button
+            variant="primary"
+            type="submit"
+            loading={loading}
+            style={buttonStyle}
+            fullWidth
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </Button>
+        </form>
 
         {/* Footer */}
         <div style={footerStyle}>
-          <Text style={footerTextStyle}>
+          <p style={footerTextStyle}>
             Forgot your password? Contact your administrator.
-          </Text>
+          </p>
         </div>
       </Card>
     </div>

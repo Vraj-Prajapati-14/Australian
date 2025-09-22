@@ -341,23 +341,29 @@ const InspirationGalleryPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <div className="inspiration-cta-section">
-        <div className="cta-content">
-          <h2 className="cta-title">Ready to Get Started?</h2>
-          <p className="cta-subtitle">
-            Contact us today for a free consultation and quote
-          </p>
-          <div className="cta-buttons">
-            <Link to="/contact" className="cta-button-primary">
-              CONTACT US
-            </Link>
-            <Link to="/services" className="cta-button-secondary">
-              VIEW SERVICES
-            </Link>
+      {/* CTA Section - Using exact same structure as HomePage and AboutPage */}
+      <section className="cta-section">
+        <Container>
+          <div className="cta-content">
+            <h2 className="cta-title">Ready to Get Started?</h2>
+            <p className="cta-subtitle">
+              Contact us today for a free consultation and quote
+            </p>
+            <div className="cta-buttons">
+              <Link to="/contact">
+                <Button variant="primary" size="lg" className="cta-button-primary">
+                  Contact Us
+                </Button>
+              </Link>
+              <Link to="/services">
+                <Button variant="outline" size="lg" className="cta-button-secondary">
+                  View Services
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </div>
+        </Container>
+      </section>
 
       {/* Lightbox Modal */}
       {isLightboxOpen && selectedImage && (
